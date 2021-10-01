@@ -1,11 +1,86 @@
 use serde::{Serialize, Deserialize};
 //use std::fs::{read_to_string};
-use clap::{App, load_yaml};
+use clap::{AppSettings, Clap};
 
+mod cache;
+use cache::Cache;
+
+/// This doc string acts as a help message when the user runs '--help'
+/// as do all doc strings on fields
+#[derive(Clap, Debug)]
+#[clap(version = "0.1.0", author = "RedBrumbler & Sc2ad")]
+#[clap(setting = AppSettings::ColoredHelp)]
+struct Opts {
+    /// the github token to use for operations
+    #[clap(short, long)]
+    token: Option<String>,
+    #[clap(subcommand)]
+    subcmd: MainCommand
+}
+
+#[derive(Clap, Debug, Clone)]
+enum MainCommand {
+    /// Cache control
+    Cache(Cache),
+    /// Clear all resolved dependencies by clearing the lock file
+    Clear,
+    /// Collect and collapse dependencies and print them to console
+    Collapse,
+    /// Collect dependencies and print them to console
+    Collect,
+    /// Config control
+    Config,
+    /// Dependency control
+    Dependency,
+    /// Package control
+    Package,
+    /// List all properties that are currently supported by QPM
+    PropertiesList,
+    /// Publish package
+    Publish,
+    /// Restore and resolve all dependencies from the package
+    Restore,
+    /// Makes the qmod from the files specified
+    MakeQmod
+}
+
+fn main() {
+    let opts: Opts = Opts::parse();
+    let token = opts.token.clone();
+    if token.is_some()
+    {
+        println!("using token {}", token.unwrap());
+
+    }
+
+    // You can handle information about subcommands by requesting their matches by name
+    // (as below), requesting just the name used, or both at the same time
+    match opts.subcmd.clone() {
+        MainCommand::Cache(c) => { cache::ExecuteCacheOperation(c.op); },
+        MainCommand::Clear => { println!("Clear"); },
+        MainCommand::Collapse => { println!("Collapse"); },
+        MainCommand::Collect => { println!("Collect"); },
+        MainCommand::Config => { println!("Config"); },
+        MainCommand::Dependency => { println!("Dependency"); },
+        MainCommand::Package => { println!("Package"); },
+        MainCommand::PropertiesList => { println!("PropertiesList"); },
+        MainCommand::Publish => { println!("Publish"); },
+        MainCommand::Restore => { println!("Restore"); },
+        MainCommand::MakeQmod => { println!("MakeQmod"); }
+    }
+
+    println!("opts: {:#?}", opts);
+    // more program logic goes here...
+}
+
+/*
 fn main() {
     let yaml = load_yaml!("cli.yaml");
     let matches = App::from(yaml).get_matches();
+
+    println!("{:#?}", matches);
 }
+*/
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
