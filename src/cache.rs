@@ -22,5 +22,5 @@ pub fn ExecuteCacheOperation(op: CacheOperation)
 
 fn Clear()
 {
-
+    println!("It should clear the cached files now");
 }

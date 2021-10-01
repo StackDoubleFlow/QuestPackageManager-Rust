@@ -5,6 +5,18 @@ use clap::{AppSettings, Clap};
 mod cache;
 use cache::Cache;
 
+mod clear;
+mod collapse;
+mod collect;
+mod config;
+
+mod dependency;
+mod makeqmod;
+mod package;
+mod propertieslist;
+mod publish;
+mod restore;
+
 /// This doc string acts as a help message when the user runs '--help'
 /// as do all doc strings on fields
 #[derive(Clap, Debug)]
@@ -29,7 +41,7 @@ enum MainCommand {
     /// Collect dependencies and print them to console
     Collect,
     /// Config control
-    Config,
+    Config(config::Config),
     /// Dependency control
     Dependency,
     /// Package control
@@ -57,10 +69,10 @@ fn main() {
     // (as below), requesting just the name used, or both at the same time
     match opts.subcmd.clone() {
         MainCommand::Cache(c) => { cache::ExecuteCacheOperation(c.op); },
-        MainCommand::Clear => { println!("Clear"); },
-        MainCommand::Collapse => { println!("Collapse"); },
-        MainCommand::Collect => { println!("Collect"); },
-        MainCommand::Config => { println!("Config"); },
+        MainCommand::Clear => { clear::ExecuteClearOperation(); },
+        MainCommand::Collapse => { collapse::ExecuteCollapseOperation(); },
+        MainCommand::Collect => { collect::ExecuteCollectOperation(); },
+        MainCommand::Config(c) => { config::ExecuteConfigOperation(c); },
         MainCommand::Dependency => { println!("Dependency"); },
         MainCommand::Package => { println!("Package"); },
         MainCommand::PropertiesList => { println!("PropertiesList"); },
