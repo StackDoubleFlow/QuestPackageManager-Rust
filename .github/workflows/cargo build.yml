@@ -70,8 +70,6 @@ jobs:
 #                ls ./target/release/
 #                ls ${{ matrix.build-folder }}
 #                mv "${{ matrix.build-folder }}/${{ matrix.file-name }}" "./${{ matrix.finalPrefix }}-${{ matrix.file-name }}"
-#                # Move only if exists
-#                [ -f ${{ matrix.build-folder }}/${{ matrix.lib-name }} ] && mv ${{ matrix.build-folder }}/${{ matrix.lib-name }} ./${{ matrix.finalPrefix }}-${{ matrix.lib-name }} || true
 #                echo Done
 #              shell: bash 
                 
@@ -79,6 +77,6 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                 name: ${{matrix.finalPrefix}}-${{matrix.file-name}}
-                path: ${{matrix.build-folder}}${{matrix.finalPrefix}}-${{matrix.file-name}}
+                path: ${{matrix.build-folder}}${{matrix.file-name}}
                 # if not found error obviously
                 if-no-files-found: error
