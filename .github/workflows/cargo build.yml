@@ -3,12 +3,12 @@ name: Cargo Build
 on:
     workflow_dispatch:
     push:
-        branches: master
+        branches: main
         paths-ignore:
             - .gitignore
             - Readme.md
     pull_request:
-        branches: master
+        branches: main
 
 jobs:
     build:
