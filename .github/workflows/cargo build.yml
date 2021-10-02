@@ -11,7 +11,7 @@ on:
         branches: main
 
 jobs:
-    build:
+    build-linux:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
@@ -29,5 +29,25 @@ jobs:
               with:
                 name: qpm-rust
                 path: ./target/debug/qpm-rust
+                # if not found error obviously
+                if-no-files-found: error
+    build-windows:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v2
+              name: Checkout
+              with:
+                  submodules: true
+                  lfs: true
+
+            - name: Cargo build
+              run: |
+                  cd ${GITHUB_WORKSPACE}    
+                  cargo build
+            - name: Upload executable
+              uses: actions/upload-artifact@v2
+              with:
+                name: qpm-rust.exe
+                path: ./target/debug/qpm-rust.exe
                 # if not found error obviously
                 if-no-files-found: error
