@@ -2,16 +2,14 @@ use serde::{Serialize, Deserialize};
 //use std::fs::{read_to_string};
 use clap::{AppSettings, Clap};
 
+mod qpm_types;
 mod cache;
-use cache::Cache;
-
 mod clear;
 mod collapse;
 mod collect;
 mod config;
-
 mod dependency;
-mod makeqmod;
+mod qmod;
 mod package;
 mod propertieslist;
 mod publish;
@@ -33,7 +31,7 @@ struct Opts {
 #[derive(Clap, Debug, Clone)]
 enum MainCommand {
     /// Cache control
-    Cache(Cache),
+    Cache(cache::Cache),
     /// Clear all resolved dependencies by clearing the lock file
     Clear,
     /// Collect and collapse dependencies and print them to console
@@ -43,17 +41,17 @@ enum MainCommand {
     /// Config control
     Config(config::Config),
     /// Dependency control
-    Dependency,
+    Dependency(dependency::Dependency),
     /// Package control
-    Package,
+    Package(package::Package),
     /// List all properties that are currently supported by QPM
     PropertiesList,
     /// Publish package
     Publish,
     /// Restore and resolve all dependencies from the package
     Restore,
-    /// Makes the qmod from the files specified
-    MakeQmod
+    /// Qmod control
+    Qmod(qmod::Qmod)
 }
 
 fn main() {
@@ -62,142 +60,30 @@ fn main() {
     if token.is_some()
     {
         println!("using token {}", token.unwrap());
-
     }
 
     // You can handle information about subcommands by requesting their matches by name
     // (as below), requesting just the name used, or both at the same time
     match opts.subcmd.clone() {
-        MainCommand::Cache(c) => { cache::ExecuteCacheOperation(c.op); },
-        MainCommand::Clear => { clear::ExecuteClearOperation(); },
-        MainCommand::Collapse => { collapse::ExecuteCollapseOperation(); },
-        MainCommand::Collect => { collect::ExecuteCollectOperation(); },
-        MainCommand::Config(c) => { config::ExecuteConfigOperation(c); },
-        MainCommand::Dependency => { println!("Dependency"); },
-        MainCommand::Package => { println!("Package"); },
-        MainCommand::PropertiesList => { println!("PropertiesList"); },
-        MainCommand::Publish => { println!("Publish"); },
-        MainCommand::Restore => { println!("Restore"); },
-        MainCommand::MakeQmod => { println!("MakeQmod"); }
+        MainCommand::Cache(c) => cache::execute_cache_operation(c.op),
+        MainCommand::Clear => clear::execute_clear_operation(),
+        MainCommand::Collapse => collapse::execute_collapse_operation(),
+        MainCommand::Collect => collect::execute_collect_operation(),
+        MainCommand::Config(c) => config::execute_config_operation(c),
+        MainCommand::Dependency(d) => dependency::execute_dependency_operation(d),
+        MainCommand::Package(p) => package::execute_package_operation(p),
+        MainCommand::PropertiesList => propertieslist::execute_properties_list_operation(),
+        MainCommand::Publish => publish::execute_publish_operation(),
+        MainCommand::Restore => restore::execute_restore_operation(),
+        MainCommand::Qmod(q) => qmod::execute_qmod_operation(q)
     }
 
-    println!("opts: {:#?}", opts);
+    println!("\nopts: {:#?}", opts);
     // more program logic goes here...
 }
-
-/*
-fn main() {
-    let yaml = load_yaml!("cli.yaml");
-    let matches = App::from(yaml).get_matches();
-
-    println!("{:#?}", matches);
-}
-*/
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub cache_path: String,
     pub timeout: u32
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct Dependency {
-    pub id: String,
-    pub versionRange: String,
-    #[serde(default)]
-    pub additionalData: serde_json::Value
-}
-
-impl Default for Dependency {
-    #[inline]
-    fn default() -> Dependency {
-        Dependency {
-            id: "".to_string(),
-            versionRange: "".to_string(),
-            additionalData: serde_json::Value::default()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct PackageInfo {
-    pub name: String,
-    pub id: String,
-    pub version: String,
-    pub url: String,
-    #[serde(default)]
-    pub additionalData: serde_json::Value
-}
-
-impl Default for PackageInfo {
-    #[inline]
-    fn default() -> PackageInfo {
-        PackageInfo {
-            name: "".to_string(),
-            id: "".to_string(),
-            version: "".to_string(),
-            url: "".to_string(),
-            additionalData: serde_json::Value::default()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct PackageConfig {
-    pub sharedDir: String,
-    pub dependenciesDir: String,
-    pub info: PackageInfo,
-    pub dependencies: Vec<Dependency>,
-    #[serde(default)]
-    pub additionalData: serde_json::Value
-}
-
-impl Default for PackageConfig {
-    #[inline]
-    fn default() -> PackageConfig {
-        PackageConfig {
-            sharedDir: "shared".to_string(),
-            dependenciesDir: "extern".to_string(),
-            info: PackageInfo::default(),
-            dependencies: Vec::<Dependency>::default(),
-            additionalData: serde_json::Value::default()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct RestoredDependency {
-    pub dependency: Dependency,
-    pub version: String
-}
-
-impl Default for RestoredDependency {
-    #[inline]
-    fn default() -> RestoredDependency {
-        RestoredDependency {
-            dependency: Dependency::default(),
-            version: "".to_string()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct SharedPackageConfig {
-    pub config: PackageConfig,
-    pub restoredDependencies: Vec<RestoredDependency>
-}
-
-impl Default for SharedPackageConfig {
-    #[inline]
-    fn default() -> SharedPackageConfig {
-        SharedPackageConfig {
-            config: PackageConfig::default(),
-            restoredDependencies: Vec::<RestoredDependency>::default(),
-        }
-    }
 }

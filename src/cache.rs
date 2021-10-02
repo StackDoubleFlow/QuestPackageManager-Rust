@@ -1,6 +1,7 @@
-use clap::{Clap};
+use clap::{Clap, AppSettings};
 
 #[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColoredHelp)]
 pub struct Cache {
     /// Clear the cache
     #[clap(subcommand)]
@@ -13,14 +14,14 @@ pub enum CacheOperation {
     Clear
 }
 
-pub fn ExecuteCacheOperation(op: CacheOperation)
+pub fn execute_cache_operation(op: CacheOperation)
 {
     match op {
-        CacheOperation::Clear => Clear(),
+        CacheOperation::Clear => clear(),
     }
 }
 
-fn Clear()
+fn clear()
 {
     println!("It should clear the cached files now");
 }
