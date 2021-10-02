@@ -23,9 +23,9 @@ pub enum PackageOperation {
 pub fn execute_package_operation(operation: Package)
 {
     match operation.op.clone() {
-        PackageOperation::Create => 
-        PackageOperation::Edit => 
-        PackageOperation::EditExtra => 
+        PackageOperation::Create => package_create_operation(),
+        PackageOperation::Edit => package_edit_operation(),
+        PackageOperation::EditExtra => package_edit_extra_operation()
     }
 }
 
@@ -41,5 +41,5 @@ fn package_edit_operation()
 
 fn package_edit_extra_operation()
 {
-    
+
 }
