@@ -114,21 +114,35 @@ fn package_edit_operation(edit_parameters: Edit)
 fn package_set_id(id: String)
 {
     println!("Setting package id: {}", id);
+    // TODO edit mod.json and android.mk
+    let mut package = qpm_types::PackageConfig::read();
+    package.info.id = id;
+    package.write();
 }
 
 fn package_set_name(name: String)
 {
     println!("Setting package name: {}", name);
+    let mut package = qpm_types::PackageConfig::read();
+    package.info.name = name;
+    package.write();
 }
 
 fn package_set_url(url: String)
 {
     println!("Setting package url: {}", url);
+    let mut package = qpm_types::PackageConfig::read();
+    package.info.url = Option::Some(url);
+    package.write();
 }
 
 fn package_set_version(version: String)
 {
     println!("Setting package version: {}", version);
+    // TODO  make it edit the version in mod.json and android.mk
+    let mut package = qpm_types::PackageConfig::read();
+    package.info.version = version;
+    package.write();
 }
 
 fn package_edit_extra_operation()
