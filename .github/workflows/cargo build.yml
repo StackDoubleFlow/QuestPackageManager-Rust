@@ -64,14 +64,6 @@ jobs:
             - name: Cargo build
               run: |
                   cargo +nightly ${{matrix.cargo-arg}} build --verbose
-
-#            - name: Rename and move files
-#              run: |
-#                ls ./target/release/
-#                ls ${{ matrix.build-folder }}
-#                mv "${{ matrix.build-folder }}/${{ matrix.file-name }}" "./${{ matrix.finalPrefix }}-${{ matrix.file-name }}"
-#                echo Done
-#              shell: bash 
                 
             - name: Upload executable
               uses: actions/upload-artifact@v2
