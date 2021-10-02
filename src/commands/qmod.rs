@@ -19,7 +19,7 @@ pub enum QmodOperation {
 
 pub fn execute_qmod_operation(operation: Qmod)
 {
-    match operation.op.clone() {
+    match &operation.op {
         QmodOperation::Build => execute_qmod_build(),
         QmodOperation::Edit => execute_qmod_edit(),
     }

@@ -1,6 +1,6 @@
 use clap::{AppSettings, Clap};
 
-use super::qpm_types;
+use crate::data::qpm_types;
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]

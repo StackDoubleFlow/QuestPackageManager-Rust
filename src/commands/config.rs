@@ -65,14 +65,14 @@ pub enum ConfigOperation {
 
 pub fn execute_config_operation(operation: Config)
 {
-    match operation.op.clone() {
+    match &operation.op {
         ConfigOperation::Cache(c) => execute_cache_config_operation(c),
         ConfigOperation::Symlink(s) => execute_symlink_config_operation(s),
         ConfigOperation::Timeout(t) => execute_timeout_config_operation(t)
     }
 }
 
-fn execute_cache_config_operation(operation: Cache)
+fn execute_cache_config_operation(operation: &Cache)
 {
     match operation.op.clone() {
         CacheOperation::Path(p) => {
@@ -96,39 +96,37 @@ fn set_symlink_usage(value: bool)
     println!("Symlink set: {}", value);
 }
 
-fn execute_symlink_config_operation(operation: Symlink)
+fn execute_symlink_config_operation(operation: &Symlink)
 {
     // value is given
-    if operation.op.is_some() 
-    {
-        match operation.op.unwrap().clone() {
-            SymlinkOperation::Enable => {
-                set_symlink_usage(true);
-            },
-            SymlinkOperation::Disable => {
-                set_symlink_usage(false);
+
+    match &operation.op {
+        Option::Some(s) => {
+            match &s {
+                SymlinkOperation::Enable => {
+                    set_symlink_usage(true);
+                },
+                SymlinkOperation::Disable => {
+                    set_symlink_usage(false);
+                }
             }
         }
-    }
-    // no value given
-    else
-    {   
-        // TODO: make it print the usage
-        println!("Symlink usage config should've been printed");
+        Option::None => {
+            println!("Symlink usage config should've been printed");
+        }
     }
 }
 
-fn execute_timeout_config_operation(operation: Timeout)
+fn execute_timeout_config_operation(operation: &Timeout)
 {
-    if operation.timeout.is_some()
-    {
-        // TODO actually set the value
-        println!("Timeout set to {}", operation.timeout.unwrap());
-    }
-    // no value given
-    else
-    {   
-        // TODO: make it actually read the value from config
-        println!("Timeout value should've been printed");
+    match operation.timeout {
+        Option::Some(t) => {
+            // TODO actually set the value
+            println!("Timeout set to {}", t);
+        }
+        Option::None => {
+            // TODO: make it actually read the value from config
+            println!("Timeout value should've been printed");
+        }
     }
 }

@@ -2,18 +2,8 @@ use serde::{Serialize, Deserialize};
 //use std::fs::{read_to_string};
 use clap::{AppSettings, Clap};
 
-mod qpm_types;
-mod cache;
-mod clear;
-mod collapse;
-mod collect;
-mod config;
-mod dependency;
-mod qmod;
-mod package;
-mod propertieslist;
-mod publish;
-mod restore;
+mod data;
+mod commands;
 
 /// This doc string acts as a help message when the user runs '--help'
 /// as do all doc strings on fields
@@ -31,7 +21,7 @@ struct Opts {
 #[derive(Clap, Debug, Clone)]
 enum MainCommand {
     /// Cache control
-    Cache(cache::Cache),
+    Cache(commands::cache::Cache),
     /// Clear all resolved dependencies by clearing the lock file
     Clear,
     /// Collect and collapse dependencies and print them to console
@@ -39,11 +29,11 @@ enum MainCommand {
     /// Collect dependencies and print them to console
     Collect,
     /// Config control
-    Config(config::Config),
+    Config(commands::config::Config),
     /// Dependency control
-    Dependency(dependency::Dependency),
+    Dependency(commands::dependency::Dependency),
     /// Package control
-    Package(package::Package),
+    Package(commands::package::Package),
     /// List all properties that are currently supported by QPM
     PropertiesList,
     /// Publish package
@@ -51,7 +41,7 @@ enum MainCommand {
     /// Restore and resolve all dependencies from the package
     Restore,
     /// Qmod control
-    Qmod(qmod::Qmod)
+    Qmod(commands::qmod::Qmod)
 }
 
 fn main() {
@@ -65,17 +55,17 @@ fn main() {
     // You can handle information about subcommands by requesting their matches by name
     // (as below), requesting just the name used, or both at the same time
     match opts.subcmd.clone() {
-        MainCommand::Cache(c) => cache::execute_cache_operation(c),
-        MainCommand::Clear => clear::execute_clear_operation(),
-        MainCommand::Collapse => collapse::execute_collapse_operation(),
-        MainCommand::Collect => collect::execute_collect_operation(),
-        MainCommand::Config(c) => config::execute_config_operation(c),
-        MainCommand::Dependency(d) => dependency::execute_dependency_operation(d),
-        MainCommand::Package(p) => package::execute_package_operation(p),
-        MainCommand::PropertiesList => propertieslist::execute_properties_list_operation(),
-        MainCommand::Publish => publish::execute_publish_operation(),
-        MainCommand::Restore => restore::execute_restore_operation(),
-        MainCommand::Qmod(q) => qmod::execute_qmod_operation(q)
+        MainCommand::Cache(c) => commands::cache::execute_cache_operation(c),
+        MainCommand::Clear => commands::clear::execute_clear_operation(),
+        MainCommand::Collapse => commands::collapse::execute_collapse_operation(),
+        MainCommand::Collect => commands::collect::execute_collect_operation(),
+        MainCommand::Config(c) => commands::config::execute_config_operation(c),
+        MainCommand::Dependency(d) => commands::dependency::execute_dependency_operation(d),
+        MainCommand::Package(p) => commands::package::execute_package_operation(p),
+        MainCommand::PropertiesList => commands::propertieslist::execute_properties_list_operation(),
+        MainCommand::Publish => commands::publish::execute_publish_operation(),
+        MainCommand::Restore => commands::restore::execute_restore_operation(),
+        MainCommand::Qmod(q) => commands::qmod::execute_qmod_operation(q)
     }
 
     println!("\nopts: {:#?}", opts);

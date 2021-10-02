@@ -169,8 +169,57 @@ impl PackageConfig {
         let mut qpm_package = String::new();
         file.read_to_string(&mut qpm_package).expect("Reading data failed");
 
-        return serde_json::from_str::<PackageConfig>(&qpm_package).expect("Deserializing package failed");
+        serde_json::from_str::<PackageConfig>(&qpm_package).expect("Deserializing package failed")
+    }
 
+    pub fn add_dependency(&mut self, dependency: Dependency)
+    {
+        let dep = self.get_dependency(&dependency.id);
+        match dep {
+            Option::Some(_d) => {println!("Not adding dependency {} because it already existed", &dependency.id); },
+            Option::None => {
+                self.dependencies.insert(self.dependencies.len(), dependency);
+            }
+        }
+        
+    }
+
+    pub fn get_dependency(&mut self, id: &str) -> Option<&mut Dependency>
+    {
+        let mut idx = 0;
+        for dependency in &self.dependencies
+        {
+            if dependency.id.eq(id)
+            {
+                break;
+            }
+            idx += 1;
+        }
+
+        self.dependencies.get_mut(idx)
+    }
+
+    pub fn remove_dependency(&mut self, id: &str)
+    {
+        let mut idx = 0;
+        
+        for dependency in &self.dependencies
+        {
+            if dependency.id.eq(id)
+            {
+                break;
+            }
+            idx += 1;
+        }
+        if idx.eq(&self.dependencies.len())
+        {
+            println!("Not removing dependency {} because it did not exist", id);            
+        }
+        else
+        {
+            println!("removed dependency {}", id);            
+            self.dependencies.remove(idx);
+        }
     }
 }
 impl Default for PackageConfig {
