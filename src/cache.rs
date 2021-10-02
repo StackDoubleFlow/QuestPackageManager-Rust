@@ -14,9 +14,9 @@ pub enum CacheOperation {
     Clear
 }
 
-pub fn execute_cache_operation(op: CacheOperation)
+pub fn execute_cache_operation(operation: Cache)
 {
-    match op {
+    match operation.op {
         CacheOperation::Clear => clear(),
     }
 }

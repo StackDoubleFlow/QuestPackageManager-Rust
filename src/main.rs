@@ -65,7 +65,7 @@ fn main() {
     // You can handle information about subcommands by requesting their matches by name
     // (as below), requesting just the name used, or both at the same time
     match opts.subcmd.clone() {
-        MainCommand::Cache(c) => cache::execute_cache_operation(c.op),
+        MainCommand::Cache(c) => cache::execute_cache_operation(c),
         MainCommand::Clear => clear::execute_clear_operation(),
         MainCommand::Collapse => collapse::execute_collapse_operation(),
         MainCommand::Collect => collect::execute_collect_operation(),

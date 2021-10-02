@@ -1,4 +1,6 @@
 use serde::{Serialize, Deserialize};
+use std::io::Write;
+use std::io::Read;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[allow(non_snake_case)]
@@ -6,7 +8,6 @@ use serde::{Serialize, Deserialize};
 pub struct Dependency {
     pub id: String,
     pub versionRange: String,
-    #[serde(default)]
     pub additionalData: AdditionalDependencyData
 }
 
@@ -26,18 +27,23 @@ impl Default for Dependency {
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalDependencyData {
     /// Branch name of a Github repo. Only used when a valid github url is provided
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub branchName: Option<String>,
 
     /// Specify any additional files to be downloaded
-    pub extraFiles: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extraFiles: Option<Vec<String>>,
 
     /// Copy a dependency from a location that is local to this root path instead of from a remote url
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub localPath: Option<String>,
 
     /// Specify if a dependency should download a release .so or .a file. Default to false
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub useRelease: Option<bool>,
 
     /// Specify the style to use
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<String>
 }
 
@@ -46,9 +52,9 @@ impl Default for AdditionalDependencyData {
     fn default() -> AdditionalDependencyData {
         AdditionalDependencyData {
             branchName: Option::default(),
-            extraFiles: Vec::default(),
+            extraFiles: Option::default(),
             localPath: Option::default(),
-            useRelease: Option::Some(false),
+            useRelease: Option::default(),
             style: Option::default(),
         }
     }
@@ -58,13 +64,21 @@ impl Default for AdditionalDependencyData {
 #[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub branchName: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub headersOnly: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub staticLinking: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub soLink: Option<String>,
-    pub extraFiles: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extraFiles: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub debugSoLink: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub overrideSoName: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub styles: Option<Vec<PackageStyle>>
 }
 
@@ -76,7 +90,7 @@ impl Default for AdditionalPackageData {
             headersOnly: Option::default(),
             staticLinking: Option::default(),
             soLink: Option::default(),
-            extraFiles: Vec::default(),
+            extraFiles: Option::default(),
             debugSoLink: Option::default(),
             overrideSoName: Option::default(),
             styles: Option::default(),
@@ -111,7 +125,7 @@ pub struct PackageInfo {
     pub name: String,
     pub id: String,
     pub version: String,
-    pub url: String,
+    pub url: Option<String>,
     pub additionalData: AdditionalPackageData
 }
 
@@ -122,7 +136,7 @@ impl Default for PackageInfo {
             name: String::default(),
             id: String::default(),
             version: String::default(),
-            url: String::default(),
+            url: Option::default(),
             additionalData: AdditionalPackageData::default()
         }
     }
@@ -136,10 +150,29 @@ pub struct PackageConfig {
     pub dependenciesDir: String,
     pub info: PackageInfo,
     pub dependencies: Vec<Dependency>,
-    #[serde(default)]
-    pub additionalData: serde_json::Value
+    pub additionalData: AdditionalDependencyData
 }
 
+impl PackageConfig {
+    pub fn write(&self)
+    {
+        let qpm_package = serde_json::to_string_pretty(&self).expect("Serialization failed");
+
+        let mut file = std::fs::File::create("qpm.json").expect("create failed");
+        file.write_all(qpm_package.as_bytes()).expect("write failed");
+        println!("Package {} Written!", self.info.id);
+    }
+
+    pub fn read() -> PackageConfig 
+    {
+        let mut file = std::fs::File::open("qpm.json").expect("Opening qpm.json failed");
+        let mut qpm_package = String::new();
+        file.read_to_string(&mut qpm_package).expect("Reading data failed");
+
+        return serde_json::from_str::<PackageConfig>(&qpm_package).expect("Deserializing package failed");
+
+    }
+}
 impl Default for PackageConfig {
     #[inline]
     fn default() -> PackageConfig {
@@ -148,7 +181,7 @@ impl Default for PackageConfig {
             dependenciesDir: "extern".to_string(),
             info: PackageInfo::default(),
             dependencies: Vec::<Dependency>::default(),
-            additionalData: serde_json::Value::default()
+            additionalData: AdditionalDependencyData::default()
         }
     }
 }

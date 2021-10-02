@@ -31,25 +31,9 @@ pub struct DependencyOperationAddArgs {
     #[clap(short, long)]
     pub version: Option<String>,
 
-    /// Branch name of a Github repo. Only used when a valid github url is provided
+    /// Additional data for the dependency (as a valid json object)
     #[clap(long)]
-    pub branchName: Option<String>,
-
-    /// Specify any additional files to be downloaded
-    #[clap(long)]
-    pub extraFiles: Option<Vec<String>>,
-
-    /// Copy a dependency from a location that is local to this root path instead of from a remote url
-    #[clap(long)]
-    pub localPath: Option<String>,
-
-    /// Specify if a dependency should download a release .so or .a file. Default to false
-    #[clap(long)]
-    pub useRelease: Option<bool>,
-
-    /// Specify the style to use
-    #[clap(long)]
-    pub style: Option<String>
+    pub additionalData: Option<String>
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -67,52 +51,75 @@ pub fn execute_dependency_operation(operation: Dependency)
     }
 }
 
-fn get_vec(op: Option<Vec<String>>) -> Vec<String>
-{
-    if op.is_some()
-    {
-        return op.unwrap();
-    }
-    else
-    {
-        return Vec::default();
-    }
-
-}
-
 fn add_dependency(dependency_args: DependencyOperationAddArgs)
 {
     // TODO make it actually add
-
-    match dependency_args.version.clone() {
-        Option::Some(v) => put_dependency(dependency_args.id, v, qpm_types::AdditionalDependencyData { 
-            branchName: dependency_args.branchName,
-            extraFiles: get_vec(dependency_args.extraFiles),
-            localPath: dependency_args.localPath,
-            useRelease: dependency_args.useRelease,
-            style: dependency_args.style
-        }),
-        Option::None => put_dependency(dependency_args.id, "*".to_string(), qpm_types::AdditionalDependencyData { 
-            branchName: dependency_args.branchName,
-            extraFiles: get_vec(dependency_args.extraFiles),
-            localPath: dependency_args.localPath,
-            useRelease: dependency_args.useRelease,
-            style: dependency_args.style
-        }),
+    match &dependency_args.version {
+        Option::Some(v) => {
+            let additional_data: qpm_types::AdditionalDependencyData;
+            match &dependency_args.additionalData {
+                Option::Some(a) => { additional_data = serde_json::from_str(a).expect("Deserialize failed"); },
+                Option::None => { additional_data = qpm_types::AdditionalDependencyData::default(); }
+            }
+            put_dependency(dependency_args.id, v.clone(), additional_data);
+        },
+        Option::None => {
+            let additional_data: qpm_types::AdditionalDependencyData;
+            match &dependency_args.additionalData {
+                Option::Some(a) => { additional_data = serde_json::from_str(a).expect("Deserialize failed"); },
+                Option::None => { additional_data = qpm_types::AdditionalDependencyData::default(); }
+            }
+            put_dependency(dependency_args.id, "*".to_string(), additional_data);
+        }
     }
 }
 
 fn put_dependency(id: String, version: String, additional_data: qpm_types::AdditionalDependencyData)
 {
-    println!("Adding dependency with id {} and verison {}", id, version);
+    println!("Adding dependency with id {} and version {}", id, version);
     // TODO make it actually add the dependency
     // TODO make it check already added dependencies
 
+    let mut package = qpm_types::PackageConfig::read();
     let dep = qpm_types::Dependency {id, versionRange: version, additionalData: additional_data, ..Default::default() };
+    
+    for dependency in &package.dependencies
+    {
+        if dependency.id == dep.id
+        {
+            println!("not adding dependency because it was already contained in the package");
+            return;
+        }
+    }
+
+    package.dependencies.insert(package.dependencies.len(), dep);
+
+    package.write();
 }
 
 fn remove_dependency(dependency_args: DependencyOperationRemoveArgs)
 {
     // TODO make it actually remove
-    println!("Removing dependency with id {}", dependency_args.id);
+    let mut package = qpm_types::PackageConfig::read();
+    let mut idx = 0;
+
+    for dependency in &package.dependencies
+    {
+        if dependency.id == dependency_args.id
+        {
+            break;
+        }
+        idx += 1;
+    }
+
+    if package.dependencies.len() != idx
+    {
+        package.dependencies.remove(idx);
+        package.write();
+        println!("Removed dependency {}", dependency_args.id);
+    }
+    else
+    {
+        println!("Dependency {} did not exist!", dependency_args.id);
+    }
 }
