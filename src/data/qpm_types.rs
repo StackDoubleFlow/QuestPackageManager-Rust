@@ -176,7 +176,7 @@ impl PackageConfig {
     {
         let dep = self.get_dependency(&dependency.id);
         match dep {
-            Option::Some(_d) => {println!("Not adding dependency {} because it already existed", &dependency.id); },
+            Option::Some(_d) => { println!("Not adding dependency {} because it already existed", &dependency.id); },
             Option::None => {
                 self.dependencies.insert(self.dependencies.len(), dependency);
             }
@@ -186,40 +186,30 @@ impl PackageConfig {
 
     pub fn get_dependency(&mut self, id: &str) -> Option<&mut Dependency>
     {
-        let mut idx = 0;
-        for dependency in &self.dependencies
+        for (idx, dependency) in self.dependencies.iter().enumerate()
         {
             if dependency.id.eq(id)
             {
-                break;
+                return self.dependencies.get_mut(idx);
             }
-            idx += 1;
         }
-
-        self.dependencies.get_mut(idx)
+        
+        Option::default()
     }
 
     pub fn remove_dependency(&mut self, id: &str)
     {
-        let mut idx = 0;
-        
-        for dependency in &self.dependencies
+        for (idx, dependency) in self.dependencies.iter().enumerate()
         {
             if dependency.id.eq(id)
             {
-                break;
+                println!("removed dependency {}", id);            
+                self.dependencies.remove(idx);
+                return;
             }
-            idx += 1;
         }
-        if idx.eq(&self.dependencies.len())
-        {
-            println!("Not removing dependency {} because it did not exist", id);            
-        }
-        else
-        {
-            println!("removed dependency {}", id);            
-            self.dependencies.remove(idx);
-        }
+
+        println!("Not removing dependency {} because it did not exist", id);
     }
 }
 impl Default for PackageConfig {
