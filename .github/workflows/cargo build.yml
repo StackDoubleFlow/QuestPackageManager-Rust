@@ -78,7 +78,7 @@ jobs:
             - name: Upload executable
               uses: actions/upload-artifact@v2
               with:
-                name: ./${{matrix.finalPrefix}}-${{matrix.file-name}}
-                path: ./target/debug/${{matrix.finalPrefix}}-${{matrix.file-name}}
+                name: ${{matrix.finalPrefix}}-${{matrix.file-name}}
+                path: ${{matrix.build-folder}}${{matrix.finalPrefix}}-${{matrix.file-name}}
                 # if not found error obviously
                 if-no-files-found: error
