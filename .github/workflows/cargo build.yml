@@ -19,25 +19,19 @@ jobs:
                 include:
                     - targetOS: ubuntu-latest
                       os: ubuntu-latest
-                      cargo-arg: ""
                       file-name: "qpm-rust"
                       finalPrefix: ubuntu-latest
-                      lib-name: ""
                       build-folder: "./target/debug/"
 
                     - targetOS: macOS-latest
                       os: macOS-latest
-                      cargo-arg: ""
                       file-name: "qpm-rust"
                       finalPrefix: macOS-latest
-                      lib-name: ""
                       build-folder: "./target/debug/"
 
                     - targetOS: windows-latest
                       os: windows-latest
-                      cargo-arg: ""
                       file-name: "qpm-rust.exe"
-                      lib-name: ""
                       finalPrefix: windows-latest
                       build-folder: "./target/debug/"
         steps:
@@ -63,12 +57,11 @@ jobs:
 
             - name: Cargo build
               run: |
-                  cargo +nightly ${{matrix.cargo-arg}} build --verbose
+                  cargo +nightly build --verbose
                 
             - name: Upload executable
               uses: actions/upload-artifact@v2
               with:
                 name: ${{matrix.finalPrefix}}-${{matrix.file-name}}
                 path: ${{matrix.build-folder}}${{matrix.file-name}}
-                # if not found error obviously
                 if-no-files-found: error
