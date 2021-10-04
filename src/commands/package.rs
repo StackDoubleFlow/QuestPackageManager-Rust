@@ -1,6 +1,6 @@
 use clap::{AppSettings, Clap};
 
-use crate::data::qpm_types;
+use crate::data::package::{PackageConfig, PackageInfo, AdditionalPackageData};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -47,22 +47,22 @@ pub struct PackageOperationCreateArgs {
     ///Edit the name property of the package
     pub version: String,
     /// Branch name of a Github repo. Only used when a valid github url is provided
-    #[clap(long)]
+    #[clap(long="branchName")]
     pub branchName: Option<String>,
     /// Specify that this package is headers only and does not contain a .so or .a file
-    #[clap(long)]
+    #[clap(long="headersOnly")]
     pub headersOnly: Option<bool>,
     /// Specify that this package is static linking
-    #[clap(long)]
+    #[clap(long="staticLinking")]
     pub staticLinking: Option<bool>,
     /// Specify the download link for a release .so or .a file
-    #[clap(long)]
+    #[clap(long="soLink")]
     pub soLink: Option<String>,
     /// Specify the download link for a debug .so or .a files (usually from the obj folder)
-    #[clap(long)]
+    #[clap(long="debugSoLink")]
     pub debugSoLink: Option<String>,
     /// Override the downloaded .so or .a filename with this name instead.
-    #[clap(long)]
+    #[clap(long="overrideSoName")]
     pub overrideSoName: Option<String>
 }
 
@@ -77,7 +77,7 @@ pub fn execute_package_operation(operation: Package)
 
 fn package_create_operation(create_parameters: PackageOperationCreateArgs)
 {
-    let additional_data = qpm_types::AdditionalPackageData {
+    let additional_data = AdditionalPackageData {
         branchName: create_parameters.branchName,
         headersOnly: create_parameters.headersOnly,
         staticLinking: create_parameters.staticLinking,
@@ -87,7 +87,7 @@ fn package_create_operation(create_parameters: PackageOperationCreateArgs)
         ..Default::default()
     };
 
-    let package_info = qpm_types::PackageInfo {
+    let package_info = PackageInfo {
         id: create_parameters.id.clone(),
         name: create_parameters.id,
         version: create_parameters.version,
@@ -95,7 +95,7 @@ fn package_create_operation(create_parameters: PackageOperationCreateArgs)
         ..Default::default()
     };
 
-    let package = qpm_types::PackageConfig {
+    let package = PackageConfig {
         info: package_info,
         ..Default::default()
     };
@@ -115,7 +115,7 @@ fn package_set_id(id: String)
 {
     println!("Setting package id: {}", id);
     // TODO edit mod.json and android.mk
-    let mut package = qpm_types::PackageConfig::read();
+    let mut package = PackageConfig::read();
     package.info.id = id;
     package.write();
 }
@@ -123,7 +123,7 @@ fn package_set_id(id: String)
 fn package_set_name(name: String)
 {
     println!("Setting package name: {}", name);
-    let mut package = qpm_types::PackageConfig::read();
+    let mut package = PackageConfig::read();
     package.info.name = name;
     package.write();
 }
@@ -131,7 +131,7 @@ fn package_set_name(name: String)
 fn package_set_url(url: String)
 {
     println!("Setting package url: {}", url);
-    let mut package = qpm_types::PackageConfig::read();
+    let mut package = PackageConfig::read();
     package.info.url = Option::Some(url);
     package.write();
 }
@@ -140,7 +140,7 @@ fn package_set_version(version: String)
 {
     println!("Setting package version: {}", version);
     // TODO  make it edit the version in mod.json and android.mk
-    let mut package = qpm_types::PackageConfig::read();
+    let mut package = PackageConfig::read();
     package.info.version = version;
     package.write();
 }

@@ -1,6 +1,7 @@
 use clap::{Clap, AppSettings};
 
-use crate::data::qpm_types;
+use crate::data::dependency;
+use crate::data::package::{PackageConfig};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -53,7 +54,7 @@ fn add_dependency(dependency_args: &DependencyOperationAddArgs)
 {
     // TODO make it actually add
     let version: String;
-    let additional_data: qpm_types::AdditionalDependencyData;
+    let additional_data: dependency::AdditionalDependencyData;
     match &dependency_args.version {
         Option::Some(v) => version = v.clone(),
         Option::None => version = "*".to_string()
@@ -61,20 +62,20 @@ fn add_dependency(dependency_args: &DependencyOperationAddArgs)
 
     match &dependency_args.additionalData {
         Option::Some(d) => additional_data = serde_json::from_str(d).expect("Deserializing additional data failed"),
-        Option::None => additional_data = qpm_types::AdditionalDependencyData::default()
+        Option::None => additional_data = dependency::AdditionalDependencyData::default()
     }
 
     put_dependency(&dependency_args.id, &version, &additional_data);
 }
 
-fn put_dependency(id: &str, version: &str, additional_data: &qpm_types::AdditionalDependencyData)
+fn put_dependency(id: &str, version: &str, additional_data: &dependency::AdditionalDependencyData)
 {
     println!("Adding dependency with id {} and version {}", id, version);
     // TODO make it actually add the dependency
     // TODO make it check already added dependencies
 
-    let mut package = qpm_types::PackageConfig::read();
-    let dep = qpm_types::Dependency {id: id.to_string(), versionRange: version.to_string(), additionalData: additional_data.clone()};
+    let mut package = crate::data::package::PackageConfig::read();
+    let dep = dependency::Dependency {id: id.to_string(), versionRange: version.to_string(), additionalData: additional_data.clone()};
     package.add_dependency(dep);
     package.write();
 }
@@ -82,7 +83,7 @@ fn put_dependency(id: &str, version: &str, additional_data: &qpm_types::Addition
 fn remove_dependency(dependency_args: &DependencyOperationRemoveArgs)
 {
     // TODO make it actually remove
-    let mut package = qpm_types::PackageConfig::read();
+    let mut package = PackageConfig::read();
     package.remove_dependency(&dependency_args.id);
     package.write();
 }
