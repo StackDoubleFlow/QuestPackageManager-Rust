@@ -42,10 +42,13 @@ pub struct Edit {
 #[allow(non_snake_case)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct PackageOperationCreateArgs {
-    ///Edit the id property of the package
-    pub id: String,
-    ///Edit the name property of the package
+    /// The name of the package
+    pub name: String,
+    /// The version of the package
     pub version: String,
+    /// Specify an id, else lowercase will be used
+    #[clap(long="id")]
+    pub id: Option<String>,
     /// Branch name of a Github repo. Only used when a valid github url is provided
     #[clap(long="branchName")]
     pub branchName: Option<String>,
@@ -87,9 +90,16 @@ fn package_create_operation(create_parameters: PackageOperationCreateArgs)
         ..Default::default()
     };
 
+    // id is optional so we need to check if it's defined, else use the name to lowercase
+    let id: String;
+    match create_parameters.id {
+        Option::Some(s) => id = s,
+        Option::None => id = create_parameters.name.to_lowercase()
+    }
+
     let package_info = PackageInfo {
-        id: create_parameters.id.clone(),
-        name: create_parameters.id,
+        id,
+        name: create_parameters.name,
         version: create_parameters.version,
         additionalData: additional_data,
         ..Default::default()
