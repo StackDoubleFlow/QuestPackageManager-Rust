@@ -1,5 +1,9 @@
 use serde::{Serialize, Deserialize};
 use crate::data::dependency::{Dependency, AdditionalDependencyData};
+use crate::data::shared_dependency::{SharedDependency};
+use crate::data::qpackages;
+use semver::{Version, VersionReq};
+
 use std::io::{Write, Read};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -148,6 +152,34 @@ impl PackageConfig {
         }
 
         println!("Not removing dependency {} because it did not exist", id);
+    }
+
+    pub fn collect(&self) -> Vec<SharedDependency>
+    {
+        let mut collected_dependencies = Vec::<SharedDependency>::new();
+        for dependency in self.dependencies.iter()
+        {
+            let dep_version = VersionReq::parse(&dependency.version_range).expect("Parsing version range failed");
+            let versions = qpackages::get_versions(&dependency.id, "*",0 );
+            for v in versions.iter()
+            {
+                if dep_version.matches(&Version::parse(&v.version).expect("Parsing of retreived version failed"))
+                {
+                    // this is it
+
+                    let new_shared = SharedDependency {
+                        dependency: dependency.clone(),
+                        version: v.version.clone()
+                    };
+
+                    collected_dependencies.insert(collected_dependencies.len(), new_shared);
+                    collected_dependencies.append(&mut collected_dependencies.last().unwrap().get_shared_package().collect());
+                    break;
+                }
+            }
+        }
+        
+        collected_dependencies
     }
 }
 

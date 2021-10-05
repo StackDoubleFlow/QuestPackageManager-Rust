@@ -1,6 +1,6 @@
 use clap::{Clap, AppSettings};
 
-use crate::data::mod_json::{ModJson, ModDependency};
+use crate::data::mod_json::{ModJson};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -12,7 +12,7 @@ pub struct Qmod {
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct CreateQmodJsonOperationArgs {
-    /// The Questpatcher version this mod.json was made for
+    /// The schema version this mod was made for
     #[clap(long="qpversion")]
     pub schema_version: Option<String>,
     /// Name of the mod
@@ -50,7 +50,6 @@ pub enum QmodOperation {
     Create(CreateQmodJsonOperationArgs),
     Build,
     Edit,
-
 }
 
 pub fn execute_qmod_operation(operation: Qmod)

@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use std::io::{Write, Read};
-use crate::data::package::{PackageConfig};
+//use crate::data::package::{PackageConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 
@@ -108,7 +108,7 @@ impl ModJson {
     #[allow(dead_code)]
     pub fn from_package() -> ModJson
     {
-        let package = PackageConfig::read();
+        //let package = PackageConfig::read();
 
         ModJson {..Default::default()}
     }
