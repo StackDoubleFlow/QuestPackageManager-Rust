@@ -3,23 +3,22 @@ use crate::data::dependency::{Dependency, AdditionalDependencyData};
 use std::io::{Write, Read};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub branchName: Option<String>,
+    pub branch_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub headersOnly: Option<bool>,
+    pub headers_only: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub staticLinking: Option<bool>,
+    pub static_linking: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub soLink: Option<String>,
+    pub so_link: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub extraFiles: Option<Vec<String>>,
+    pub extra_files: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub debugSoLink: Option<String>,
+    pub debug_so_link: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub overrideSoName: Option<String>,
+    pub override_so_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub styles: Option<Vec<PackageStyle>>
 }
@@ -28,25 +27,24 @@ impl Default for AdditionalPackageData {
     #[inline]
     fn default() -> AdditionalPackageData {
         AdditionalPackageData {
-            branchName: Option::default(),
-            headersOnly: Option::default(),
-            staticLinking: Option::default(),
-            soLink: Option::default(),
-            extraFiles: Option::default(),
-            debugSoLink: Option::default(),
-            overrideSoName: Option::default(),
+            branch_name: Option::default(),
+            headers_only: Option::default(),
+            static_linking: Option::default(),
+            so_link: Option::default(),
+            extra_files: Option::default(),
+            debug_so_link: Option::default(),
+            override_so_name: Option::default(),
             styles: Option::default(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageStyle {
     pub name: String,
-    pub soLink: String,
-    pub debugSoLink: String
+    pub so_link: String,
+    pub debug_so_link: String
 }
 
 impl Default for PackageStyle {
@@ -54,21 +52,20 @@ impl Default for PackageStyle {
     fn default() -> PackageStyle {
         PackageStyle {
             name: String::default(),
-            soLink: String::default(),
-            debugSoLink: String::default()
+            so_link: String::default(),
+            debug_so_link: String::default()
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageInfo {
     pub name: String,
     pub id: String,
     pub version: String,
     pub url: Option<String>,
-    pub additionalData: AdditionalPackageData
+    pub additional_data: AdditionalPackageData
 }
 
 impl Default for PackageInfo {
@@ -79,20 +76,19 @@ impl Default for PackageInfo {
             id: String::default(),
             version: String::default(),
             url: Option::default(),
-            additionalData: AdditionalPackageData::default()
+            additional_data: AdditionalPackageData::default()
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageConfig {
-    pub sharedDir: String,
-    pub dependenciesDir: String,
+    pub shared_dir: String,
+    pub dependencies_dir: String,
     pub info: PackageInfo,
     pub dependencies: Vec<Dependency>,
-    pub additionalData: AdditionalDependencyData
+    pub additional_data: AdditionalDependencyData
 }
 
 impl PackageConfig {
@@ -159,11 +155,11 @@ impl Default for PackageConfig {
     #[inline]
     fn default() -> PackageConfig {
         PackageConfig {
-            sharedDir: "shared".to_string(),
-            dependenciesDir: "extern".to_string(),
+            shared_dir: "shared".to_string(),
+            dependencies_dir: "extern".to_string(),
             info: PackageInfo::default(),
             dependencies: Vec::<Dependency>::default(),
-            additionalData: AdditionalDependencyData::default()
+            additional_data: AdditionalDependencyData::default()
         }
     }
 }

@@ -11,11 +11,10 @@ pub struct Qmod {
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
-#[allow(non_snake_case)]
 pub struct CreateQmodJsonOperationArgs {
     /// The Questpatcher version this mod.json was made for
     #[clap(long="qpversion")]
-    pub _QPVersion: Option<String>,
+    pub schema_version: Option<String>,
     /// Name of the mod
     #[clap(long)]
     pub name: String,
@@ -33,16 +32,16 @@ pub struct CreateQmodJsonOperationArgs {
     pub version: String,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     #[clap(long="packageID")]
-    pub packageId: String,
+    pub package_id: String,
     /// Version of the package, ex. 1.1.0
     #[clap(long="packageversion")]
-    pub packageVersion: String,
+    pub package_version: String,
     /// description for the mod
     #[clap(long)]
     pub description: Option<String>,
     /// optional cover image filename
     #[clap(long="coverimage")]
-    pub coverImage: Option<String>,
+    pub cover_image: Option<String>,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -65,26 +64,26 @@ pub fn execute_qmod_operation(operation: Qmod)
 
 fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs)
 {
-    let _QPVersion: String;
-    match create_parameters._QPVersion {
-        Option::Some(s) => _QPVersion = s,
-        Option::None => _QPVersion = "0.1.1".to_string()
+    let schema_version: String;
+    match create_parameters.schema_version {
+        Option::Some(s) => schema_version = s,
+        Option::None => schema_version = "0.1.1".to_string()
     }
-    let modJson = ModJson {
-        _QPVersion: _QPVersion,
+    let json = ModJson {
+        schema_version,
         name: create_parameters.name,
         id: create_parameters.id,
         author: create_parameters.author,
         porter: create_parameters.porter,
         version: create_parameters.version,
-        packageId: create_parameters.packageId,
-        packageVersion: create_parameters.packageVersion,
+        package_id: create_parameters.package_id,
+        package_version: create_parameters.package_version,
         description: create_parameters.description,
-        coverImage: create_parameters.coverImage,
+        cover_image: create_parameters.cover_image,
         ..Default::default()
     };
 
-    modJson.write();
+    json.write();
 }
 
 fn execute_qmod_build()

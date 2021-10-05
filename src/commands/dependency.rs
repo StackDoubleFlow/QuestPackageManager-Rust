@@ -20,7 +20,6 @@ pub enum DependencyOperation {
 }
 
 #[derive(Clap, Debug, Clone)]
-#[allow(non_snake_case)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct DependencyOperationAddArgs {
     /// Id of the dependency as listed on qpackages
@@ -32,7 +31,7 @@ pub struct DependencyOperationAddArgs {
 
     /// Additional data for the dependency (as a valid json object)
     #[clap(long)]
-    pub additionalData: Option<String>
+    pub additional_data: Option<String>
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -60,7 +59,7 @@ fn add_dependency(dependency_args: &DependencyOperationAddArgs)
         Option::None => version = "*".to_string()
     }
 
-    match &dependency_args.additionalData {
+    match &dependency_args.additional_data {
         Option::Some(d) => additional_data = serde_json::from_str(d).expect("Deserializing additional data failed"),
         Option::None => additional_data = dependency::AdditionalDependencyData::default()
     }
@@ -75,7 +74,7 @@ fn put_dependency(id: &str, version: &str, additional_data: &dependency::Additio
     // TODO make it check already added dependencies
 
     let mut package = crate::data::package::PackageConfig::read();
-    let dep = dependency::Dependency {id: id.to_string(), versionRange: version.to_string(), additionalData: additional_data.clone()};
+    let dep = dependency::Dependency {id: id.to_string(), version_range: version.to_string(), additional_data: additional_data.clone()};
     package.add_dependency(dep);
     package.write();
 }

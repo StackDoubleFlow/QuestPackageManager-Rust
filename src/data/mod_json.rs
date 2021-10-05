@@ -3,11 +3,12 @@ use std::io::{Write, Read};
 use crate::data::package::{PackageConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
+
 #[serde(rename_all = "camelCase")]
 pub struct ModJson {
     /// The Questpatcher version this mod.json was made for
-    pub _QPVersion: String,
+    #[serde(rename(serialize = "_QPVersion", deserialize = "_QPVersion"))]
+    pub schema_version: String,
     /// Name of the mod
     pub name: String,
     /// ID of the mod
@@ -20,72 +21,72 @@ pub struct ModJson {
     /// Mod version
     pub version: String,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
-    pub packageId: String,
+    pub package_id: String,
     /// Version of the package, ex. 1.1.0
-    pub packageVersion: String,
+    pub package_version: String,
     /// description for the mod
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// optional cover image filename
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub coverImage: Option<String>,
+    pub cover_image: Option<String>,
     /// list of downloadable dependencies
     pub dependencies: Vec<ModDependency>,
     /// list of files that go in the package's mod folder
-    pub modFiles: Vec<String>,
+    pub mod_files: Vec<String>,
     /// list of files that go in the package's libs folder
-    pub libraryFiles: Vec<String>,
+    pub library_files: Vec<String>,
     /// list of 
-    pub fileCopies: Vec<String>,
+    pub file_copies: Vec<String>,
 }
 
 impl Default for ModJson {
     fn default() -> ModJson 
     {
         ModJson {
-            _QPVersion: "0.1.1".to_string(),
+            schema_version: "0.1.1".to_string(),
             name: String::default(),
             id: String::default(),
             author: String::default(),
             porter: Option::default(),
             version: String::default(),
-            packageId: String::default(),
-            packageVersion: String::default(),
+            package_id: String::default(),
+            package_version: String::default(),
             description: Option::default(),
-            coverImage: Option::default(),
+            cover_image: Option::default(),
             dependencies: Vec::default(),
-            modFiles: Vec::default(),
-            libraryFiles: Vec::default(),
-            fileCopies: Vec::default()
+            mod_files: Vec::default(),
+            library_files: Vec::default(),
+            file_copies: Vec::default()
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
+
 #[serde(rename_all = "camelCase")]
 pub struct ModDependency {
     /// the version requirement for this dependency
-    pub versionRange: String,
+    pub version_range: String,
     /// the id of this dependency
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub qmodLink: Option<String>
+    pub qmod_link: Option<String>
 }
 
 impl Default for ModDependency {
     fn default() -> ModDependency {
         ModDependency {
-            versionRange: String::default(),
+            version_range: String::default(),
             id: String::default(),
-            qmodLink: Option::default()
+            qmod_link: Option::default()
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[allow(non_snake_case)]
+
 #[serde(rename_all = "camelCase")]
 pub struct FileCopy {
     /// name of the file in the qmod
@@ -104,6 +105,7 @@ impl Default for FileCopy {
 }
 
 impl ModJson {
+    #[allow(dead_code)]
     pub fn from_package() -> ModJson
     {
         let package = PackageConfig::read();
@@ -111,13 +113,14 @@ impl ModJson {
         ModJson {..Default::default()}
     }
 
+    #[allow(dead_code)]
     pub fn read() -> ModJson 
     {
         let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
-        let mut modJson = String::new();
-        file.read_to_string(&mut modJson).expect("Reading data failed");
+        let mut json = String::new();
+        file.read_to_string(&mut json).expect("Reading data failed");
 
-        serde_json::from_str::<ModJson>(&modJson).expect("Deserializing package failed")
+        serde_json::from_str::<ModJson>(&json).expect("Deserializing package failed")
     }
 
     pub fn write(&self)

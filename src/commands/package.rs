@@ -21,7 +21,6 @@ pub enum PackageOperation {
 }
 
 #[derive(Clap, Debug, Clone)]
-#[allow(non_snake_case)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct Edit {
     ///Edit the id property of the package
@@ -39,7 +38,6 @@ pub struct Edit {
 }
 
 #[derive(Clap, Debug, Clone)]
-#[allow(non_snake_case)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct PackageOperationCreateArgs {
     /// The name of the package
@@ -51,22 +49,22 @@ pub struct PackageOperationCreateArgs {
     pub id: Option<String>,
     /// Branch name of a Github repo. Only used when a valid github url is provided
     #[clap(long="branchName")]
-    pub branchName: Option<String>,
+    pub branch_name: Option<String>,
     /// Specify that this package is headers only and does not contain a .so or .a file
     #[clap(long="headersOnly")]
-    pub headersOnly: Option<bool>,
+    pub headers_only: Option<bool>,
     /// Specify that this package is static linking
     #[clap(long="staticLinking")]
-    pub staticLinking: Option<bool>,
+    pub static_linking: Option<bool>,
     /// Specify the download link for a release .so or .a file
     #[clap(long="soLink")]
-    pub soLink: Option<String>,
+    pub so_link: Option<String>,
     /// Specify the download link for a debug .so or .a files (usually from the obj folder)
     #[clap(long="debugSoLink")]
-    pub debugSoLink: Option<String>,
+    pub debug_so_link: Option<String>,
     /// Override the downloaded .so or .a filename with this name instead.
     #[clap(long="overrideSoName")]
-    pub overrideSoName: Option<String>
+    pub override_so_name: Option<String>
 }
 
 pub fn execute_package_operation(operation: Package)
@@ -81,12 +79,12 @@ pub fn execute_package_operation(operation: Package)
 fn package_create_operation(create_parameters: PackageOperationCreateArgs)
 {
     let additional_data = AdditionalPackageData {
-        branchName: create_parameters.branchName,
-        headersOnly: create_parameters.headersOnly,
-        staticLinking: create_parameters.staticLinking,
-        soLink: create_parameters.soLink,
-        debugSoLink: create_parameters.debugSoLink,
-        overrideSoName: create_parameters.overrideSoName,
+        branch_name: create_parameters.branch_name,
+        headers_only: create_parameters.headers_only,
+        static_linking: create_parameters.static_linking,
+        so_link: create_parameters.so_link,
+        debug_so_link: create_parameters.debug_so_link,
+        override_so_name: create_parameters.override_so_name,
         ..Default::default()
     };
 
@@ -101,7 +99,7 @@ fn package_create_operation(create_parameters: PackageOperationCreateArgs)
         id,
         name: create_parameters.name,
         version: create_parameters.version,
-        additionalData: additional_data,
+        additional_data,
         ..Default::default()
     };
 
