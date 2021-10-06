@@ -1,8 +1,8 @@
 use serde::{Serialize, Deserialize};
 use crate::data::dependency::{Dependency, AdditionalDependencyData};
 use crate::data::shared_dependency::{SharedDependency};
-use crate::data::qpackages;
-use semver::{Version, VersionReq};
+use crate::data::shared_package::{SharedPackageConfig};
+use std::collections::HashMap;
 
 use std::io::{Write, Read};
 
@@ -154,32 +154,56 @@ impl PackageConfig {
         println!("Not removing dependency {} because it did not exist", id);
     }
 
-    pub fn collect(&self) -> Vec<SharedDependency>
+    pub fn collect(&self) -> HashMap::<SharedDependency, SharedPackageConfig>
     {
-        let mut collected_dependencies = Vec::<SharedDependency>::new();
+        // fd new vector for storing our values
+        let mut collected = HashMap::<SharedDependency, SharedPackageConfig>::new();
+
+        // for every dependency defined in our local package (qpm.json)
         for dependency in self.dependencies.iter()
         {
+            let shared_package = dependency.get_shared_package().expect("couldn't find shared package");
+            
+            let shared_dependency = SharedDependency {
+                dependency: dependency.clone(),
+                version: shared_package.config.info.version.clone()
+            };
+
+            collected.insert(shared_dependency, shared_package);
+            dependency.collect(&mut collected);
+            /*
+            // get version req for local version range stored in dependency
             let dep_version = VersionReq::parse(&dependency.version_range).expect("Parsing version range failed");
+            // get all versions of a package
             let versions = qpackages::get_versions(&dependency.id, "*",0 );
+            // for every version, starting at the last one added (newest)
             for v in versions.iter()
             {
+                // if version matches range
                 if dep_version.matches(&Version::parse(&v.version).expect("Parsing of retreived version failed"))
                 {
                     // this is it
-
                     let new_shared = SharedDependency {
                         dependency: dependency.clone(),
                         version: v.version.clone()
                     };
+                    
+                    let new_shared_package = new_shared.get_shared_package();
+                    println!("{}: ({}) --> {} (config: {}, {} restored dependencies)", &new_shared.dependency.id, &new_shared.dependency.version_range, &new_shared.version, new_shared_package.config.info.version, new_shared_package.restored_dependencies.len());
+                    
+                    // shared dependencies is by definition all of the ones used in a packages build
+                    for shared_dep in new_shared_package.restored_dependencies.iter()
+                    {
+                        println!(" - {}: ({}) --> {}", &shared_dep.dependency.id, &shared_dep.dependency.version_range, &shared_dep.version);
+                    }
+                    
 
-                    collected_dependencies.insert(collected_dependencies.len(), new_shared);
-                    collected_dependencies.append(&mut collected_dependencies.last().unwrap().get_shared_package().collect());
                     break;
                 }
             }
+            */
         }
-        
-        collected_dependencies
+        collected
     }
 }
 

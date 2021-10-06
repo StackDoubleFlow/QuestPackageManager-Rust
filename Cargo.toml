@@ -13,3 +13,5 @@ clap = { version = "3.0.0-beta.4" }
 ureq = {version = "2.1.1", features = ["json"]}
 semver = { version = "0.10.0", features = ["serde"] }
 unwrap = "1.2.1"
+cursed-semver-parser = { git = "https://github.com/raftario/cursed-semver-parser.git" }
+lazy_static = "1.4.0"
