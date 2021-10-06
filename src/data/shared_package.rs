@@ -10,8 +10,8 @@ pub struct SharedPackageConfig {
     pub restored_dependencies: Vec<SharedDependency>
 }
 
+#[allow(dead_code)]
 impl SharedPackageConfig {
-    #[allow(dead_code)]
     pub fn read() -> SharedPackageConfig
     {
         let mut file = std::fs::File::open("qpm.shared.json").expect("Opening qpm.shared.json failed");
@@ -21,7 +21,6 @@ impl SharedPackageConfig {
         serde_json::from_str::<SharedPackageConfig>(&qpm_package).expect("Deserializing package failed")
     }
 
-    #[allow(dead_code)]
     pub fn write(&self)
     {
         let qpm_package = serde_json::to_string_pretty(&self).expect("Serialization failed");
@@ -42,6 +41,21 @@ impl SharedPackageConfig {
         }
 
         deps
+    }
+
+    pub fn publish(&self)
+    {
+        for dependency in self.config.dependencies.iter()
+        {
+            match dependency.get_shared_package() {
+                Option::Some(_s) => {},
+                Option::None => {
+                    println!("dependency {} was not available on qpackages in the given version range", &dependency.id);
+                    println!("make sure {} exists for this dependency", &dependency.version_range);
+                    std::process::exit(0);
+                }
+            };
+        }
     }
 }
 impl Default for SharedPackageConfig {
