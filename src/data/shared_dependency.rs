@@ -8,22 +8,13 @@ use std::cmp::Eq;
 use semver::{Version};
 use std::collections::hash_map::DefaultHasher;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedDependency {
     pub dependency: Dependency,
     pub version: String
 }
 
-impl Default for SharedDependency {
-    #[inline]
-    fn default() -> SharedDependency {
-        SharedDependency {
-            dependency: Dependency::default(),
-            version: "".to_string()
-        }
-    }
-}
 #[allow(dead_code)]
 impl SharedDependency {
     pub fn get_shared_package(&self) -> SharedPackageConfig

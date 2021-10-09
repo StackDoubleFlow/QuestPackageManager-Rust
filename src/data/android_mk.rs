@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Module {
     pub prefix_lines: Vec<String>,
     pub id: String,
@@ -133,43 +133,13 @@ impl ToString for Module {
     }
 }
 
-impl Default for Module {
-    fn default() -> Module {
-        Module {
-            prefix_lines: Vec::default(),
-            id: String::default(),
-            src: Vec::default(),
-            export_includes: String::default(),
-            static_libs: Vec::default(),
-            shared_libs: Vec::default(),
-            ld_libs: Vec::default(),
-            c_flags: Vec::default(),
-            export_c_flags: Vec::default(),
-            cpp_flags: Vec::default(),
-            c_includes: Vec::default(),
-            cpp_features: Vec::default(),
-            extra_lines: Vec::default(),
-            build_line: String::default(),
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AndroidMk {
     pub prefix: Vec<String>,
     pub modules: Vec<Module>,
     pub suffix: Vec<String>
 }
 
-impl Default for AndroidMk {
-    fn default() -> AndroidMk {
-        AndroidMk {
-            prefix: Vec::default(),
-            modules: Vec::default(),
-            suffix: Vec::default()
-        }
-    }
-}
 #[derive(Eq, PartialEq, Debug)]
 enum Concat {
     None,

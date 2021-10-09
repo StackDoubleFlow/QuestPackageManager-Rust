@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::process::exit;
 use colored::*;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Dependency {
     pub id: String,
@@ -16,18 +16,7 @@ pub struct Dependency {
     pub additional_data: AdditionalDependencyData
 }
 
-impl Default for Dependency {
-    #[inline]
-    fn default() -> Dependency {
-        Dependency {
-            id: "".to_string(),
-            version_range: "".to_string(),
-            additional_data: AdditionalDependencyData::default()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalDependencyData {
     /// Branch name of a Github repo. Only used when a valid github url is provided
@@ -53,20 +42,6 @@ pub struct AdditionalDependencyData {
     /// Whether or not the dependency is private and should be used in restore
     #[serde(skip_serializing_if = "Option::is_none", rename(serialize = "private", deserialize = "private"))]
     pub is_private: Option<bool>
-}
-
-impl Default for AdditionalDependencyData {
-    #[inline]
-    fn default() -> AdditionalDependencyData {
-        AdditionalDependencyData {
-            branch_name: Option::default(),
-            extra_files: Option::default(),
-            local_path: Option::default(),
-            use_release: Option::default(),
-            style: Option::default(),
-            is_private: Option::default()
-        }
-    }
 }
 
 #[allow(dead_code)]

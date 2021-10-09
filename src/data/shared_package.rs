@@ -3,7 +3,7 @@ use crate::data::package;
 use crate::data::shared_dependency::SharedDependency;
 use std::io::{Read, Write};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedPackageConfig {
     pub config: package::PackageConfig,
@@ -55,15 +55,6 @@ impl SharedPackageConfig {
                     std::process::exit(0);
                 }
             };
-        }
-    }
-}
-impl Default for SharedPackageConfig {
-    #[inline]
-    fn default() -> SharedPackageConfig {
-        SharedPackageConfig {
-            config: package::PackageConfig::default(),
-            restored_dependencies: Vec::<SharedDependency>::default(),
         }
     }
 }

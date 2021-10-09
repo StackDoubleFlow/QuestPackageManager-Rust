@@ -62,7 +62,7 @@ impl Default for ModJson {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 
 #[serde(rename_all = "camelCase")]
 pub struct ModDependency {
@@ -75,17 +75,7 @@ pub struct ModDependency {
     pub qmod_link: Option<String>
 }
 
-impl Default for ModDependency {
-    fn default() -> ModDependency {
-        ModDependency {
-            version_range: String::default(),
-            id: String::default(),
-            qmod_link: Option::default()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 
 #[serde(rename_all = "camelCase")]
 pub struct FileCopy {
@@ -93,15 +83,6 @@ pub struct FileCopy {
     pub name: String,
     /// place where to put it (full path)
     pub destination: String
-}
-
-impl Default for FileCopy {
-    fn default() -> FileCopy {
-        FileCopy {
-            name: String::default(),
-            destination: String::default()
-        }
-    }
 }
 
 impl ModJson {

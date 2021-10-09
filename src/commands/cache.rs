@@ -24,4 +24,6 @@ pub fn execute_cache_operation(operation: Cache)
 fn clear()
 {
     println!("It should clear the cached files now");
+
+    // clear cached dependencies from cachce, probably C drive
 }

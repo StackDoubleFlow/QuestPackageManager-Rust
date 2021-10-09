@@ -7,7 +7,7 @@ use semver::{Version};
 use colored::*;
 use std::io::{Write, Read};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,23 +28,7 @@ pub struct AdditionalPackageData {
     pub styles: Option<Vec<PackageStyle>>
 }
 
-impl Default for AdditionalPackageData {
-    #[inline]
-    fn default() -> AdditionalPackageData {
-        AdditionalPackageData {
-            branch_name: Option::default(),
-            headers_only: Option::default(),
-            static_linking: Option::default(),
-            so_link: Option::default(),
-            extra_files: Option::default(),
-            debug_so_link: Option::default(),
-            override_so_name: Option::default(),
-            styles: Option::default(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageStyle {
     pub name: String,
@@ -52,18 +36,7 @@ pub struct PackageStyle {
     pub debug_so_link: String
 }
 
-impl Default for PackageStyle {
-    #[inline]
-    fn default() -> PackageStyle {
-        PackageStyle {
-            name: String::default(),
-            so_link: String::default(),
-            debug_so_link: String::default()
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageInfo {
     pub name: String,
@@ -71,19 +44,6 @@ pub struct PackageInfo {
     pub version: String,
     pub url: Option<String>,
     pub additional_data: AdditionalPackageData
-}
-
-impl Default for PackageInfo {
-    #[inline]
-    fn default() -> PackageInfo {
-        PackageInfo {
-            name: String::default(),
-            id: String::default(),
-            version: String::default(),
-            url: Option::default(),
-            additional_data: AdditionalPackageData::default()
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -208,7 +168,7 @@ impl PackageConfig {
                         println!("Cannot collapse {}, Ranges do not intersect:", shared_dependency.dependency.id.bright_red());
                         println!("Range 1: {} --> {}", &pair.0.dependency.version_range.bright_blue(), &pair.0.version.bright_green());
                         println!("Range 2: {} --> {}", &shared_dependency.dependency.version_range.bright_blue(), &shared_dependency.version.bright_green());
-                        println!("Consider running {} and see which packages are using incompatible version ranges", "qpm-rust collapse".bright_yellow());
+                        println!("Consider running {} and see which packages are using incompatible version ranges", "qpm-rust collect".bright_yellow());
                         std::process::exit(0);
                     }
                 }

@@ -1,4 +1,5 @@
 use clap::{Clap, AppSettings};
+use colored::Colorize;
 
 use crate::data::dependency;
 use crate::data::package::{PackageConfig};
@@ -69,7 +70,7 @@ fn add_dependency(dependency_args: &DependencyOperationAddArgs)
 
 fn put_dependency(id: &str, version: &str, additional_data: &dependency::AdditionalDependencyData)
 {
-    println!("Adding dependency with id {} and version {}", id, version);
+    println!("Adding dependency with id {} and version {}", id.bright_red(), version.bright_blue());
     // TODO make it actually add the dependency
     // TODO make it check already added dependencies
 
