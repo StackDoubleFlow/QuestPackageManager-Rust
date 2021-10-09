@@ -15,3 +15,4 @@ semver = { version = "0.10.0", features = ["serde"] }
 unwrap = "1.2.1"
 cursed-semver-parser = { git = "https://github.com/raftario/cursed-semver-parser.git" }
 lazy_static = "1.4.0"
+colored = "2.0.0"

@@ -93,6 +93,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "colored"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3616f750b84d8f0de8a58bda93e08e2a81ad3f523089b05f1dffecab48c6cbd"
+dependencies = [
+ "atty",
+ "lazy_static",
+ "winapi",
+]
+
+[[package]]
 name = "cursed-semver-parser"
 version = "0.1.0"
 source = "git+https://github.com/raftario/cursed-semver-parser.git#c103a3643c7daa8aa87750c7de0d3b0b2e4c422e"
@@ -285,6 +296,7 @@ name = "qpm-rust"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "colored",
  "cursed-semver-parser",
  "lazy_static",
  "semver 0.10.0",

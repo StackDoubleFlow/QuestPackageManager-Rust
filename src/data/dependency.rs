@@ -98,9 +98,14 @@ impl Dependency {
         Option::None
     }
 
-    pub fn collect(&self, collected: &mut HashMap<SharedDependency, SharedPackageConfig>)
+    pub fn collect(&self, this_id: &str, collected: &mut HashMap<SharedDependency, SharedPackageConfig>)
     {
-        let mut shared_package: SharedPackageConfig;
+        if self.id.to_lowercase().eq(&this_id.to_lowercase())
+        {
+            return;
+        }
+
+        let shared_package: SharedPackageConfig;
         match self.get_shared_package() {
             Option::Some(s) => { shared_package = s; },
             Option::None => {
@@ -108,106 +113,14 @@ impl Dependency {
                 exit(0);
             }
         }
+        
+        // make a shared dependency out of this dependency
+        let to_add = SharedDependency {
+            dependency: self.clone(),
+            version: shared_package.config.info.version
+        };
 
-        let pred = self.version_range.clone().replace('<', ", <");
-        let dep_version = VersionReq::parse(&pred).expect("Parsing version range failed");
-        let versions = qpackages::get_versions(&self.id, "*",0 );
-
-        for v in versions
-        {
-            let ver = Version::parse(&v.version).expect("parsing version value failed");
-            if dep_version.matches(&ver)
-            {
-                // found matching version
-                let mut new_shared = SharedDependency {
-                    dependency: self.clone(),
-                    version: v.version
-                };
-                
-                // does our shared package have an override so name?
-                let override_so_name_opt = shared_package.config.info.additional_data.override_so_name.clone();
-                match override_so_name_opt {
-                    // if it does
-                    Some(override_so_name) => {
-                        // make a pair thats opt
-                        let mut pair_opt = Option::<(SharedDependency, SharedPackageConfig)>::None;
-                        // try to find a package with hte same override name
-                        for (dep, shared_config) in collected.iter_mut()
-                        {
-                            if let Some(override_so_name_other) = &shared_config.config.info.additional_data.override_so_name {
-                                if override_so_name.eq(override_so_name_other) 
-                                {
-                                    pair_opt = Option::Some((dep.clone(), shared_config.clone()));
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        // if it was found
-                        if let Some (pair) = pair_opt {
-                            // is the new packages' version greater than our current? if so, replace the current version
-                            if Version::parse(&shared_package.config.info.version) > Version::parse(&pair.1.config.info.version)
-                            {
-                                collected.remove(&pair.0);
-                                new_shared.version = shared_package.config.info.version.clone();
-                                collected.insert(new_shared, shared_package.clone());
-                            }
-                        }
-                        else if !collected.contains_key(&new_shared)
-                        {
-                            let mut gotten = false;
-                            for (dep, _shared_config) in collected.iter() 
-                            {
-                                // if we find a package that's the exact same
-                                if new_shared.dependency.id.to_lowercase().eq(&dep.dependency.id.to_lowercase()) && new_shared.version.eq(&dep.version)
-                                {
-                                    gotten = true;
-                                    break;
-                                }
-                            }
-                            // if not found
-                            if !gotten
-                            {
-                                // add to list
-                                collected.insert(new_shared, shared_package.clone());
-                            }
-                        }
-                    },
-                    // if it doesn't have an override
-                    None => {
-                        // if it contains the key
-                        if !collected.contains_key(&new_shared) {
-                            let mut gotten = false;
-                            for (dep, _shared_config) in collected.iter() {
-                                // if we find a package that's the exact same
-                                if new_shared.dependency.id.to_lowercase().eq(&dep.dependency.id.to_lowercase()) && new_shared.version.eq(&dep.version) {
-                                    gotten = true;
-                                    break;
-                                }
-                            }
-                            // if not found
-                            if !gotten {
-                                // add to list
-                                collected.insert(new_shared, shared_package.clone());
-                            }
-                        }
-                    }
-                }
-                
-                shared_package.restored_dependencies.retain(|inner_d|{
-                    if let Some(is_private) = inner_d.dependency.additional_data.is_private {
-                        return !is_private;
-                    }
-                    true
-                });
-
-                // for each dependency of the shared config that was still found
-                for inner_d in shared_package.restored_dependencies.iter_mut() {
-                    
-                    inner_d.dependency.collect(collected);
-                }
-                break;
-            }
-        }
+        // collect for this shared dep
+        to_add.collect(this_id, collected);
     }
 }

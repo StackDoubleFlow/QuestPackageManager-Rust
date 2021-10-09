@@ -3,6 +3,8 @@ use crate::data::dependency::{Dependency, AdditionalDependencyData};
 use crate::data::shared_dependency::{SharedDependency};
 use crate::data::shared_package::{SharedPackageConfig};
 use std::collections::HashMap;
+use semver::{Version, VersionReq};
+use colored::*;
 
 use std::io::{Write, Read};
 
@@ -160,50 +162,65 @@ impl PackageConfig {
         let mut collected = HashMap::<SharedDependency, SharedPackageConfig>::new();
 
         // for every dependency defined in our local package (qpm.json)
-        for dependency in self.dependencies.iter()
-        {
-            let shared_package = dependency.get_shared_package().expect("couldn't find shared package");
-            
-            let shared_dependency = SharedDependency {
-                dependency: dependency.clone(),
-                version: shared_package.config.info.version.clone()
-            };
+        for dependency in self.dependencies.iter() { dependency.collect(&self.info.id, &mut collected); }
+        
+        collected
+    }
 
-            collected.insert(shared_dependency, shared_package);
-            dependency.collect(&mut collected);
-            /*
-            // get version req for local version range stored in dependency
-            let dep_version = VersionReq::parse(&dependency.version_range).expect("Parsing version range failed");
-            // get all versions of a package
-            let versions = qpackages::get_versions(&dependency.id, "*",0 );
-            // for every version, starting at the last one added (newest)
-            for v in versions.iter()
-            {
-                // if version matches range
-                if dep_version.matches(&Version::parse(&v.version).expect("Parsing of retreived version failed"))
-                {
-                    // this is it
-                    let new_shared = SharedDependency {
-                        dependency: dependency.clone(),
-                        version: v.version.clone()
-                    };
+    pub fn collapse(&self) -> HashMap::<SharedDependency, SharedPackageConfig>
+    {
+        // collect our dependencies first
+        let mut collapsed = self.collect();
+        let collapsed_clone = collapsed.clone();
+
+        collapsed.retain(|shared_dependency, _shared_package|{
+            for pair in collapsed_clone.iter() {
+                if pair.0.dependency.id.eq(&shared_dependency.dependency.id) && pair.0.get_hash() != shared_dependency.get_hash() {
+                    let pred1 = pair.0.dependency.version_range.clone().replace('<', ", <");
+                    let pred2 = shared_dependency.dependency.version_range.clone().replace('<', ", <");
+
+                    let req1 = VersionReq::parse(&pred1).expect("Parsing first version range failed");
+                    let req2 = VersionReq::parse(&pred2).expect("Parsing second version range failed");
+
+                    let ver1 = Version::parse(&pair.0.version).expect("Parsing first version failed");
+                    let ver2 = Version::parse(&shared_dependency.version).expect("Parsing second version failed");
                     
-                    let new_shared_package = new_shared.get_shared_package();
-                    println!("{}: ({}) --> {} (config: {}, {} restored dependencies)", &new_shared.dependency.id, &new_shared.dependency.version_range, &new_shared.version, new_shared_package.config.info.version, new_shared_package.restored_dependencies.len());
+                    let match1 = req1.matches(&ver1) && req2.matches(&ver1);
+                    let match2 = req1.matches(&ver2) && req2.matches(&ver2);
                     
-                    // shared dependencies is by definition all of the ones used in a packages build
-                    for shared_dep in new_shared_package.restored_dependencies.iter()
+                    if match1 && match2
                     {
-                        println!(" - {}: ({}) --> {}", &shared_dep.dependency.id, &shared_dep.dependency.version_range, &shared_dep.version);
+                        // both are good
+                        if ver1 > ver2
+                        {
+                            // if the first version is larger than the second, then that means this is a bad one, remove second
+                            return false;
+                        }
                     }
-                    
-
-                    break;
+                    else if match1
+                    {
+                        // just the first is good, remove second
+                        return false;
+                    }
+                    else if match2
+                    {
+                        // just the second is good, this means do nothing right now, we'll get to the point where it'll be removed
+                    }
+                    else
+                    {
+                        // neither is good, this means the config is unusable!
+                        println!("Cannot collapse {}, Ranges do not intersect:", shared_dependency.dependency.id.bright_red());
+                        println!("Range 1: {} --> {}", &pred1.bright_blue(), &pair.0.version.bright_green());
+                        println!("Range 2: {} --> {}", &pred2.bright_blue(), &shared_dependency.version.bright_green());
+                        println!("Consider running {} and see which packages are using incompatible version ranges", "qpm-rust collapse".bright_yellow());
+                        std::process::exit(0);
+                    }
                 }
             }
-            */
-        }
-        collected
+            true
+        });
+        
+        collapsed
     }
 }
 

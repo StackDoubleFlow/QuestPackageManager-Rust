@@ -54,7 +54,7 @@ fn main() {
 
     // You can handle information about subcommands by requesting their matches by name
     // (as below), requesting just the name used, or both at the same time
-    match opts.subcmd.clone() {
+    match opts.subcmd {
         MainCommand::Cache(c) => commands::cache::execute_cache_operation(c),
         MainCommand::Clear => commands::clear::execute_clear_operation(),
         MainCommand::Collapse => commands::collapse::execute_collapse_operation(),
@@ -67,9 +67,6 @@ fn main() {
         MainCommand::Restore => commands::restore::execute_restore_operation(),
         MainCommand::Qmod(q) => commands::qmod::execute_qmod_operation(q)
     }
-
-    println!("\nopts: {:#?}", opts);
-    // more program logic goes here...
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
