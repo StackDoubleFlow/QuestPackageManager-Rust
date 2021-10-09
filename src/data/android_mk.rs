@@ -54,6 +54,7 @@ impl Default for AndroidMk {
     }
 }
 
+#[allow(dead_code)]
 impl AndroidMk {
     pub fn read() -> AndroidMk {
         let mut file = std::fs::File::open("Android.mk").expect("Opening Android.mk failed");
@@ -65,10 +66,10 @@ impl AndroidMk {
 
     pub fn write()
     {
-        let mut android_mk_string = "TODO";
+        let android_mk_string = "TODO";
         let mut file = std::fs::File::open("Android.mk").expect("Opening Android.mk failed");
 
-        file.write(android_mk_string);
+        file.write_all(android_mk_string.as_bytes()).expect("write failed");
     }
 }
 
