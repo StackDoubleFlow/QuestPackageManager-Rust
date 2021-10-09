@@ -23,11 +23,6 @@ pub struct PackageVersion {
     pub version: String
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Hash, PartialEq, Eq)]
-pub struct SearchRequest {
-    pub versions: Vec<PackageVersion>
-}
-
 /// Requests the appriopriate package info from qpackage.com
 pub fn get_versions(id: &str, req: &str, limit: i32) -> Vec<PackageVersion>
 {
@@ -38,14 +33,10 @@ pub fn get_versions(id: &str, req: &str, limit: i32) -> Vec<PackageVersion>
     }
 
     let response = ureq::get(&url).call().expect("Request to qpackages.com failed").into_string().expect("Into string failed");
+    let versions = serde_json::from_str::<Vec<PackageVersion>>(&response).expect("Deserialize failed!"); 
 
-    let response_val = format!("{{ \"versions\": {}}}", response);
-
-    //println!("response to be deserialized: {}", response_val);
-    let search_request = serde_json::from_str::<SearchRequest>(&response_val).expect("Deserialize failed!"); 
-
-    VERSIONS_CACHE.lock().unwrap().insert(url, search_request.versions.clone()); 
-    search_request.versions
+    VERSIONS_CACHE.lock().unwrap().insert(url, versions.clone()); 
+    versions
 }
 
 pub fn get_shared_package(id: &str, ver: &str) -> SharedPackageConfig

@@ -5,8 +5,8 @@ use clap::{AppSettings, Clap};
 mod data;
 mod commands;
 
-/// This doc string acts as a help message when the user runs '--help'
-/// as do all doc strings on fields
+/// QPM is a command line tool that allows modmakers to
+/// easily download dependencies for interacting with a game or other mods
 #[derive(Clap, Debug)]
 #[clap(version = "0.1.0", author = "RedBrumbler & Sc2ad")]
 #[clap(setting = AppSettings::ColoredHelp)]
