@@ -121,7 +121,7 @@ impl PackageConfig {
         match dep {
             Option::Some(_d) => { println!("Not adding dependency {} because it already existed", &dependency.id); },
             Option::None => {
-                self.dependencies.insert(self.dependencies.len(), dependency);
+                self.dependencies.push(dependency);
             }
         }
         
