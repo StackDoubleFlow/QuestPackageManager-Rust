@@ -3,9 +3,8 @@ use crate::data::dependency::{Dependency, AdditionalDependencyData};
 use crate::data::shared_dependency::{SharedDependency};
 use crate::data::shared_package::{SharedPackageConfig};
 use std::collections::HashMap;
-use semver::{Version, VersionReq};
+use semver::{Version};
 use colored::*;
-
 use std::io::{Write, Read};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -176,11 +175,8 @@ impl PackageConfig {
         collapsed.retain(|shared_dependency, _shared_package|{
             for pair in collapsed_clone.iter() {
                 if pair.0.dependency.id.eq(&shared_dependency.dependency.id) && pair.0.get_hash() != shared_dependency.get_hash() {
-                    let pred1 = pair.0.dependency.version_range.clone().replace('<', ", <");
-                    let pred2 = shared_dependency.dependency.version_range.clone().replace('<', ", <");
-
-                    let req1 = VersionReq::parse(&pred1).expect("Parsing first version range failed");
-                    let req2 = VersionReq::parse(&pred2).expect("Parsing second version range failed");
+                    let req1 = cursed_semver_parser::parse(&pair.0.dependency.version_range).expect("Parsing first version range failed");
+                    let req2 = cursed_semver_parser::parse(&shared_dependency.dependency.version_range).expect("Parsing second version range failed");
 
                     let ver1 = Version::parse(&pair.0.version).expect("Parsing first version failed");
                     let ver2 = Version::parse(&shared_dependency.version).expect("Parsing second version failed");
@@ -210,8 +206,8 @@ impl PackageConfig {
                     {
                         // neither is good, this means the config is unusable!
                         println!("Cannot collapse {}, Ranges do not intersect:", shared_dependency.dependency.id.bright_red());
-                        println!("Range 1: {} --> {}", &pred1.bright_blue(), &pair.0.version.bright_green());
-                        println!("Range 2: {} --> {}", &pred2.bright_blue(), &shared_dependency.version.bright_green());
+                        println!("Range 1: {} --> {}", &pair.0.dependency.version_range.bright_blue(), &pair.0.version.bright_green());
+                        println!("Range 2: {} --> {}", &shared_dependency.dependency.version_range.bright_blue(), &shared_dependency.version.bright_green());
                         println!("Consider running {} and see which packages are using incompatible version ranges", "qpm-rust collapse".bright_yellow());
                         std::process::exit(0);
                     }

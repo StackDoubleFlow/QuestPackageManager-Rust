@@ -3,9 +3,10 @@ use crate::data::shared_package::SharedPackageConfig;
 use crate::data::shared_dependency::SharedDependency;
 
 use crate::data::qpackages;
-use semver::{Version, VersionReq};
+use semver::{Version};
 use std::collections::HashMap;
 use std::process::exit;
+use colored::*;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -73,9 +74,7 @@ impl Dependency {
     pub fn get_shared_package(&self) -> Option<SharedPackageConfig>
     {
         let versions = qpackages::get_versions(&self.id, "*", 0);
-        let pred = self.version_range.clone().replace('<', ", <");
-
-        match VersionReq::parse(&pred) {
+        match cursed_semver_parser::parse(&self.version_range) {
             Ok(req) => {
                 for v in versions.iter()
                 {
@@ -89,7 +88,7 @@ impl Dependency {
 
             }
             Err(error) => {
-                println!("Failed to parse range for dependency {}: {}", &self.id, &pred);
+                println!("Failed to parse range for dependency {}: {}", &self.id.bright_red(), &self.version_range.bright_blue());
                 panic!("error: {}", error);
             }
         }
