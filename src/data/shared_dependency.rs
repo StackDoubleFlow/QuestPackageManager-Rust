@@ -100,4 +100,19 @@ impl SharedDependency {
         self.hash(&mut s);
         s.finish()
     }
+
+    pub fn cache(&self)
+    {
+        // check if current version already cached
+        // if not, git clone (using token?)
+        // else return
+        // make sure to keep cache location in mind (settings)
+    }
+
+    pub fn restore_from_cache(&self)
+    {
+        // restore from cached files, give error on fail (nonexistent?)
+        // make sure to check the symlink setting (can we even do that in rust ?)
+        // also keep cache location in mind
+    }
 }

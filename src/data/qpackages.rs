@@ -1,19 +1,15 @@
 use serde::{Serialize, Deserialize};
 use crate::data::shared_package::SharedPackageConfig;
 use std::collections::HashMap;
-use lazy_static::lazy_static; // 1.4.0
 use std::sync::Mutex;
+use once_cell::sync::Lazy;
 
 static API_URL: &str = "https://qpackages.com";
 
 // https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
-lazy_static! {
-    static ref VERSIONS_CACHE: Mutex<HashMap<String, Vec<PackageVersion>>> = Mutex::new(HashMap::new());
-}
 
-lazy_static! {
-    static ref SHARED_PACKAGE_CACHE: Mutex<HashMap<String, SharedPackageConfig>> = Mutex::new(HashMap::new());
-}
+static VERSIONS_CACHE: Lazy<Mutex<HashMap<String, Vec<PackageVersion>>>> = Lazy::new(Default::default);
+static SHARED_PACKAGE_CACHE: Lazy<Mutex<HashMap<String, SharedPackageConfig>>> = Lazy::new(Default::default);
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, PartialEq, Eq)]
 #[allow(non_snake_case)]

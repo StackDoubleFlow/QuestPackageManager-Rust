@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
-use crate::data::package;
+use crate::data::package::PackageConfig;
 use crate::data::shared_dependency::SharedDependency;
 use std::io::{Read, Write};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedPackageConfig {
-    pub config: package::PackageConfig,
+    pub config: PackageConfig,
     pub restored_dependencies: Vec<SharedDependency>
 }
 
@@ -56,5 +56,26 @@ impl SharedPackageConfig {
                 }
             };
         }
+    }
+
+    pub fn from_package(package: PackageConfig) -> SharedPackageConfig
+    {
+        let collapsed = package.collapse();
+        SharedPackageConfig {
+            config: package,
+            restored_dependencies: collapsed.into_keys().collect()
+        }
+    }
+
+    pub fn restore(&self)
+    {
+        for restore in self.restored_dependencies.iter()
+        {
+            restore.cache();
+            restore.restore_from_cache();
+        }
+    
+        // todo edit android_mk
+        // todo edit mod.json
     }
 }

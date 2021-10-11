@@ -46,6 +46,7 @@ pub struct CreateQmodJsonOperationArgs {
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
+#[allow(clippy::large_enum_variant)]
 pub enum QmodOperation {
     Create(CreateQmodJsonOperationArgs),
     Build,
