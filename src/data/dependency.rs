@@ -6,7 +6,7 @@ use crate::data::qpackages;
 use semver::{Version};
 use std::collections::HashMap;
 use std::process::exit;
-use colored::*;
+use owo_colors::*;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]

@@ -14,6 +14,6 @@ ureq = {version = "2.1.1", features = ["json"]}
 semver = { version = "1", features = ["serde"] }
 unwrap = "1.2.1"
 cursed-semver-parser = { git = "https://github.com/raftario/cursed-semver-parser.git" }
-colored = "2.0.0"
+owo-colors = "3"
 dirs = "4.0.0"
 once_cell = "1"

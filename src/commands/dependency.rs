@@ -1,5 +1,5 @@
 use clap::{Clap, AppSettings};
-use colored::Colorize;
+use owo_colors::*;
 
 use crate::data::dependency;
 use crate::data::package::{PackageConfig};

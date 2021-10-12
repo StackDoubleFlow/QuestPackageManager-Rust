@@ -1,6 +1,8 @@
 use clap::{Clap, AppSettings};
+use owo_colors::*;
 #[allow(non_camel_case_types)]
 
+use crate::data::config::Config as AppConfig;
 
 
 #[derive(Clap, Debug, Clone)]
@@ -49,7 +51,7 @@ pub struct Symlink {
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct Timeout {
-    pub timeout: Option<u32>
+    pub timeout: Option<u64>
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -65,68 +67,60 @@ pub enum ConfigOperation {
 
 pub fn execute_config_operation(operation: Config)
 {
-    match &operation.op {
-        ConfigOperation::Cache(c) => execute_cache_config_operation(c),
-        ConfigOperation::Symlink(s) => execute_symlink_config_operation(s),
-        ConfigOperation::Timeout(t) => execute_timeout_config_operation(t)
+    let mut config = AppConfig::read();
+    match operation.op {
+        ConfigOperation::Cache(c) => execute_cache_config_operation(&mut config, c),
+        ConfigOperation::Symlink(s) => execute_symlink_config_operation(&mut config, s),
+        ConfigOperation::Timeout(t) => execute_timeout_config_operation(&mut config, t)
     }
+    config.write();
 }
 
-fn execute_cache_config_operation(operation: &Cache)
+fn execute_cache_config_operation(config: &mut AppConfig, operation: Cache)
 {
-    match operation.op.clone() {
+    match operation.op {
         CacheOperation::Path(p) => {
-            if p.path.is_some()
-            {
-                // TODO: make it set
-                println!("path should've been set to {:#?}", p.path.unwrap());
-            }
-            else
-            {
-                // TODO: make it get
-                println!("path should've been printed");
+            if let Some(path) = p.path {
+                println!("Set cache path to {}", path.bright_yellow());
+                config.cache = Some(path);
+            } else {
+                println!("Current configured cache path is {}", config.cache.as_ref().unwrap().bright_yellow());
             }
         },
     }
 }
 
-fn set_symlink_usage(value: bool)
+fn set_symlink_usage(config: &mut AppConfig, value: bool)
 {
-    // TODO: make it actually set
-    println!("Symlink set: {}", value);
+    println!("Set symlink usage to {}", value.bright_yellow());
+    config.symlink = Some(value);
 }
 
-fn execute_symlink_config_operation(operation: &Symlink)
+fn execute_symlink_config_operation(config: &mut AppConfig, operation: Symlink)
 {
     // value is given
-
-    match &operation.op {
-        Option::Some(s) => {
-            match &s {
-                SymlinkOperation::Enable => {
-                    set_symlink_usage(true);
-                },
-                SymlinkOperation::Disable => {
-                    set_symlink_usage(false);
-                }
+    if let Some(symlink) = operation.op {
+        match symlink {
+            SymlinkOperation::Enable => {
+                set_symlink_usage(config, true);
+            },
+            SymlinkOperation::Disable => {
+                set_symlink_usage(config, false);
             }
         }
-        Option::None => {
-            println!("Symlink usage config should've been printed");
-        }
+    } else {
+        println!("Current configured symlink usage is set to: {}", config.symlink.as_ref().unwrap().bright_yellow());
     }
 }
 
-fn execute_timeout_config_operation(operation: &Timeout)
+fn execute_timeout_config_operation(config: &mut AppConfig, operation: Timeout)
 {
-    match operation.timeout {
-        Option::Some(t) => {
-            // TODO actually set the value
-            println!("Timeout set to {}", t);
-        }
-        Option::None => {
-            // TODO: make it actually read the value from config
-            println!("Timeout value should've been printed");
-        }
+    if let Some(timeout) = operation.timeout {
+        // TODO actually set the value
+        println!("Set timeout to {}!", timeout.bright_yellow());
+        config.timeout = Some(timeout);
+    } else {
+        // TODO: make it actually read the value from config
+            println!("Current configured timeout is set to: {}", config.timeout.as_ref().unwrap().bright_yellow());
     }
 }

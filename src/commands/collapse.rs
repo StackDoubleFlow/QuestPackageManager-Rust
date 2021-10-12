@@ -1,5 +1,5 @@
 use crate::data::package;
-use colored::*;
+use owo_colors::*;
 
 pub fn execute_collapse_operation()
 {

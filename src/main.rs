@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use serde::{Serialize, Deserialize};
 //use std::fs::{read_to_string};
 use clap::{AppSettings, Clap};

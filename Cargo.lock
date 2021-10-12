@@ -93,17 +93,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "colored"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3616f750b84d8f0de8a58bda93e08e2a81ad3f523089b05f1dffecab48c6cbd"
-dependencies = [
- "atty",
- "lazy_static",
- "winapi",
-]
-
-[[package]]
 name = "cursed-semver-parser"
 version = "0.1.0"
 source = "git+https://github.com/raftario/cursed-semver-parser.git#c103a3643c7daa8aa87750c7de0d3b0b2e4c422e"
@@ -284,6 +273,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6acbef58a60fe69ab50510a55bc8cdd4d6cf2283d27ad338f54cb52747a9cf2d"
 
 [[package]]
+name = "owo-colors"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "503a1a6634186cefb8adc93a751df98215c52b8db8bf416b496865f04ec09e13"
+
+[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -327,10 +322,10 @@ name = "qpm-rust"
 version = "0.1.0"
 dependencies = [
  "clap",
- "colored",
  "cursed-semver-parser",
  "dirs",
  "once_cell",
+ "owo-colors",
  "semver",
  "serde",
  "serde_json",

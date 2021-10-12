@@ -4,7 +4,7 @@ use crate::data::shared_dependency::{SharedDependency};
 use crate::data::shared_package::{SharedPackageConfig};
 use std::collections::HashMap;
 use semver::{Version};
-use colored::*;
+use owo_colors::*;
 use std::io::{Write, Read};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
