@@ -12,9 +12,6 @@ mod commands;
 #[clap(version = "0.1.0", author = "RedBrumbler & Sc2ad")]
 #[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
-    /// the github token to use for operations
-    #[clap(short, long)]
-    token: Option<String>,
     #[clap(subcommand)]
     subcmd: MainCommand
 }
@@ -46,16 +43,9 @@ enum MainCommand {
 }
 
 fn main() {
-    let opts: Opts = Opts::parse();
-    let token = opts.token.clone();
-    if token.is_some()
-    {
-        println!("using token {}", token.unwrap());
-    }
-
     // You can handle information about subcommands by requesting their matches by name
     // (as below), requesting just the name used, or both at the same time
-    match opts.subcmd {
+    match (Opts::parse() as Opts).subcmd {
         MainCommand::Cache(c) => commands::cache::execute_cache_operation(c),
         MainCommand::Clear => commands::clear::execute_clear_operation(),
         MainCommand::Collapse => commands::collapse::execute_collapse_operation(),

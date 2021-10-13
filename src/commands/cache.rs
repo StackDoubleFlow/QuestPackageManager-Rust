@@ -29,5 +29,6 @@ fn clear()
     // clear cached dependencies from cachce, probably C drive
 
     let config = Config::read_combine();
-    let path = config.cache.unwrap();
+    // todo remove _
+    let _path = config.cache.unwrap();
 }

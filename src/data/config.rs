@@ -18,7 +18,7 @@ impl Default for Config {
     fn default() -> Config {
         Config {
             symlink: Some(false),
-            cache: Some(format!("{}\\QPM-Rust\\cache\\", dirs::data_dir().unwrap().display())),
+            cache: Some(format!("{}\\QPM-Rust\\cache", dirs::data_dir().unwrap().display())),
             timeout: Some(5000)
         }
     }
@@ -98,7 +98,7 @@ impl Config {
     {
         let config = serde_json::to_string_pretty(&self).expect("Serialization failed");
         let path = "qpm.settings.json";
-        
+
         std::fs::create_dir_all(Config::global_config_dir()).expect("Failed to make config folder");
         let mut file = std::fs::File::create(path).expect("create failed");
         file.write_all(config.as_bytes()).expect("write failed");
@@ -116,4 +116,10 @@ impl Config {
     {
         format!("{}\\QPM-Rust\\", dirs::config_dir().unwrap().display())
     }
+}
+
+#[inline]
+pub fn get_keyring() -> keyring::Keyring<'static>
+{
+    keyring::Keyring::new("qpm", "github")
 }

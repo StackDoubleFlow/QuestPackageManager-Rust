@@ -2,12 +2,15 @@ use serde::{Serialize, Deserialize};
 use crate::data::dependency::Dependency;
 use crate::data::shared_package::SharedPackageConfig;
 use crate::data::qpackages;
+use crate::data::config::Config;
+use crate::data::config::get_keyring;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::cmp::Eq;
 use semver::{Version};
 use std::collections::hash_map::DefaultHasher;
-
+use owo_colors::*;
+use std::process::{Command};
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedDependency {
@@ -107,6 +110,25 @@ impl SharedDependency {
         // if not, git clone (using token?)
         // else return
         // make sure to keep cache location in mind (settings)
+        let config = Config::read_combine();
+        println!("Checking cache for dependency {} {}", self.dependency.id.bright_red(), self.version.bright_green());
+        let path = format!("{}/{}/{}", config.cache.unwrap(), self.dependency.id, self.version);
+        let path_data = std::path::Path::new(&path);
+        if !path_data.exists() {
+            // didn't find it -> download it!
+            if let Ok(token) = get_keyring().get_password() {
+                // had token, use it!
+                //running a cli command:
+                //println!("git help: {}", std::str::from_utf8(Command::new("git").arg("--help").output().unwrap().stdout.as_slice()).unwrap());
+                // git clone https://<token>@github.com/owner/repo.git
+            } else {
+                println!("No github token found, private repos will not restore!");
+                // token not available, try to cache without using
+            }
+        } else {
+            println!("Path {} existed!", &path);
+            // found it, do nothing!
+        }
     }
 
     pub fn restore_from_cache(&self)

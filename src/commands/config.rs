@@ -3,7 +3,7 @@ use owo_colors::*;
 #[allow(non_camel_case_types)]
 
 use crate::data::config::Config as AppConfig;
-
+use crate::data::config::get_keyring;
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -59,13 +59,22 @@ pub struct Timeout {
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
+pub struct Token {
+    pub token: Option<String>,
+    #[clap(long)]
+    pub delete: bool,
+}
+#[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColoredHelp)]
 pub enum ConfigOperation {
     /// Get or set the cache path
     Cache(Cache),
     /// Enable or disable symlink usage
     Symlink(Symlink),
     /// Get or set the timeout for web requests
-    Timeout(Timeout ),
+    Timeout(Timeout),
+    /// Get or set the github token used for restore
+    Token(Token),
     /// Print the location of the global config
     Location
 }
@@ -84,6 +93,7 @@ pub fn execute_config_operation(operation: Config)
         ConfigOperation::Cache(c) => changed_any = execute_cache_config_operation(&mut config, c),
         ConfigOperation::Symlink(s) => changed_any = execute_symlink_config_operation(&mut config, s),
         ConfigOperation::Timeout(t) => changed_any = execute_timeout_config_operation(&mut config, t),
+        ConfigOperation::Token(t) => execute_token_config_operation(t),
         ConfigOperation::Location => println!("Global Config is located at {}", AppConfig::global_config_path().bright_yellow())
     }
 
@@ -192,4 +202,26 @@ fn execute_timeout_config_operation(config: &mut AppConfig, operation: Timeout) 
     }
 
     false
+}
+
+fn execute_token_config_operation(operation: Token)
+{
+    if operation.delete {
+        get_keyring().delete_password().expect("Removing password failed");
+        println!("Deleted github token from config, it will no longer be used");
+        return;
+    }
+    
+    if let Some(token) = operation.token {
+        // write token
+        get_keyring().set_password(&token).expect("Storing token failed!");
+        println!("Configured a github token! This will now be used in qpm restore");
+    } else {
+        // read token
+        if let Ok(token) = get_keyring().get_password() {
+            println!("Configured github token: {}", token.bright_yellow());
+        } else {
+            println!("No token was configured, or getting the token failed!");
+        }
+    }
 }

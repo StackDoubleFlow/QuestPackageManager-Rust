@@ -17,3 +17,4 @@ cursed-semver-parser = { git = "https://github.com/raftario/cursed-semver-parser
 owo-colors = "3"
 dirs = "4.0.0"
 once_cell = "1"
+keyring = "0.10.1"
