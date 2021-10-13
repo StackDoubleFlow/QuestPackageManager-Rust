@@ -120,6 +120,7 @@ impl SharedDependency {
                 // had token, use it!
                 //running a cli command:
                 //println!("git help: {}", std::str::from_utf8(Command::new("git").arg("--help").output().unwrap().stdout.as_slice()).unwrap());
+                // maybe use this instead https://docs.rs/duct/0.13.5/duct/index.html
                 // git clone https://<token>@github.com/owner/repo.git
             } else {
                 println!("No github token found, private repos will not restore!");
