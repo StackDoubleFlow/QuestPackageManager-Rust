@@ -1,4 +1,5 @@
 use clap::{Clap, AppSettings};
+use crate::data::config::Config;
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -26,4 +27,7 @@ fn clear()
     println!("It should clear the cached files now");
 
     // clear cached dependencies from cachce, probably C drive
+
+    let config = Config::read_combine();
+    let path = config.cache.unwrap();
 }

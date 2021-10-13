@@ -5,9 +5,11 @@ use dirs;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub symlink: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cache: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout: Option<u64>
 }
 
@@ -16,7 +18,7 @@ impl Default for Config {
     fn default() -> Config {
         Config {
             symlink: Some(false),
-            cache: Some(format!("{}\\QPM-Rust\\", dirs::config_dir().unwrap().display())),
+            cache: Some(format!("{}\\QPM-Rust\\cache\\", dirs::data_dir().unwrap().display())),
             timeout: Some(5000)
         }
     }
@@ -28,8 +30,8 @@ impl Config {
     pub fn read() -> Config
     {
         // todo make it use a local qpm settings file
-        let path = format!("{}\\QPM-Rust\\qpm.settings.json", dirs::config_dir().unwrap().display());
-        std::fs::create_dir_all(&format!("{}\\QPM-Rust\\", dirs::config_dir().unwrap().display())).expect("Failed to make config folder");
+        let path = Config::global_config_path();
+        std::fs::create_dir_all(Config::global_config_dir()).expect("Failed to make config folder");
         
         if let Ok(mut file) = std::fs::File::open(path) {
             // existed
@@ -40,6 +42,23 @@ impl Config {
         } else {
             // didn't exist
             Config { .. Default::default() }
+        }
+    }
+
+    pub fn read_local() -> Config
+    {
+        // todo make it use a local qpm settings file
+        let path = "qpm.settings.json";
+        
+        if let Ok(mut file) = std::fs::File::open(path) {
+            // existed
+            let mut config_str = String::new();
+            file.read_to_string(&mut config_str).expect("Reading data failed");
+    
+            serde_json::from_str::<Config>(&config_str).expect("Deserializing package failed")
+        } else {
+            // didn't exist
+            Config { symlink: None, cache: None, timeout: None }
         }
     }
 
@@ -67,11 +86,34 @@ impl Config {
     pub fn write(&self)
     {
         let config = serde_json::to_string_pretty(&self).expect("Serialization failed");
+        let path = Config::global_config_path();
 
-        let path = format!("{}\\QPM-Rust\\qpm.settings.json", dirs::config_dir().unwrap().display());
-
+        std::fs::create_dir_all(Config::global_config_dir()).expect("Failed to make config folder");
         let mut file = std::fs::File::create(path).expect("create failed");
         file.write_all(config.as_bytes()).expect("write failed");
         println!("Saved Config!");
+    }
+
+    pub fn write_local(&self)
+    {
+        let config = serde_json::to_string_pretty(&self).expect("Serialization failed");
+        let path = "qpm.settings.json";
+        
+        std::fs::create_dir_all(Config::global_config_dir()).expect("Failed to make config folder");
+        let mut file = std::fs::File::create(path).expect("create failed");
+        file.write_all(config.as_bytes()).expect("write failed");
+        println!("Saved Config!");
+    }
+
+    #[inline]
+    pub fn global_config_path() -> String
+    {
+        format!("{}qpm.settings.json", Config::global_config_dir())
+    }
+
+    #[inline]
+    pub fn global_config_dir() -> String
+    {
+        format!("{}\\QPM-Rust\\", dirs::config_dir().unwrap().display())
     }
 }
