@@ -1,5 +1,8 @@
 use serde::{Serialize, Deserialize};
+use symlink::*;
+use fs_extra::dir::copy as copy_directory;
 use crate::data::{
+    package::PackageConfig,
     shared_package::SharedPackageConfig,
     dependency::Dependency,
     qpackages,
@@ -248,5 +251,100 @@ impl SharedDependency {
         // restore from cached files, give error on fail (nonexistent?)
         // make sure to check the symlink setting (can we even do that in rust ?)
         // also keep cache location in mind
+
+        if Config::read_combine().symlink.unwrap() {
+            self.restore_from_cache_symlink();
+        } else {
+            self.restore_from_cache_copy();
+        }
+    }
+
+    pub fn collect_to_copy(&self) -> Vec<(String, String)>
+    {
+        let config = Config::read_combine();
+        let package = PackageConfig::read();
+        let shared_package = self.get_shared_package();
+        let base_path = format!("{}/{}/{}", config.cache.unwrap(), self.dependency.id, self.version);
+        let src_path = format!("{}/src", &base_path);
+        let libs_path = format!("{}/libs", &base_path);
+        let local_path = format!("{}/{}", &package.dependencies_dir, self.dependency.id);
+
+        let so_name: String;
+        if let Some(override_so_name) = shared_package.config.info.additional_data.override_so_name {
+            so_name = override_so_name;
+        } else {
+            so_name = format!("lib{}_{}.so", self.dependency.id, self.version.replace('.', "_"));
+        }
+
+        let mut to_copy = Vec::new();
+        // if not headers only, copy over .so file
+        if shared_package.config.info.additional_data.headers_only.is_none() || !shared_package.config.info.additional_data.headers_only.unwrap() {
+            let lib_so_path = format!("{}/{}", &libs_path, &so_name);
+            let local_so_path = format!("{}/{}", &package.dependencies_dir, &so_name);
+            // from to
+            to_copy.push((lib_so_path, local_so_path));
+        }
+        
+        // copy  shared / include over
+        let cache_shared_path = format!("{}/{}", src_path, shared_package.config.shared_dir);
+        let shared_path = format!("{}/{}", local_path, shared_package.config.shared_dir);
+        to_copy.push((cache_shared_path, shared_path));
+
+        if let Some(extra_files) = &self.dependency.additional_data.extra_files {
+            for entry in extra_files.iter() {
+                let cache_entry_path = format!("{}/{}", src_path, entry);
+                let entry_path = format!("{}/{}", local_path, entry);
+                to_copy.push((cache_entry_path, entry_path));
+            }
+        }
+
+        to_copy
+    }
+
+    pub fn restore_from_cache_symlink(&self)
+    {
+        let to_copy = self.collect_to_copy();
+        // sort out issues with the symlinking, stuff is being symlinked weirdly
+        for (from_str, to_str) in to_copy.iter() {
+            let from = std::path::Path::new(&from_str);
+            let to = std::path::Path::new(&to_str);
+
+            if let Err(e) = symlink_auto(&from, &to) {
+                println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist, or are you not running qpm as adminstrator?", e.bright_red());
+                if from.is_dir() {
+                std::fs::create_dir_all(&to).expect("Failed to create destination folder");
+                let mut options = fs_extra::dir::CopyOptions::new();
+                    options.overwrite = true;
+                    options.copy_inside = true;
+                    options.content_only = true;
+                    copy_directory(&from, &to, &options).expect("Failed to copy directory!");
+                } else if from.is_file() {
+                    std::fs::copy(&from, &to).expect("Failed to copy file!");
+                }
+            }
+        }
+    }
+
+    pub fn restore_from_cache_copy(&self)
+    {
+        // get the files to copy
+        let to_copy = self.collect_to_copy();
+        for (from_str, to_str) in to_copy.iter() {
+            let from = std::path::Path::new(&from_str);
+            let to = std::path::Path::new(&to_str);
+            // if dir, make sure it exists
+            if from.is_dir() {
+                std::fs::create_dir_all(&to).expect("Failed to create destination folder");
+                let mut options = fs_extra::dir::CopyOptions::new();
+                options.overwrite = true;
+                options.copy_inside = true;
+                options.content_only = true;
+                // copy it over
+                copy_directory(&from, &to, &options).expect("Failed to copy directory!");
+            } else if from.is_file() {
+                // if it's a file, copy that over instead
+                std::fs::copy(&from, &to).expect("Failed to copy file!");
+            }
+        }
     }
 }
