@@ -1,6 +1,5 @@
 use clap::{Clap, AppSettings};
 use owo_colors::*;
-#[allow(non_camel_case_types)]
 
 use crate::data::config::Config as AppConfig;
 use crate::data::config::get_keyring;
@@ -206,9 +205,12 @@ fn execute_timeout_config_operation(config: &mut AppConfig, operation: Timeout) 
 
 fn execute_token_config_operation(operation: Token)
 {
-    if operation.delete {
+    if operation.delete && get_keyring().get_password().is_ok() {
         get_keyring().delete_password().expect("Removing password failed");
         println!("Deleted github token from config, it will no longer be used");
+        return;
+    } else if operation.delete {
+        println!("There was no github token configured, did not delete it");
         return;
     }
     

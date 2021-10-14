@@ -1,16 +1,22 @@
 use serde::{Serialize, Deserialize};
-use crate::data::dependency::Dependency;
-use crate::data::shared_package::SharedPackageConfig;
-use crate::data::qpackages;
-use crate::data::config::Config;
-use crate::data::config::get_keyring;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use std::cmp::Eq;
+use crate::data::{
+    shared_package::SharedPackageConfig,
+    dependency::Dependency,
+    qpackages,
+    config::{Config, get_keyring}
+};
+
+use std::{
+    collections::{HashMap, hash_map::DefaultHasher},
+    hash::{Hash, Hasher},
+    io::{Cursor, Read, Write},
+};
+
 use semver::{Version};
-use std::collections::hash_map::DefaultHasher;
 use owo_colors::*;
-use std::process::{Command};
+use duct::cmd;
+use zip::ZipArchive;
+
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedDependency {
@@ -18,6 +24,16 @@ pub struct SharedDependency {
     pub version: String
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GithubReleaseAsset {
+    pub url: String,
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GithubReleaseData {
+    pub assets: Vec<GithubReleaseAsset>
+}
 #[allow(dead_code)]
 impl SharedDependency {
     pub fn get_shared_package(&self) -> SharedPackageConfig
@@ -112,22 +128,117 @@ impl SharedDependency {
         // make sure to keep cache location in mind (settings)
         let config = Config::read_combine();
         println!("Checking cache for dependency {} {}", self.dependency.id.bright_red(), self.version.bright_green());
-        let path = format!("{}/{}/{}", config.cache.unwrap(), self.dependency.id, self.version);
+        let path = format!("{}/{}/{}/src", config.cache.unwrap(), self.dependency.id, self.version);
         let path_data = std::path::Path::new(&path);
+
         if !path_data.exists() {
-            // didn't find it -> download it!
-            if let Ok(token) = get_keyring().get_password() {
-                // had token, use it!
-                //running a cli command:
-                //println!("git help: {}", std::str::from_utf8(Command::new("git").arg("--help").output().unwrap().stdout.as_slice()).unwrap());
-                // maybe use this instead https://docs.rs/duct/0.13.5/duct/index.html
-                // git clone https://<token>@github.com/owner/repo.git
+            std::fs::create_dir_all(&path).expect("Failed to create directory");
+            let shared_package = self.dependency.get_shared_package().unwrap();
+            let mut url: String;
+            if let Some(url_val) = shared_package.config.info.url {
+                // url is of format https://github.com/USER/REPO
+                url = url_val;
             } else {
-                println!("No github token found, private repos will not restore!");
-                // token not available, try to cache without using
+                println!("Url for package {} was not set, contact the person who uploaded it so they can fix that!", &shared_package.config.info.id.bright_yellow());
+                std::process::exit(0);
+            }
+
+            // didn't find it -> download it!
+            if let Some(gitidx) = url.find("github.com") {
+                if let Ok(token) = get_keyring().get_password() {
+                    // had token, use it!
+                    url.insert_str(gitidx, &format!("{}@", &token));
+                } else {
+                    // token not available, try to cache without using
+                    println!("No github token found, private repos will not restore!");
+                }
+
+                println!("Cloning git repo...");
+                // git clone
+                if let Some (branch) = shared_package.config.info.additional_data.branch_name {
+                    cmd!("git", "clone", format!("{}.git", url), &path, "--branch", branch, "--depth", "1", "--recurse-submodules", "--shallow-submodules", "--quiet").stdout_capture().stderr_capture().run().expect("running git clone failed!");
+                } else {
+                    println!("No branch name found, cloning default branch");
+                    cmd!("git", "clone", format!("{}.git", url), &path, "--depth", "1", "--recurse-submodules", "--shallow-submodules", "--quiet").stdout_capture().stderr_capture().run().expect("running git clone failed!");
+                }
+
+                println!("Downloading .so file...");
+                // header only not defined, or it's false
+                if shared_package.config.info.additional_data.headers_only.is_none() || !shared_package.config.info.additional_data.headers_only.unwrap() {
+                    // get download link to use
+                    let mut so_download: String;
+                    // if debug link defined, use that to link against
+                    if let Some(debug_so_link) = shared_package.config.info.additional_data.debug_so_link {
+                        so_download = debug_so_link;
+                    // if that didn't exist, get the normal .so
+                    } else if let Some(so_link) = shared_package.config.info.additional_data.so_link {
+                        so_download = so_link;
+                    } else {
+                        println!("Package was not header only, but did not specify a (debug) so link, this must be a mistake, please contact the author of the package!");
+                        return;
+                    }
+
+                    if let Some(gitidx_so) = so_download.find("github.com") {
+                        
+                        let filename: String;
+                        if let Some(override_name) = shared_package.config.info.additional_data.override_so_name {
+                            filename = override_name;
+                        } else {
+                            filename = format!("lib{}_{}.so", self.dependency.id, self.version.replace('.', "_"));
+                        }
+
+                        // github url, probably release
+                        if let Ok(token) = get_keyring().get_password() {
+                            // had token, use it!
+                            // download url for a private thing: still need to get asset id!
+                            // from this: "https://github.com/Gorilla-Tag-Modding-Group/MonkeCodegen/releases/download/v0.9.1/libmonkecodegen.so"
+                            // to this: "https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/assets/$ASSET_ID" -o $FILENAME
+                            let mut asset_data_link = so_download.clone();
+                            
+                            asset_data_link.insert_str(gitidx_so, &format!("{}@api.", &token));
+                            //https://$TOKEN@api.github.com/$USER/$REPO/releases/download/$TAG/$FILENAME
+                            asset_data_link = asset_data_link.replace("github.com/", "github.com/repos/");
+                            //https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/download/$TAG/$FILENAME
+                            asset_data_link = asset_data_link.replace("/download/", "/tags/");
+                            //https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/tags/$TAG/$FILENAME
+                            let last_slash = asset_data_link.rfind('/').unwrap();
+                            asset_data_link = asset_data_link[..last_slash].to_string();
+                            //https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/tags/$TAG
+
+                            let data = ureq::get(&asset_data_link).call().unwrap().into_json::<GithubReleaseData>().unwrap();
+
+                            for asset in data.assets.iter() {
+                                if asset.name == filename {
+                                    // this is the correct asset!
+                                    so_download = asset.url.replace("api.github.com", &format!("{}@api.github.com", token));
+                                }
+                            }
+                        } else {
+                            // token not available, try to cache without using
+                            println!("No github token found, private releases will not download!");
+                        }
+                        let mut buffer = Vec::new();
+                        ureq::get(&so_download).set("Accept", "application/octet-stream").call().unwrap().into_reader().read_to_end(&mut buffer).unwrap();
+
+                        let lib_path = path.replace("/src", "/libs");
+                        
+                        std::fs::create_dir_all(&lib_path).expect("Could not create libs folder");
+
+                        let mut file = std::fs::File::create(&format!("{}/{}", lib_path, filename)).expect("Failed to create lib file");
+                        file.write_all(&buffer).expect("Failed to write out .so file");
+                    } else {
+                        // not a git url, just straight download
+                    }
+                }
+            } else {
+                // it was not a github url, probably a zipped file download
+                println!("Url was not a github url, assuming it's a zipped file download...");
+                let mut buffer = Cursor::new(Vec::new());
+                ureq::get(&url).call().unwrap().into_reader().read_to_end(buffer.get_mut()).unwrap();
+                ZipArchive::new(buffer).unwrap().extract(&path).unwrap();
             }
         } else {
-            println!("Path {} existed!", &path);
+            println!("Path {} existed! no need to cache...", &path.bright_yellow());
             // found it, do nothing!
         }
     }
