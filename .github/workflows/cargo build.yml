@@ -54,10 +54,12 @@ jobs:
                   ~/.cargo/git/db/
                   target/
                 key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
             - name: Get libdbus if ubuntu-latest
-              if: ${{matrix.os}} == "ubuntu-latest"
+              if: ${{ matrix.os == 'ubuntu-latest' }}
               run: |
                 sudo apt-get install -y libdbus-1-dev
+
             - name: Cargo build
               run: |
                   cargo +nightly build --verbose
