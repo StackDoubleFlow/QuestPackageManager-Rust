@@ -214,10 +214,29 @@ fn parse_line(line: &str) -> Vec<String>
 #[allow(dead_code)]
 impl AndroidMk {
     pub fn read() -> AndroidMk {
+        if let Ok(mut file) = std::fs::File::open("Android.mk") {
+            let mut android_mk_string = String::new();
+            file.read_to_string(&mut android_mk_string).expect("Reading data failed");
+            Self::from_str(&android_mk_string)
+        } else /* if didn't exist */ {
+            let android_mk = AndroidMk { ..Default::default() };
+            // make default file here! prefix, module, suffix
+            android_mk
+        }
+    }
+
+    pub fn write(&self)
+    {
+        let android_mk_string = self.to_string();
+
         let mut file = std::fs::File::open("Android.mk").expect("Opening Android.mk failed");
-        let mut android_mk_string = String::new();
-        file.read_to_string(&mut android_mk_string).expect("Reading data failed");
-        let lines: Vec<&str> = android_mk_string.split('\n').collect();
+
+        file.write_all(android_mk_string.as_bytes()).expect("write failed");
+    }
+
+    fn from_str(s: &str) -> AndroidMk
+    {
+        let lines: Vec<&str> = s.split('\n').collect();
 
         let mut in_module = false;
         let mut first_module_found = false;
@@ -383,15 +402,6 @@ impl AndroidMk {
         mk.suffix.append(&mut module.prefix_lines);
         mk
     }
-
-    pub fn write(&self)
-    {
-        let android_mk_string = self.to_string();
-
-        let mut file = std::fs::File::open("Android.mk").expect("Opening Android.mk failed");
-
-        file.write_all(android_mk_string.as_bytes()).expect("write failed");
-    }
 }
 
 impl ToString for AndroidMk {
@@ -416,4 +426,3 @@ impl ToString for AndroidMk {
         result
     }
 }
-
