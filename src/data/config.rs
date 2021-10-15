@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use std::io::{Read, Write};
 use dirs;
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -8,7 +9,7 @@ pub struct Config {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub symlink: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache: Option<String>,
+    pub cache: Option<PathBuf>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout: Option<u64>
 }
@@ -17,8 +18,8 @@ impl Default for Config {
     #[inline]
     fn default() -> Config {
         Config {
-            symlink: Some(false),
-            cache: Some(format!("{}\\QPM-Rust\\cache", dirs::data_dir().unwrap().display())),
+            symlink: Some(true),
+            cache: Some(dirs::data_dir().unwrap().join("QPM-Rust").join("cache")),
             timeout: Some(5000)
         }
     }
@@ -105,16 +106,14 @@ impl Config {
         println!("Saved Config!");
     }
 
-    #[inline]
-    pub fn global_config_path() -> String
+    pub fn global_config_path() -> PathBuf
     {
-        format!("{}qpm.settings.json", Config::global_config_dir())
+        Config::global_config_dir().join("qpm.settings.json")
     }
 
-    #[inline]
-    pub fn global_config_dir() -> String
+    pub fn global_config_dir() -> PathBuf
     {
-        format!("{}\\QPM-Rust\\", dirs::config_dir().unwrap().display())
+        dirs::config_dir().unwrap().join("QPM-Rust")
     }
 }
 

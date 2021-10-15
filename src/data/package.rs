@@ -3,9 +3,9 @@ use crate::data::dependency::{Dependency, AdditionalDependencyData};
 use crate::data::shared_dependency::{SharedDependency};
 use crate::data::shared_package::{SharedPackageConfig};
 use std::collections::HashMap;
-use semver::{Version};
+use semver::{Version,  VersionReq};
 use owo_colors::*;
-use std::io::{Write, Read};
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -24,24 +24,14 @@ pub struct AdditionalPackageData {
     pub debug_so_link: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub override_so_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub styles: Option<Vec<PackageStyle>>
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct PackageStyle {
-    pub name: String,
-    pub so_link: String,
-    pub debug_so_link: String
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageInfo {
     pub name: String,
     pub id: String,
-    pub version: String,
+    pub version: Version,
     pub url: Option<String>,
     pub additional_data: AdditionalPackageData
 }
@@ -49,8 +39,8 @@ pub struct PackageInfo {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageConfig {
-    pub shared_dir: String,
-    pub dependencies_dir: String,
+    pub shared_dir: PathBuf,
+    pub dependencies_dir: PathBuf,
     pub info: PackageInfo,
     pub dependencies: Vec<Dependency>,
     pub additional_data: AdditionalDependencyData
@@ -59,20 +49,15 @@ pub struct PackageConfig {
 impl PackageConfig {
     pub fn write(&self)
     {
-        let qpm_package = serde_json::to_string_pretty(&self).expect("Serialization failed");
-
-        let mut file = std::fs::File::create("qpm.json").expect("create failed");
-        file.write_all(qpm_package.as_bytes()).expect("write failed");
+        let file = std::fs::File::create("qpm.json").expect("create failed");
+        serde_json::to_writer_pretty(file, &self).expect("Serialization failed");
         println!("Package {} Written!", self.info.id);
     }
 
     pub fn read() -> PackageConfig 
     {
-        let mut file = std::fs::File::open("qpm.json").expect("Opening qpm.json failed");
-        let mut qpm_package = String::new();
-        file.read_to_string(&mut qpm_package).expect("Reading data failed");
-
-        serde_json::from_str::<PackageConfig>(&qpm_package).expect("Deserializing package failed")
+        let file = std::fs::File::open("qpm.json").expect("Opening qpm.json failed");
+        serde_json::from_reader(file).expect("Deserializing package failed")
     }
 
     pub fn add_dependency(&mut self, dependency: Dependency)
@@ -119,7 +104,7 @@ impl PackageConfig {
     {
         // fd new vector for storing our values
         let mut collected = HashMap::<SharedDependency, SharedPackageConfig>::new();
-
+        
         // for every dependency defined in our local package (qpm.json)
         for dependency in self.dependencies.iter() { dependency.collect(&self.info.id, &mut collected); }
         
@@ -135,19 +120,14 @@ impl PackageConfig {
         collapsed.retain(|shared_dependency, _shared_package|{
             for pair in collapsed_clone.iter() {
                 if pair.0.dependency.id.eq(&shared_dependency.dependency.id) && pair.0.get_hash() != shared_dependency.get_hash() {
-                    let req1 = cursed_semver_parser::parse(&pair.0.dependency.version_range).expect("Parsing first version range failed");
-                    let req2 = cursed_semver_parser::parse(&shared_dependency.dependency.version_range).expect("Parsing second version range failed");
-
-                    let ver1 = Version::parse(&pair.0.version).expect("Parsing first version failed");
-                    let ver2 = Version::parse(&shared_dependency.version).expect("Parsing second version failed");
-                    
-                    let match1 = req1.matches(&ver1) && req2.matches(&ver1);
-                    let match2 = req1.matches(&ver2) && req2.matches(&ver2);
+                    let req = intersect(pair.0.dependency.version_range.clone(), shared_dependency.dependency.version_range.clone());
+                    let match1 = req.matches(&pair.0.version);
+                    let match2 = req.matches(&shared_dependency.version);
                     
                     if match1 && match2
                     {
                         // both are good
-                        if ver1 > ver2
+                        if pair.0.version > shared_dependency.version
                         {
                             // if the first version is larger than the second, then that means this is a bad one, remove second
                             return false;
@@ -180,15 +160,7 @@ impl PackageConfig {
     }
 }
 
-impl Default for PackageConfig {
-    #[inline]
-    fn default() -> PackageConfig {
-        PackageConfig {
-            shared_dir: "shared".to_string(),
-            dependencies_dir: "extern".to_string(),
-            info: PackageInfo::default(),
-            dependencies: Vec::<Dependency>::default(),
-            additional_data: AdditionalDependencyData::default()
-        }
-    }
+fn intersect(mut lhs: VersionReq, mut rhs: VersionReq) -> VersionReq {
+    lhs.comparators.append(&mut rhs.comparators);
+    lhs
 }

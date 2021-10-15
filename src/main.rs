@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![feature(is_symlink)]
 use serde::{Serialize, Deserialize};
 //use std::fs::{read_to_string};
 use clap::{AppSettings, Clap};

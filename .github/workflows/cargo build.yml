@@ -42,8 +42,6 @@ jobs:
                   lfs: true
 
             - uses: actions-rs/toolchain@v1
-              with:
-                toolchain: nightly
 
             - uses: actions/cache@v2
               with:
@@ -62,7 +60,7 @@ jobs:
 
             - name: Cargo build
               run: |
-                  cargo +nightly build --verbose
+                  cargo build --verbose
                 
             - name: Upload executable
               uses: actions/upload-artifact@v2

@@ -3,16 +3,16 @@ use crate::data::shared_package::SharedPackageConfig;
 use crate::data::shared_dependency::SharedDependency;
 
 use crate::data::qpackages;
-use semver::{Version};
+use semver::{Version, VersionReq};
 use std::collections::HashMap;
 use std::process::exit;
-use owo_colors::*;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Dependency {
     pub id: String,
-    pub version_range: String,
+    #[serde(deserialize_with="cursed_semver_parser::deserialize")]
+    pub version_range: VersionReq,
     pub additional_data: AdditionalDependencyData
 }
 
@@ -35,13 +35,42 @@ pub struct AdditionalDependencyData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_release: Option<bool>,
 
-    /// Specify the style to use
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub style: Option<String>,
-
     /// Whether or not the dependency is private and should be used in restore
     #[serde(skip_serializing_if = "Option::is_none", rename(serialize = "private", deserialize = "private"))]
     pub is_private: Option<bool>
+}
+
+impl AdditionalDependencyData {
+    pub fn merge(&mut self, other: AdditionalDependencyData)
+    {
+        if self.branch_name.is_none() {
+            if let Some(other_branch_name) = &other.branch_name {
+                self.branch_name = Some(other_branch_name.clone());
+            }
+        }
+
+        if let (Some(extra_files), Some(other_extra_files)) = (&mut self.extra_files, &other.extra_files) {
+            extra_files.append(&mut other_extra_files.clone());
+        } else if self.extra_files.is_none() {
+            if let Some(other_extra_files) = &other.extra_files {
+                self.extra_files = Some(other_extra_files.clone());
+            }
+        }
+
+        if self.local_path.is_none() {
+            if let Some(other_local_path) = &other.local_path {
+                self.local_path = Some(other_local_path.clone());
+            }
+        }
+
+        if let (Some(is_private), Some(other_is_private)) = (&self.is_private, &other.is_private) {
+            self.is_private = Some(*is_private || *other_is_private);
+        } else if self.is_private.is_none() {
+            if let Some(other_is_private) = &other.is_private {
+                self.is_private = Some(*other_is_private);
+            }
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -49,23 +78,14 @@ impl Dependency {
     pub fn get_shared_package(&self) -> Option<SharedPackageConfig>
     {
         let versions = qpackages::get_versions(&self.id, "*", 0);
-        match cursed_semver_parser::parse(&self.version_range) {
-            Ok(req) => {
-                for v in versions.iter()
-                {
-                    let ver = Version::parse(&v.version).expect("Parsing found version failed");
+        for v in versions.iter()
+        {
+            let ver = Version::parse(&v.version).expect("Parsing found version failed");
 
-                    if req.matches(&ver)
-                    {
-                        return Option::Some(qpackages::get_shared_package(&self.id, &v.version));
-                    } 
-                }
-
-            }
-            Err(error) => {
-                println!("Failed to parse range for dependency {}: {}", &self.id.bright_red(), &self.version_range.bright_blue());
-                panic!("error: {}", error);
-            }
+            if self.version_range.matches(&ver)
+            {
+                return Option::Some(qpackages::get_shared_package(&self.id, &v.version));
+            } 
         }
 
 
@@ -79,7 +99,7 @@ impl Dependency {
             return;
         }
 
-        let shared_package: SharedPackageConfig;
+        let mut shared_package: SharedPackageConfig;
         match self.get_shared_package() {
             Option::Some(s) => { shared_package = s; },
             Option::None => {
@@ -87,13 +107,23 @@ impl Dependency {
                 exit(0);
             }
         }
+
+        shared_package.restored_dependencies.retain(|dep|{
+            if let Some(is_private) = dep.dependency.additional_data.is_private {
+                !is_private
+            } else {
+                true
+            }
+        });
         
         // make a shared dependency out of this dependency
         let to_add = SharedDependency {
             dependency: self.clone(),
-            version: shared_package.config.info.version
+            version: shared_package.config.info.version.clone()
         };
-
+        
+        println!("{:#?}", self.additional_data.extra_files);
+        collected.insert(to_add.clone(), shared_package);
         // collect for this shared dep
         to_add.collect(this_id, collected);
     }

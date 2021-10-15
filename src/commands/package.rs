@@ -1,6 +1,11 @@
 use clap::{AppSettings, Clap};
+use semver::Version;
+use crate::data::{
+    package::{PackageConfig, PackageInfo, AdditionalPackageData},
+    dependency::{Dependency, AdditionalDependencyData},
+};
 
-use crate::data::package::{PackageConfig, PackageInfo, AdditionalPackageData};
+use std::path::Path;
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -34,7 +39,7 @@ pub struct Edit {
     pub url: Option<String>,
     ///Edit the version property of the package
     #[clap(long)]
-    pub version: Option<String>
+    pub version: Option<Version>
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -75,7 +80,7 @@ pub struct PackageOperationCreateArgs {
     /// The name of the package
     pub name: String,
     /// The version of the package
-    pub version: String,
+    pub version: Version,
     /// Specify an id, else lowercase will be used
     #[clap(long="id")]
     pub id: Option<String>,
@@ -130,14 +135,17 @@ fn package_create_operation(create_parameters: PackageOperationCreateArgs)
     let package_info = PackageInfo {
         id,
         name: create_parameters.name,
+        url: None,
         version: create_parameters.version,
         additional_data,
-        ..Default::default()
     };
 
     let package = PackageConfig {
         info: package_info,
-        ..Default::default()
+        shared_dir: Path::new("shared").to_owned(),
+        dependencies_dir: Path::new("extern").to_owned(),
+        dependencies: Vec::<Dependency>::default(),
+        additional_data: AdditionalDependencyData::default()
     };
 
     package.write();
@@ -172,7 +180,7 @@ fn package_set_url(package: &mut PackageConfig, url: String)
     package.info.url = Option::Some(url);
 }
 
-fn package_set_version(package: &mut PackageConfig, version: String)
+fn package_set_version(package: &mut PackageConfig, version: Version)
 {
     println!("Setting package version: {}", version);
     // TODO  make it edit the version in mod.json and android.mk

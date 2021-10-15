@@ -3,7 +3,7 @@ use crate::data::package::PackageConfig;
 use crate::data::shared_dependency::SharedDependency;
 use std::io::{Read, Write};
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedPackageConfig {
     pub config: PackageConfig,
@@ -61,10 +61,21 @@ impl SharedPackageConfig {
     pub fn from_package(package: PackageConfig) -> SharedPackageConfig
     {
         let collapsed = package.collapse();
-        SharedPackageConfig {
+        
+        let mut shared_package = SharedPackageConfig {
             config: package,
             restored_dependencies: collapsed.into_keys().collect()
+        };
+
+        for dep in shared_package.config.dependencies.iter() {
+            let restored_dep = shared_package.restored_dependencies.iter_mut().find(|el| { 
+                el.dependency.id == dep.id
+            }).unwrap();
+
+            restored_dep.dependency.additional_data.merge(dep.additional_data.clone());
         }
+
+        shared_package
     }
 
     pub fn restore(&self)

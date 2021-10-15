@@ -28,8 +28,7 @@ pub fn get_versions(id: &str, req: &str, limit: i32) -> Vec<PackageVersion>
         return entry.clone();
     }
 
-    let response = ureq::get(&url).call().expect("Request to qpackages.com failed").into_string().expect("Into string failed");
-    let versions = serde_json::from_str::<Vec<PackageVersion>>(&response).expect("Deserialize failed!"); 
+    let versions = ureq::get(&url).call().expect("Request to qpackages.com failed").into_json::<Vec<PackageVersion>>().expect("Into json failed");
 
     VERSIONS_CACHE.lock().unwrap().insert(url, versions.clone()); 
     versions
@@ -42,9 +41,7 @@ pub fn get_shared_package(id: &str, ver: &str) -> SharedPackageConfig
         return entry.clone();
     }
 
-    let response = ureq::get(&url).call().expect("Request to qpackages.com failed").into_string().expect("Into string failed");
-
-    let shared_package = serde_json::from_str::<SharedPackageConfig>(&response).expect("Deserialize from string failed!");
+    let shared_package = ureq::get(&url).call().expect("Request to qpackages.com failed").into_json::<SharedPackageConfig>().expect("Into json failed");
 
     SHARED_PACKAGE_CACHE.lock().unwrap().insert(url, shared_package.clone());
     shared_package

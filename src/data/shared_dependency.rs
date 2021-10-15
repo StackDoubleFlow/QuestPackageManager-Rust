@@ -13,6 +13,7 @@ use std::{
     collections::{HashMap, hash_map::DefaultHasher},
     hash::{Hash, Hasher},
     io::{Cursor, Read, Write},
+    path::{Path, PathBuf},
 };
 
 use semver::{Version};
@@ -20,11 +21,11 @@ use owo_colors::*;
 use duct::cmd;
 use zip::ZipArchive;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedDependency {
     pub dependency: Dependency,
-    pub version: String
+    pub version: Version
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -41,7 +42,7 @@ pub struct GithubReleaseData {
 impl SharedDependency {
     pub fn get_shared_package(&self) -> SharedPackageConfig
     {
-        qpackages::get_shared_package(&self.dependency.id, &self.version)
+        qpackages::get_shared_package(&self.dependency.id, &self.version.to_string())
     }
 
     pub fn collect(&self, this_id: &str, collected: &mut HashMap<SharedDependency, SharedPackageConfig>)
@@ -50,6 +51,18 @@ impl SharedDependency {
         {
             return;
         }
+
+        // get shared package to add to the hashmap
+        let mut shared_package = self.get_shared_package();
+            
+        // remove private deps
+        shared_package.restored_dependencies.retain(|restored_dependency| {
+            if let Some(is_private) = restored_dependency.dependency.additional_data.is_private {
+                return !is_private;
+            }
+
+            true
+        });
 
         if !collected.contains_key(self)
         {
@@ -61,27 +74,24 @@ impl SharedDependency {
                 if shared_dependency.dependency.id.eq(&self.dependency.id)
                 {
                     // if it has an override so name
-                    if let Some(override_so_name) = shared_dependency.get_shared_package().config.info.additional_data.override_so_name {
-                        // if self has an override so name
-                        if let Some(self_override_so_name) = self.get_shared_package().config.info.additional_data.override_so_name {
-                            // if they are the same
-                            if override_so_name.to_lowercase().eq(&self_override_so_name.to_lowercase())
+                    if let (Some(override_so_name), Some(self_override_so_name)) = (shared_dependency.get_shared_package().config.info.additional_data.override_so_name, self.get_shared_package().config.info.additional_data.override_so_name) {
+                        // if they are the same
+                        if override_so_name.to_lowercase() == self_override_so_name.to_lowercase()
+                        {
+                            // if self version is higher, remove it (and we add it back later)
+                            if self.version > shared_dependency.version
                             {
-                                // if self version is higher, remove it (and we add it back later)
-                                if Version::parse(&self.version).unwrap() > Version::parse(&shared_dependency.version).unwrap()
-                                {
-                                    return false;
-                                }
-                                else
-                                {
-                                    // we found a good dep, we don't need to add this one again
-                                    found = true;
-                                }
+                                return false;
+                            }
+                            else
+                            {
+                                // we found a good dep, we don't need to add this one again
+                                found = true;
                             }
                         }
                     }
                     // if id == id (checked before) & version is exact same, don't add it again
-                    else if self.version.eq(&shared_dependency.version)
+                    else if self.version == shared_dependency.version
                     {
                         found = true;
                     }
@@ -92,28 +102,16 @@ impl SharedDependency {
 
             // if we didn't find a valid version
             if !found
-            {
-                // get shared package to add to the hashmap
-                let mut shared_package = self.get_shared_package();
-                
-                // remove private deps
-                shared_package.restored_dependencies.retain(|restored_dependency| {
-                    if let Some(is_private) = restored_dependency.dependency.additional_data.is_private {
-                        return !is_private;
-                    }
-        
-                    true
-                });
-                
+            {   
                 // insert into hashmap
                 collected.insert(self.clone(), shared_package.clone());
-                
-                // collect all the shared deps
-                for shared_dependency in shared_package.restored_dependencies.iter()
-                {
-                    shared_dependency.collect(&shared_package.config.info.id, collected);
-                }
             }
+        }
+        
+        // collect all the shared deps
+        for shared_dependency in shared_package.restored_dependencies.iter()
+        {
+            shared_dependency.collect(&shared_package.config.info.id, collected);
         }
     }
 
@@ -131,8 +129,8 @@ impl SharedDependency {
         // make sure to keep cache location in mind (settings)
         let config = Config::read_combine();
         println!("Checking cache for dependency {} {}", self.dependency.id.bright_red(), self.version.bright_green());
-        let path = format!("{}/{}/{}/src", config.cache.unwrap(), self.dependency.id, self.version);
-        let path_data = std::path::Path::new(&path);
+        let path = config.cache.unwrap().join(&self.dependency.id).join(self.version.to_string());
+        let path_data = Path::new(&path);
 
         if !path_data.exists() {
             std::fs::create_dir_all(&path).expect("Failed to create directory");
@@ -187,7 +185,7 @@ impl SharedDependency {
                         if let Some(override_name) = shared_package.config.info.additional_data.override_so_name {
                             filename = override_name;
                         } else {
-                            filename = format!("lib{}_{}.so", self.dependency.id, self.version.replace('.', "_"));
+                            filename = format!("lib{}_{}.so", self.dependency.id, self.version.to_string().replace('.', "_"));
                         }
 
                         // github url, probably release
@@ -216,18 +214,16 @@ impl SharedDependency {
                                     so_download = asset.url.replace("api.github.com", &format!("{}@api.github.com", token));
                                 }
                             }
-                        } else {
-                            // token not available, try to cache without using
-                            println!("No github token found, private releases will not download!");
                         }
-                        let mut buffer = Vec::new();
-                        ureq::get(&so_download).set("Accept", "application/octet-stream").call().unwrap().into_reader().read_to_end(&mut buffer).unwrap();
 
-                        let lib_path = path.replace("/src", "/libs");
+                        let mut buffer = Vec::new();
+                        ureq::get(&so_download).set("Accept", "application/octet-stream").call().expect("Failed to download release artifact, make sure the link is correct, or if it's private configure a github token").into_reader().read_to_end(&mut buffer).unwrap();
+                        
+                        let lib_path = path.parent().unwrap().join("libs");
                         
                         std::fs::create_dir_all(&lib_path).expect("Could not create libs folder");
 
-                        let mut file = std::fs::File::create(&format!("{}/{}", lib_path, filename)).expect("Failed to create lib file");
+                        let mut file = std::fs::File::create(lib_path.join(filename)).expect("Failed to create lib file");
                         file.write_all(&buffer).expect("Failed to write out .so file");
                     } else {
                         // not a git url, just straight download
@@ -241,7 +237,7 @@ impl SharedDependency {
                 ZipArchive::new(buffer).unwrap().extract(&path).unwrap();
             }
         } else {
-            println!("Path {} existed! no need to cache...", &path.bright_yellow());
+            println!("Path {} existed! no need to cache...", &path.display().bright_yellow());
             // found it, do nothing!
         }
     }
@@ -259,41 +255,44 @@ impl SharedDependency {
         }
     }
 
-    pub fn collect_to_copy(&self) -> Vec<(String, String)>
+    pub fn collect_to_copy(&self) -> Vec<(PathBuf, PathBuf)>
     {
         let config = Config::read_combine();
         let package = PackageConfig::read();
         let shared_package = self.get_shared_package();
-        let base_path = format!("{}/{}/{}", config.cache.unwrap(), self.dependency.id, self.version);
-        let src_path = format!("{}/src", &base_path);
-        let libs_path = format!("{}/libs", &base_path);
-        let local_path = format!("{}/{}", &package.dependencies_dir, self.dependency.id);
 
+        let base_path = config.cache.unwrap().join(&self.dependency.id).join(self.version.to_string());
+        let src_path = base_path.join("src");
+        let libs_path = base_path.join("libs");
+        let dependencies_path = Path::new(&package.dependencies_dir);
+        std::fs::create_dir_all(dependencies_path).unwrap();
+        let dependencies_path = dependencies_path.canonicalize().unwrap();
+        let local_path = dependencies_path.join(&self.dependency.id);
         let so_name: String;
         if let Some(override_so_name) = shared_package.config.info.additional_data.override_so_name {
             so_name = override_so_name;
         } else {
-            so_name = format!("lib{}_{}.so", self.dependency.id, self.version.replace('.', "_"));
+            so_name = format!("lib{}_{}.so", self.dependency.id, self.version.to_string().replace('.', "_"));
         }
 
         let mut to_copy = Vec::new();
         // if not headers only, copy over .so file
         if shared_package.config.info.additional_data.headers_only.is_none() || !shared_package.config.info.additional_data.headers_only.unwrap() {
-            let lib_so_path = format!("{}/{}", &libs_path, &so_name);
-            let local_so_path = format!("{}/{}", &package.dependencies_dir, &so_name);
+            let lib_so_path = libs_path.join(&so_name);
+            let local_so_path = Path::new(&package.dependencies_dir).canonicalize().unwrap().join(&so_name);
             // from to
             to_copy.push((lib_so_path, local_so_path));
         }
         
         // copy  shared / include over
-        let cache_shared_path = format!("{}/{}", src_path, shared_package.config.shared_dir);
-        let shared_path = format!("{}/{}", local_path, shared_package.config.shared_dir);
+        let cache_shared_path = src_path.join(&shared_package.config.shared_dir);
+        let shared_path = local_path.join(&shared_package.config.shared_dir);
         to_copy.push((cache_shared_path, shared_path));
 
         if let Some(extra_files) = &self.dependency.additional_data.extra_files {
             for entry in extra_files.iter() {
-                let cache_entry_path = format!("{}/{}", src_path, entry);
-                let entry_path = format!("{}/{}", local_path, entry);
+                let cache_entry_path = src_path.join( entry);
+                let entry_path = local_path.join(entry);
                 to_copy.push((cache_entry_path, entry_path));
             }
         }
@@ -305,14 +304,16 @@ impl SharedDependency {
     {
         let to_copy = self.collect_to_copy();
         // sort out issues with the symlinking, stuff is being symlinked weirdly
-        for (from_str, to_str) in to_copy.iter() {
-            let from = std::path::Path::new(&from_str);
-            let to = std::path::Path::new(&to_str);
-
+        for (from, to) in to_copy.iter() {
+            // make sure to parent dir exists!
+            if from.is_dir() {std::fs::create_dir_all(to.parent().unwrap()).ok(); }
             if let Err(e) = symlink_auto(&from, &to) {
-                println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist, or are you not running qpm as adminstrator?", e.bright_red());
+                #[cfg(windows)]
+                println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist, or did you not enable windows dev mode?\nTo disable this warning (and default to copy), use the command {}", e.bright_red(), "qpm config symlink disable".bright_yellow());
+                #[cfg(not(windows))]
+                println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist?\nTo disable this warning (and default to copy), use the command {}", e.bright_red(), "qpm config symlink disable".bright_yellow());
+
                 if from.is_dir() {
-                std::fs::create_dir_all(&to).expect("Failed to create destination folder");
                 let mut options = fs_extra::dir::CopyOptions::new();
                     options.overwrite = true;
                     options.copy_inside = true;
@@ -330,8 +331,8 @@ impl SharedDependency {
         // get the files to copy
         let to_copy = self.collect_to_copy();
         for (from_str, to_str) in to_copy.iter() {
-            let from = std::path::Path::new(&from_str);
-            let to = std::path::Path::new(&to_str);
+            let from = Path::new(&from_str);
+            let to = Path::new(&to_str);
             // if dir, make sure it exists
             if from.is_dir() {
                 std::fs::create_dir_all(&to).expect("Failed to create destination folder");
