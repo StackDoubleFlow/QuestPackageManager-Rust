@@ -17,7 +17,7 @@ semver = { version = "1.0.4", features = ["serde"] }
 cursed-semver-parser = { git = "https://github.com/raftario/cursed-semver-parser.git", features = [
     "serde",
 ] }
-pubgrub = { git = "https://github.com/pubgrub-rs/pubgrub", branch = "version-set" }
+pubgrub = "0.2.1"
 owo-colors = "3.0.1"
 atomic_refcell = "0.1.8"
 dirs = "4.0.0"

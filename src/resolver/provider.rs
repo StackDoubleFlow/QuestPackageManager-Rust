@@ -1,11 +1,9 @@
 use std::borrow::Borrow;
 
-use pubgrub::solver::Dependencies;
+use pubgrub::{range::Range, solver::Dependencies};
 
-use crate::{
-    data::{package::PackageConfig, qpackages},
-    resolver::semver::{Version, VersionSet},
-};
+use super::semver::{req_to_range, Version};
+use crate::data::{package::PackageConfig, qpackages};
 
 pub struct DependencyProvider<'a> {
     root: &'a PackageConfig,
@@ -17,8 +15,8 @@ impl<'a> DependencyProvider<'a> {
     }
 }
 
-impl pubgrub::solver::DependencyProvider<String, VersionSet> for DependencyProvider<'_> {
-    fn choose_package_version<T: Borrow<String>, U: Borrow<VersionSet>>(
+impl pubgrub::solver::DependencyProvider<String, Version> for DependencyProvider<'_> {
+    fn choose_package_version<T: Borrow<String>, U: Borrow<Range<Version>>>(
         &self,
         potential_packages: impl Iterator<Item = (T, U)>,
     ) -> Result<(T, Option<Version>), Box<dyn std::error::Error>> {
@@ -36,7 +34,7 @@ impl pubgrub::solver::DependencyProvider<String, VersionSet> for DependencyProvi
         &self,
         id: &String,
         version: &Version,
-    ) -> Result<Dependencies<String, VersionSet>, Box<dyn std::error::Error>> {
+    ) -> Result<Dependencies<String, Version>, Box<dyn std::error::Error>> {
         if id == &self.root.info.id && version == &self.root.info.version {
             let deps = self
                 .root
@@ -45,7 +43,7 @@ impl pubgrub::solver::DependencyProvider<String, VersionSet> for DependencyProvi
                 .into_iter()
                 .map(|dep| {
                     let id = dep.id;
-                    let version = VersionSet::from(dep.version_range);
+                    let version = req_to_range(dep.version_range);
                     (id, version)
                 })
                 .collect();
@@ -58,7 +56,7 @@ impl pubgrub::solver::DependencyProvider<String, VersionSet> for DependencyProvi
                 .into_iter()
                 .map(|dep| {
                     let id = dep.id;
-                    let version = VersionSet::from(dep.version_range);
+                    let version = req_to_range(dep.version_range);
                     (id, version)
                 })
                 .collect();

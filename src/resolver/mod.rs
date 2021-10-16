@@ -6,7 +6,8 @@ use pubgrub::{
     report::{DefaultStringReporter, Reporter},
 };
 
-use crate::{data::package::PackageConfig, resolver::provider::DependencyProvider};
+use self::provider::DependencyProvider;
+use crate::data::package::PackageConfig;
 
 mod provider;
 mod semver;

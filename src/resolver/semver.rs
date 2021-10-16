@@ -1,371 +1,321 @@
 use std::fmt;
 
+use pubgrub::range::Range;
 use semver::{Comparator, Op, Prerelease, VersionReq};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Version(semver::Version);
+pub(super) struct Version(semver::Version);
 
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct VersionSet(VersionReq);
+pub(super) fn req_to_range(req: VersionReq) -> Range<Version> {
+    let mut range = Range::any();
+    for comparator in req.comparators {
+        let next = match comparator {
+            Comparator {
+                op: Op::Exact,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => exact_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::Exact,
+                major,
+                minor: Some(minor),
+                ..
+            } => exact_xy(major, minor),
+            Comparator {
+                op: Op::Exact,
+                major,
+                ..
+            } => exact_x(major),
+
+            Comparator {
+                op: Op::Greater,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => greater_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::Greater,
+                major,
+                minor: Some(minor),
+                ..
+            } => greater_xy(major, minor),
+            Comparator {
+                op: Op::Greater,
+                major,
+                ..
+            } => greater_x(major),
+
+            Comparator {
+                op: Op::GreaterEq,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => greater_eq_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::GreaterEq,
+                major,
+                minor: Some(minor),
+                ..
+            } => greater_eq_xy(major, minor),
+            Comparator {
+                op: Op::GreaterEq,
+                major,
+                ..
+            } => greater_eq_x(major),
+
+            Comparator {
+                op: Op::Less,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => less_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::Less,
+                major,
+                minor: Some(minor),
+                ..
+            } => less_xy(major, minor),
+            Comparator {
+                op: Op::Less,
+                major,
+                ..
+            } => less_x(major),
+
+            Comparator {
+                op: Op::LessEq,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => less_eq_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::LessEq,
+                major,
+                minor: Some(minor),
+                ..
+            } => less_eq_xy(major, minor),
+            Comparator {
+                op: Op::LessEq,
+                major,
+                ..
+            } => less_eq_x(major),
+
+            Comparator {
+                op: Op::Tilde,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => tilde_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::Tilde,
+                major,
+                minor: Some(minor),
+                ..
+            } => tilde_xy(major, minor),
+            Comparator {
+                op: Op::Tilde,
+                major,
+                ..
+            } => tilde_x(major),
+
+            Comparator {
+                op: Op::Caret,
+                major: 0,
+                minor: Some(0),
+                patch: Some(patch),
+                pre,
+            } => caret_00z(patch, pre),
+            Comparator {
+                op: Op::Caret,
+                major: 0,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => caret_0yz(minor, patch, pre),
+            Comparator {
+                op: Op::Caret,
+                major,
+                minor: Some(minor),
+                patch: Some(patch),
+                pre,
+            } => caret_xyz(major, minor, patch, pre),
+            Comparator {
+                op: Op::Caret,
+                major: 0,
+                minor: Some(0),
+                ..
+            } => caret_00(),
+            Comparator {
+                op: Op::Caret,
+                major,
+                minor: Some(minor),
+                ..
+            } => caret_xy(major, minor),
+            Comparator {
+                op: Op::Caret,
+                major,
+                ..
+            } => caret_x(major),
+
+            Comparator {
+                op: Op::Wildcard,
+                major,
+                minor: Some(minor),
+                ..
+            } => wildcard_xy(major, minor),
+            Comparator {
+                op: Op::Wildcard,
+                major,
+                ..
+            } => wildcard_x(major),
+
+            _ => unimplemented!(),
+        };
+        range = range.intersection(&next);
+    }
+    range
+}
+
+fn exact_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    Range::exact(semver::Version {
+        major,
+        minor,
+        patch,
+        pre,
+        build: Default::default(),
+    })
+}
+fn exact_xy(major: u64, minor: u64) -> Range<Version> {
+    greater_eq_xyz(major, minor, 0, Prerelease::EMPTY).intersection(&less_xyz(
+        major,
+        minor + 1,
+        0,
+        Prerelease::EMPTY,
+    ))
+}
+fn exact_x(major: u64) -> Range<Version> {
+    greater_eq_xyz(major, 0, 0, Prerelease::EMPTY).intersection(&less_xyz(
+        major + 1,
+        0,
+        0,
+        Prerelease::EMPTY,
+    ))
+}
+
+fn greater_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    greater_eq_xyz(major, minor, patch, pre.clone())
+        .intersection(&exact_xyz(major, minor, patch, pre).negate())
+}
+fn greater_xy(major: u64, minor: u64) -> Range<Version> {
+    greater_eq_xyz(major, minor + 1, 0, Prerelease::EMPTY)
+}
+fn greater_x(major: u64) -> Range<Version> {
+    greater_eq_xyz(major + 1, 0, 0, Prerelease::EMPTY)
+}
+
+fn greater_eq_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    Range::higher_than(semver::Version {
+        major,
+        minor,
+        patch,
+        pre,
+        build: Default::default(),
+    })
+}
+fn greater_eq_xy(major: u64, minor: u64) -> Range<Version> {
+    greater_eq_xyz(major, minor, 0, Prerelease::EMPTY)
+}
+fn greater_eq_x(major: u64) -> Range<Version> {
+    greater_eq_xyz(major, 0, 0, Prerelease::EMPTY)
+}
+
+fn less_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    Range::strictly_lower_than(semver::Version {
+        major,
+        minor,
+        patch,
+        pre,
+        build: Default::default(),
+    })
+}
+fn less_xy(major: u64, minor: u64) -> Range<Version> {
+    less_xyz(major, minor, 0, Prerelease::EMPTY)
+}
+fn less_x(major: u64) -> Range<Version> {
+    less_xyz(major, 0, 0, Prerelease::EMPTY)
+}
+
+fn less_eq_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    less_xyz(major, minor, patch, pre.clone()).union(&exact_xyz(major, minor, patch, pre))
+}
+fn less_eq_xy(major: u64, minor: u64) -> Range<Version> {
+    less_xyz(major, minor + 1, 0, Prerelease::EMPTY)
+}
+fn less_eq_x(major: u64) -> Range<Version> {
+    less_xyz(major + 1, 0, 0, Prerelease::EMPTY)
+}
+
+fn tilde_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    greater_eq_xyz(major, minor, patch, pre).intersection(&less_xyz(
+        major,
+        minor + 1,
+        0,
+        Prerelease::EMPTY,
+    ))
+}
+fn tilde_xy(major: u64, minor: u64) -> Range<Version> {
+    exact_xy(major, minor)
+}
+fn tilde_x(major: u64) -> Range<Version> {
+    exact_x(major)
+}
+
+fn caret_00z(patch: u64, pre: Prerelease) -> Range<Version> {
+    exact_xyz(0, 0, patch, pre)
+}
+fn caret_0yz(minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    greater_eq_xyz(0, minor, patch, pre).intersection(&less_xyz(0, minor + 1, 0, Prerelease::EMPTY))
+}
+fn caret_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
+    greater_eq_xyz(major, minor, patch, pre).intersection(&less_xyz(
+        major + 1,
+        minor,
+        0,
+        Prerelease::EMPTY,
+    ))
+}
+fn caret_00() -> Range<Version> {
+    exact_xy(0, 0)
+}
+fn caret_xy(major: u64, minor: u64) -> Range<Version> {
+    caret_xyz(major, minor, 0, Prerelease::EMPTY)
+}
+fn caret_x(major: u64) -> Range<Version> {
+    exact_x(major)
+}
+
+fn wildcard_xy(major: u64, minor: u64) -> Range<Version> {
+    exact_xy(major, minor)
+}
+fn wildcard_x(major: u64) -> Range<Version> {
+    exact_x(major)
+}
 
 impl pubgrub::version::Version for Version {
     fn lowest() -> Self {
-        Self(semver::Version::new(0, 0, 1))
+        Self(semver::Version::new(0, 0, 0))
     }
 
     fn bump(&self) -> Self {
         let mut v = self.0.clone();
         v.patch += 1;
         Self(v)
-    }
-}
-
-const EMPTY_SET: &[Comparator] = &[Comparator {
-    op: Op::Less,
-    major: 0,
-    minor: Some(0),
-    patch: Some(1),
-    pre: Prerelease::EMPTY,
-}];
-
-impl pubgrub::version_set::VersionSet for VersionSet {
-    type V = Version;
-
-    fn empty() -> Self {
-        Self(VersionReq {
-            comparators: EMPTY_SET.to_vec(),
-        })
-    }
-
-    fn singleton(v: Self::V) -> Self {
-        let Version(semver::Version {
-            major,
-            minor,
-            patch,
-            pre,
-            ..
-        }) = v;
-
-        Self(VersionReq {
-            comparators: vec![Comparator {
-                op: Op::Exact,
-                major,
-                minor: Some(minor),
-                patch: Some(patch),
-                pre,
-            }],
-        })
-    }
-
-    fn complement(&self) -> Self {
-        let mut comparators = Vec::with_capacity(self.0.comparators.len());
-        for Comparator {
-            op,
-            major,
-            minor,
-            patch,
-            pre,
-            ..
-        } in self.0.comparators.iter().cloned()
-        {
-            match (op, minor, patch) {
-                // =x.y.z
-                (Op::Exact, Some(minor), Some(patch)) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(minor),
-                        patch: Some(patch),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::Greater,
-                        major,
-                        minor: Some(minor),
-                        patch: Some(patch),
-                        pre,
-                    },
-                ]),
-                // =x.y
-                // x.y.*
-                (Op::Exact | Op::Wildcard, Some(minor), None) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(minor),
-                        patch: Some(0),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major,
-                        minor: Some(minor + 1),
-                        patch: Some(0),
-                        pre,
-                    },
-                ]),
-                // =x
-                // x.*
-                (Op::Exact | Op::Wildcard, None, None) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major: major + 1,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre,
-                    },
-                ]),
-
-                // >x.y.z
-                (Op::Greater, Some(minor), Some(patch)) => comparators.push(Comparator {
-                    op: Op::LessEq,
-                    major,
-                    minor: Some(minor),
-                    patch: Some(patch),
-                    pre,
-                }),
-                // >x.y
-                (Op::Greater, Some(minor), None) => comparators.push(Comparator {
-                    op: Op::Less,
-                    major,
-                    minor: Some(minor + 1),
-                    patch: Some(0),
-                    pre,
-                }),
-                // >x
-                (Op::Greater, None, None) => comparators.push(Comparator {
-                    op: Op::Less,
-                    major: major + 1,
-                    minor: Some(0),
-                    patch: Some(0),
-                    pre,
-                }),
-
-                // >=x.y.z
-                // >=x.y
-                // >=x
-                (Op::GreaterEq, minor, patch) => comparators.push(Comparator {
-                    op: Op::Less,
-                    major,
-                    minor: Some(minor.unwrap_or(0)),
-                    patch: Some(patch.unwrap_or(0)),
-                    pre,
-                }),
-
-                // <x.y.z
-                // <x.y
-                // <x
-                (Op::Less, minor, patch) => comparators.push(Comparator {
-                    op: Op::GreaterEq,
-                    major,
-                    minor: Some(minor.unwrap_or(0)),
-                    patch: Some(patch.unwrap_or(0)),
-                    pre,
-                }),
-
-                // <=x.y.z
-                (Op::LessEq, Some(minor), Some(patch)) => comparators.push(Comparator {
-                    op: Op::Greater,
-                    major,
-                    minor: Some(minor),
-                    patch: Some(patch),
-                    pre,
-                }),
-                // <=x.y
-                (Op::LessEq, Some(minor), None) => comparators.push(Comparator {
-                    op: Op::GreaterEq,
-                    major,
-                    minor: Some(minor + 1),
-                    patch: Some(0),
-                    pre,
-                }),
-                // <=x
-                (Op::LessEq, None, None) => comparators.push(Comparator {
-                    op: Op::GreaterEq,
-                    major: major + 1,
-                    minor: Some(0),
-                    patch: Some(0),
-                    pre,
-                }),
-
-                // ~x.y.z
-                (Op::Tilde, Some(minor), Some(patch)) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(minor),
-                        patch: Some(patch),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major,
-                        minor: Some(minor + 1),
-                        patch: Some(patch),
-                        pre,
-                    },
-                ]),
-                // ~x.y
-                (Op::Tilde, Some(minor), None) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(minor),
-                        patch: Some(0),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major,
-                        minor: Some(minor + 1),
-                        patch: Some(0),
-                        pre,
-                    },
-                ]),
-                // ~x
-                (Op::Tilde, None, None) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major: major + 1,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre,
-                    },
-                ]),
-
-                // ^x.y.z
-                // ^x.y
-                // if x > 0
-                (Op::Caret, Some(minor), patch) if major > 0 => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(minor),
-                        patch: Some(patch.unwrap_or(0)),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major: major + 1,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre,
-                    },
-                ]),
-                // ^0.y.z
-                // ^0.y
-                // if y > 0
-                (Op::Caret, Some(minor), patch) if minor > 0 => {
-                    debug_assert_eq!(major, 0);
-                    comparators.extend([
-                        Comparator {
-                            op: Op::Less,
-                            major,
-                            minor: Some(minor),
-                            patch: Some(patch.unwrap_or(0)),
-                            pre: pre.clone(),
-                        },
-                        Comparator {
-                            op: Op::GreaterEq,
-                            major,
-                            minor: Some(minor + 1),
-                            patch: Some(0),
-                            pre,
-                        },
-                    ])
-                }
-                // ^0.0.z
-                (Op::Caret, Some(minor), Some(patch)) => {
-                    debug_assert_eq!(major, 0);
-                    debug_assert_eq!(minor, 0);
-                    comparators.extend([
-                        Comparator {
-                            op: Op::Less,
-                            major,
-                            minor: Some(minor),
-                            patch: Some(patch),
-                            pre: pre.clone(),
-                        },
-                        Comparator {
-                            op: Op::Greater,
-                            major,
-                            minor: Some(minor),
-                            patch: Some(patch),
-                            pre,
-                        },
-                    ])
-                }
-                // ^0.0
-                (Op::Caret, Some(minor), None) => {
-                    debug_assert_eq!(major, 0);
-                    debug_assert_eq!(minor, 0);
-                    comparators.extend([
-                        Comparator {
-                            op: Op::Less,
-                            major,
-                            minor: Some(minor),
-                            patch: Some(0),
-                            pre: pre.clone(),
-                        },
-                        Comparator {
-                            op: Op::GreaterEq,
-                            major,
-                            minor: Some(minor + 1),
-                            patch: Some(0),
-                            pre,
-                        },
-                    ])
-                }
-                // ^x
-                (Op::Caret, None, None) => comparators.extend([
-                    Comparator {
-                        op: Op::Less,
-                        major,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre: pre.clone(),
-                    },
-                    Comparator {
-                        op: Op::GreaterEq,
-                        major: major + 1,
-                        minor: Some(0),
-                        patch: Some(0),
-                        pre,
-                    },
-                ]),
-
-                _ => unimplemented!(),
-            }
-        }
-        Self(VersionReq { comparators })
-    }
-
-    fn intersection(&self, other: &Self) -> Self {
-        let mut s = self.clone();
-        s.0.comparators.extend_from_slice(&other.0.comparators);
-        s
-    }
-
-    fn contains(&self, v: &Self::V) -> bool {
-        self.0.matches(&v.0)
-    }
-
-    fn full() -> Self {
-        Self(VersionReq::STAR)
     }
 }
 
@@ -400,4 +350,4 @@ macro_rules! impl_traits {
         )*
     };
 }
-impl_traits!(Version => semver::Version, VersionSet => semver::VersionReq);
+impl_traits!(Version => semver::Version);
