@@ -1,11 +1,10 @@
-#![allow(dead_code)]
-#![feature(is_symlink)]
-use serde::{Serialize, Deserialize};
-//use std::fs::{read_to_string};
-use clap::{AppSettings, Clap};
+#![feature(is_symlink, once_cell)]
 
-mod data;
+use clap::{AppSettings, Clap};
+use serde::{Deserialize, Serialize};
+
 mod commands;
+mod data;
 
 /// QPM is a command line tool that allows modmakers to
 /// easily download dependencies for interacting with a game or other mods
@@ -14,7 +13,7 @@ mod commands;
 #[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
     #[clap(subcommand)]
-    subcmd: MainCommand
+    subcmd: MainCommand,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -40,7 +39,7 @@ enum MainCommand {
     /// Restore and resolve all dependencies from the package
     Restore,
     /// Qmod control
-    Qmod(commands::qmod::Qmod)
+    Qmod(commands::qmod::Qmod),
 }
 
 fn main() {
@@ -54,15 +53,17 @@ fn main() {
         MainCommand::Config(c) => commands::config::execute_config_operation(c),
         MainCommand::Dependency(d) => commands::dependency::execute_dependency_operation(d),
         MainCommand::Package(p) => commands::package::execute_package_operation(p),
-        MainCommand::PropertiesList => commands::propertieslist::execute_properties_list_operation(),
+        MainCommand::PropertiesList => {
+            commands::propertieslist::execute_properties_list_operation()
+        }
         MainCommand::Publish => commands::publish::execute_publish_operation(),
         MainCommand::Restore => commands::restore::execute_restore_operation(),
-        MainCommand::Qmod(q) => commands::qmod::execute_qmod_operation(q)
+        MainCommand::Qmod(q) => commands::qmod::execute_qmod_operation(q),
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub cache_path: String,
-    pub timeout: u32
+    pub timeout: u32,
 }

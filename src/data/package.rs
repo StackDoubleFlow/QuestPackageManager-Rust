@@ -1,11 +1,14 @@
-use serde::{Serialize, Deserialize};
-use crate::data::dependency::{Dependency, AdditionalDependencyData};
-use crate::data::shared_dependency::{SharedDependency};
-use crate::data::shared_package::{SharedPackageConfig};
-use std::collections::HashMap;
-use semver::{Version,  VersionReq};
-use owo_colors::*;
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
+
+use owo_colors::OwoColorize;
+use semver::{Version, VersionReq};
+use serde::{Deserialize, Serialize};
+
+use crate::data::{
+    dependency::{AdditionalDependencyData, Dependency},
+    shared_dependency::SharedDependency,
+    shared_package::SharedPackageConfig,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -33,7 +36,7 @@ pub struct PackageInfo {
     pub id: String,
     pub version: Version,
     pub url: Option<String>,
-    pub additional_data: AdditionalPackageData
+    pub additional_data: AdditionalPackageData,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -43,55 +46,50 @@ pub struct PackageConfig {
     pub dependencies_dir: PathBuf,
     pub info: PackageInfo,
     pub dependencies: Vec<Dependency>,
-    pub additional_data: AdditionalDependencyData
+    pub additional_data: AdditionalDependencyData,
 }
 
 impl PackageConfig {
-    pub fn write(&self)
-    {
+    pub fn write(&self) {
         let file = std::fs::File::create("qpm.json").expect("create failed");
         serde_json::to_writer_pretty(file, &self).expect("Serialization failed");
         println!("Package {} Written!", self.info.id);
     }
 
-    pub fn read() -> PackageConfig 
-    {
+    pub fn read() -> PackageConfig {
         let file = std::fs::File::open("qpm.json").expect("Opening qpm.json failed");
         serde_json::from_reader(file).expect("Deserializing package failed")
     }
 
-    pub fn add_dependency(&mut self, dependency: Dependency)
-    {
+    pub fn add_dependency(&mut self, dependency: Dependency) {
         let dep = self.get_dependency(&dependency.id);
         match dep {
-            Option::Some(_d) => { println!("Not adding dependency {} because it already existed", &dependency.id); },
+            Option::Some(_d) => {
+                println!(
+                    "Not adding dependency {} because it already existed",
+                    &dependency.id
+                );
+            }
             Option::None => {
                 self.dependencies.push(dependency);
             }
         }
-        
     }
 
-    pub fn get_dependency(&mut self, id: &str) -> Option<&mut Dependency>
-    {
-        for (idx, dependency) in self.dependencies.iter().enumerate()
-        {
-            if dependency.id.eq(id)
-            {
+    pub fn get_dependency(&mut self, id: &str) -> Option<&mut Dependency> {
+        for (idx, dependency) in self.dependencies.iter().enumerate() {
+            if dependency.id.eq(id) {
                 return self.dependencies.get_mut(idx);
             }
         }
-        
+
         Option::default()
     }
 
-    pub fn remove_dependency(&mut self, id: &str)
-    {
-        for (idx, dependency) in self.dependencies.iter().enumerate()
-        {
-            if dependency.id.eq(id)
-            {
-                println!("removed dependency {}", id);            
+    pub fn remove_dependency(&mut self, id: &str) {
+        for (idx, dependency) in self.dependencies.iter().enumerate() {
+            if dependency.id.eq(id) {
+                println!("removed dependency {}", id);
                 self.dependencies.remove(idx);
                 return;
             }
@@ -100,19 +98,19 @@ impl PackageConfig {
         println!("Not removing dependency {} because it did not exist", id);
     }
 
-    pub fn collect(&self) -> HashMap::<SharedDependency, SharedPackageConfig>
-    {
+    pub fn collect(&self) -> HashMap<SharedDependency, SharedPackageConfig> {
         // fd new vector for storing our values
         let mut collected = HashMap::<SharedDependency, SharedPackageConfig>::new();
-        
+
         // for every dependency defined in our local package (qpm.json)
-        for dependency in self.dependencies.iter() { dependency.collect(&self.info.id, &mut collected); }
-        
+        for dependency in self.dependencies.iter() {
+            dependency.collect(&self.info.id, &mut collected);
+        }
+
         collected
     }
 
-    pub fn collapse(&self) -> HashMap::<SharedDependency, SharedPackageConfig>
-    {
+    pub fn collapse(&self) -> HashMap<SharedDependency, SharedPackageConfig> {
         // collect our dependencies first
         let mut collapsed = self.collect();
         let collapsed_clone = collapsed.clone();
@@ -155,7 +153,7 @@ impl PackageConfig {
             }
             true
         });
-        
+
         collapsed
     }
 }
