@@ -27,7 +27,6 @@ impl Default for Config {
     }
 }
 
-#[allow(dead_code)]
 impl Config {
     /// always gets the global config
     pub fn read() -> Config {

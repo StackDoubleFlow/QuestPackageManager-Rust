@@ -40,6 +40,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic_refcell"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73b5e5f48b927f04e952dedc932f31995a65a0bf65ec971c74436e51bf6e970d"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -745,9 +751,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pubgrub"
+version = "0.2.1"
+source = "git+https://github.com/pubgrub-rs/pubgrub?branch=version-set#7727938886fd3598f29cc2c8eb06921c121aaa9d"
+dependencies = [
+ "rustc-hash",
+ "thiserror",
+]
+
+[[package]]
 name = "qpm-rust"
 version = "0.1.0"
 dependencies = [
+ "atomic_refcell",
  "clap",
  "cursed-semver-parser",
  "dirs",
@@ -755,6 +771,7 @@ dependencies = [
  "fs_extra",
  "keyring",
  "owo-colors",
+ "pubgrub",
  "remove_dir_all",
  "semver",
  "serde",
@@ -892,6 +909,12 @@ dependencies = [
  "web-sys",
  "winapi",
 ]
+
+[[package]]
+name = "rustc-hash"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustls"

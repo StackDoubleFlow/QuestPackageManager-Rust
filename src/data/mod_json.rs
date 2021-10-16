@@ -1,5 +1,6 @@
 use std::io::{Read, Write};
 
+use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -18,7 +19,7 @@ pub struct ModJson {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub porter: Option<String>,
     /// Mod version
-    pub version: String,
+    pub version: Version,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     pub package_id: String,
     /// Version of the package, ex. 1.1.0
@@ -43,7 +44,8 @@ pub struct ModJson {
 #[serde(rename_all = "camelCase")]
 pub struct ModDependency {
     /// the version requirement for this dependency
-    pub version_range: String,
+    #[serde(deserialize_with = "cursed_semver_parser::deserialize")]
+    pub version_range: VersionReq,
     /// the id of this dependency
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
@@ -61,13 +63,11 @@ pub struct FileCopy {
 }
 
 impl ModJson {
-    #[allow(dead_code)]
-    pub fn from_package() -> ModJson {
+    pub fn _from_package() -> ModJson {
         todo!()
     }
 
-    #[allow(dead_code)]
-    pub fn read() -> ModJson {
+    pub fn _read() -> ModJson {
         let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Reading data failed");

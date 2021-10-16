@@ -194,7 +194,6 @@ fn parse_line(line: &str) -> Vec<String> {
     lst
 }
 
-#[allow(dead_code)]
 impl AndroidMk {
     pub fn read() -> AndroidMk {
         if let Ok(mut file) = std::fs::File::open("Android.mk") {

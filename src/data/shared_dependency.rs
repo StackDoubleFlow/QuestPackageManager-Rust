@@ -37,10 +37,9 @@ pub struct GithubReleaseAsset {
 pub struct GithubReleaseData {
     pub assets: Vec<GithubReleaseAsset>,
 }
-#[allow(dead_code)]
 impl SharedDependency {
     pub fn get_shared_package(&self) -> SharedPackageConfig {
-        qpackages::get_shared_package(&self.dependency.id, &self.version.to_string())
+        qpackages::get_shared_package(&self.dependency.id, &self.version)
     }
 
     pub fn collect(

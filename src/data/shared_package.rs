@@ -11,7 +11,6 @@ pub struct SharedPackageConfig {
     pub restored_dependencies: Vec<SharedDependency>,
 }
 
-#[allow(dead_code)]
 impl SharedPackageConfig {
     pub fn read() -> SharedPackageConfig {
         let mut file =
@@ -33,12 +32,12 @@ impl SharedPackageConfig {
         println!("Package {} Written!", self.config.info.id);
     }
 
-    pub fn collect(&mut self) -> Vec<SharedDependency> {
+    pub fn _collect(&mut self) -> Vec<SharedDependency> {
         let mut deps = Vec::<SharedDependency>::new();
         deps.append(&mut self.restored_dependencies);
         for dependency in &self.restored_dependencies {
             let mut their_shared = dependency.get_shared_package();
-            deps.append(&mut their_shared.collect());
+            deps.append(&mut their_shared._collect());
         }
 
         deps

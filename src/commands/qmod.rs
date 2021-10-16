@@ -1,4 +1,5 @@
 use clap::{AppSettings, Clap};
+use semver::Version;
 
 use crate::data::mod_json::ModJson;
 
@@ -29,7 +30,7 @@ pub struct CreateQmodJsonOperationArgs {
     pub porter: Option<String>,
     /// Mod version
     #[clap(long)]
-    pub version: String,
+    pub version: Version,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     #[clap(long = "packageID")]
     pub package_id: String,
