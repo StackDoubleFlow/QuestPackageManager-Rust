@@ -1,4 +1,1 @@
-pub fn execute_properties_list_operation()
-{
-
-}
+pub fn execute_properties_list_operation() {}

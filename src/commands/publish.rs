@@ -1,10 +1,8 @@
-use crate::data::shared_package::{SharedPackageConfig};
+use crate::data::shared_package::SharedPackageConfig;
 
-pub fn execute_publish_operation()
-{
+pub fn execute_publish_operation() {
     let package = SharedPackageConfig::read();
-    if package.config.info.url.is_none()
-    {
+    if package.config.info.url.is_none() {
         println!("Package without url can not publish!");
         return;
     }

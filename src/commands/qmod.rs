@@ -1,19 +1,19 @@
-use clap::{Clap, AppSettings};
+use clap::{AppSettings, Clap};
 
-use crate::data::mod_json::{ModJson};
+use crate::data::mod_json::ModJson;
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct Qmod {
     #[clap(subcommand)]
-    pub op: QmodOperation
+    pub op: QmodOperation,
 }
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct CreateQmodJsonOperationArgs {
     /// The schema version this mod was made for
-    #[clap(long="qpversion")]
+    #[clap(long = "qpversion")]
     pub schema_version: Option<String>,
     /// Name of the mod
     #[clap(long)]
@@ -31,16 +31,16 @@ pub struct CreateQmodJsonOperationArgs {
     #[clap(long)]
     pub version: String,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
-    #[clap(long="packageID")]
+    #[clap(long = "packageID")]
     pub package_id: String,
     /// Version of the package, ex. 1.1.0
-    #[clap(long="packageversion")]
+    #[clap(long = "packageversion")]
     pub package_version: String,
     /// description for the mod
     #[clap(long)]
     pub description: Option<String>,
     /// optional cover image filename
-    #[clap(long="coverimage")]
+    #[clap(long = "coverimage")]
     pub cover_image: Option<String>,
 }
 
@@ -53,8 +53,7 @@ pub enum QmodOperation {
     Edit,
 }
 
-pub fn execute_qmod_operation(operation: Qmod)
-{
+pub fn execute_qmod_operation(operation: Qmod) {
     match operation.op {
         QmodOperation::Create(q) => execute_qmod_create(q),
         QmodOperation::Build => execute_qmod_build(),
@@ -62,12 +61,11 @@ pub fn execute_qmod_operation(operation: Qmod)
     }
 }
 
-fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs)
-{
+fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs) {
     let schema_version: String;
     match create_parameters.schema_version {
         Option::Some(s) => schema_version = s,
-        Option::None => schema_version = "0.1.1".to_string()
+        Option::None => schema_version = "0.1.1".to_string(),
     }
     let json = ModJson {
         schema_version,
@@ -86,12 +84,6 @@ fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs)
     json.write();
 }
 
-fn execute_qmod_build()
-{
+fn execute_qmod_build() {}
 
-}
-
-fn execute_qmod_edit()
-{
-
-}
+fn execute_qmod_edit() {}

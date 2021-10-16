@@ -1,9 +1,9 @@
-use serde::{Serialize, Deserialize};
-use std::io::{Write, Read};
+use std::io::{Read, Write};
+
+use serde::{Deserialize, Serialize};
 //use crate::data::package::{PackageConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-
 #[serde(rename_all = "camelCase")]
 pub struct ModJson {
     /// The Questpatcher version this mod.json was made for
@@ -36,13 +36,12 @@ pub struct ModJson {
     pub mod_files: Vec<String>,
     /// list of files that go in the package's libs folder
     pub library_files: Vec<String>,
-    /// list of 
+    /// list of
     pub file_copies: Vec<String>,
 }
 
 impl Default for ModJson {
-    fn default() -> ModJson 
-    {
+    fn default() -> ModJson {
         ModJson {
             schema_version: "0.1.1".to_string(),
             name: String::default(),
@@ -57,13 +56,12 @@ impl Default for ModJson {
             dependencies: Vec::default(),
             mod_files: Vec::default(),
             library_files: Vec::default(),
-            file_copies: Vec::default()
+            file_copies: Vec::default(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-
 #[serde(rename_all = "camelCase")]
 pub struct ModDependency {
     /// the version requirement for this dependency
@@ -72,31 +70,30 @@ pub struct ModDependency {
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub qmod_link: Option<String>
+    pub qmod_link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
-
 #[serde(rename_all = "camelCase")]
 pub struct FileCopy {
     /// name of the file in the qmod
     pub name: String,
     /// place where to put it (full path)
-    pub destination: String
+    pub destination: String,
 }
 
 impl ModJson {
     #[allow(dead_code)]
-    pub fn from_package() -> ModJson
-    {
+    pub fn from_package() -> ModJson {
         //let package = PackageConfig::read();
 
-        ModJson {..Default::default()}
+        ModJson {
+            ..Default::default()
+        }
     }
 
     #[allow(dead_code)]
-    pub fn read() -> ModJson 
-    {
+    pub fn read() -> ModJson {
         let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Reading data failed");
@@ -104,8 +101,7 @@ impl ModJson {
         serde_json::from_str::<ModJson>(&json).expect("Deserializing package failed")
     }
 
-    pub fn write(&self)
-    {
+    pub fn write(&self) {
         let json = serde_json::to_string_pretty(&self).expect("Serialization failed");
 
         let mut file = std::fs::File::create("mod.json").expect("create failed");
