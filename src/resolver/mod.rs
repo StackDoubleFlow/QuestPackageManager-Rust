@@ -1,24 +1,23 @@
 use std::process;
 
-use ::semver::Version;
 use pubgrub::{
     error::PubGrubError,
     report::{DefaultStringReporter, Reporter},
 };
 
 use self::provider::DependencyProvider;
-use crate::data::package::PackageConfig;
+use crate::data::{package::PackageConfig, qpackages, shared_package::SharedPackageConfig};
 
 mod provider;
 mod semver;
 
-pub fn resolve(root: &PackageConfig) -> impl Iterator<Item = (String, Version)> + '_ {
+pub fn resolve(root: &PackageConfig) -> impl Iterator<Item = SharedPackageConfig> + '_ {
     let provider = DependencyProvider::new(root);
     match pubgrub::solver::resolve(&provider, root.info.id.clone(), root.info.version.clone()) {
         Ok(deps) => deps
             .into_iter()
-            .map(|(id, version)| (id, version.into()))
-            .filter(move |(id, version)| !(id == &root.info.id && version == &root.info.version)),
+            .filter(move |(id, version)| !(id == &root.info.id && version == &root.info.version))
+            .map(|(id, version)| qpackages::get_shared_package(&id, &version.into())),
         Err(PubGrubError::NoSolution(tree)) => {
             let report = DefaultStringReporter::report(&tree);
             eprintln!("{}", report);
