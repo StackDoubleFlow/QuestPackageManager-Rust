@@ -1,10 +1,11 @@
-use std::{collections::HashMap, fmt, process::exit};
+use std::{collections::HashMap, process::exit};
 
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
 use crate::data::{
-    qpackages, shared_dependency::SharedDependency, shared_package::SharedPackageConfig,
+    package::AdditionalPackageData, qpackages, shared_dependency::SharedDependency,
+    shared_package::SharedPackageConfig,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
@@ -41,6 +42,10 @@ pub struct AdditionalDependencyData {
         rename(serialize = "private", deserialize = "private")
     )]
     pub is_private: Option<bool>,
+
+    /// Qmod link to make a qmod downloadable in the mod.json
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qmod_link: Option<String>,
 }
 
 impl AdditionalDependencyData {
@@ -73,6 +78,16 @@ impl AdditionalDependencyData {
             if let Some(other_is_private) = &other.is_private {
                 self.is_private = Some(*other_is_private);
             }
+        }
+    }
+
+    pub fn merge_package(&mut self, other: AdditionalPackageData) {
+        if let Some(static_linking) = other.static_linking {
+            self.use_release = Some(static_linking);
+        }
+
+        if self.qmod_link.is_none() {
+            self.qmod_link = other.qmod_link;
         }
     }
 }
@@ -118,20 +133,19 @@ impl Dependency {
         });
 
         // make a shared dependency out of this dependency
-        let to_add = SharedDependency {
+        let mut to_add = SharedDependency {
             dependency: self.clone(),
             version: shared_package.config.info.version.clone(),
         };
+
+        if to_add.dependency.additional_data.qmod_link.is_none() {
+            to_add.dependency.additional_data.qmod_link =
+                shared_package.config.info.additional_data.qmod_link.clone();
+        }
 
         println!("{:#?}", self.additional_data.extra_files);
         collected.insert(to_add.clone(), shared_package);
         // collect for this shared dep
         to_add.collect(this_id, collected);
-    }
-}
-
-impl fmt::Display for Dependency {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.id)
     }
 }

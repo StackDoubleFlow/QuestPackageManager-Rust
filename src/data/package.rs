@@ -27,6 +27,8 @@ pub struct AdditionalPackageData {
     pub debug_so_link: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub override_so_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qmod_link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -121,7 +123,6 @@ impl PackageConfig {
                     let req = intersect(pair.0.dependency.version_range.clone(), shared_dependency.dependency.version_range.clone());
                     let match1 = req.matches(&pair.0.version);
                     let match2 = req.matches(&shared_dependency.version);
-                    
                     if match1 && match2
                     {
                         // both are good

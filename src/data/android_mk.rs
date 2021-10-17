@@ -1,5 +1,10 @@
 use std::io::{Read, Write};
 
+use crate::data::{
+    package::PackageConfig, shared_dependency::SharedDependency,
+    shared_package::SharedPackageConfig,
+};
+
 #[derive(Debug, Default)]
 pub struct Module {
     pub prefix_lines: Vec<String>,
@@ -195,22 +200,20 @@ fn parse_line(line: &str) -> Vec<String> {
 }
 
 impl AndroidMk {
-    pub fn read() -> AndroidMk {
+    pub fn read() -> Option<AndroidMk> {
         if let Ok(mut file) = std::fs::File::open("Android.mk") {
             let mut android_mk_string = String::new();
             file.read_to_string(&mut android_mk_string)
                 .expect("Reading data failed");
-            Self::from_str(&android_mk_string)
+            Some(Self::from_str(&android_mk_string))
         } else {
-            AndroidMk::default()
+            None
         }
     }
 
     pub fn write(&self) {
         let android_mk_string = self.to_string();
-
-        let mut file = std::fs::File::open("Android.mk").expect("Opening Android.mk failed");
-
+        let mut file = std::fs::File::create("Android.mk").expect("Opening Android.mk failed");
         file.write_all(android_mk_string.as_bytes())
             .expect("write failed");
     }
@@ -220,8 +223,12 @@ impl AndroidMk {
 
         let mut in_module = false;
         let mut first_module_found = false;
-        let mut mk = AndroidMk::default();
-        let mut module = Module::default();
+        let mut mk = AndroidMk {
+            ..Default::default()
+        };
+        let mut module = Module {
+            ..Default::default()
+        };
 
         for line in lines.iter() {
             if !first_module_found {
@@ -341,6 +348,142 @@ impl AndroidMk {
         // Add last portion of module prefix to suffix of mk
         mk.suffix.append(&mut module.prefix_lines);
         mk
+    }
+
+    pub fn update_shared_dependency(&mut self, shared_dependency: &SharedDependency) {
+        let shared_package = shared_dependency.get_shared_package();
+        let package = PackageConfig::read();
+
+        let static_linking = shared_package
+            .config
+            .info
+            .additional_data
+            .static_linking
+            .unwrap_or(false);
+
+        let override_so_name = shared_package.config.info.additional_data.override_so_name;
+        let id = if let Some(override_so_name) = &override_so_name {
+            override_so_name[3..override_so_name.len() - if static_linking { 2 } else { 3 }]
+                .to_string()
+        } else {
+            shared_dependency.dependency.id.clone()
+        };
+
+        let export_includes = format!(
+            " {}/{}",
+            package.dependencies_dir.display(),
+            shared_dependency.dependency.id.clone()
+        );
+
+        // existing module
+        let src = if let Some(override_so_name) = &override_so_name {
+            format!(
+                "{}/{}",
+                package.dependencies_dir.display(),
+                override_so_name
+            )
+        } else {
+            format!(
+                "{}/{}_{}",
+                package.dependencies_dir.display(),
+                id,
+                shared_dependency.version.to_string().replace('.', "_")
+            )
+        };
+
+        if let Some(module) = self
+            .modules
+            .iter_mut()
+            .find(|submodule| submodule.id.contains(&id))
+        {
+            module.export_includes.clear();
+            module.export_includes = export_includes;
+
+            module.src.clear();
+            module.src.push(src);
+        } else {
+            // module did not exist, add it / make it!
+            let mut module = Module {
+                id: format!(
+                    "{}_{}",
+                    id.clone(),
+                    shared_dependency.version.to_string().replace('.', "_")
+                ),
+                export_includes,
+                ..Default::default()
+            };
+
+            module.src.push(src);
+
+            module.prefix_lines.push(format!(
+                "# Creating prebuilt for dependency: {} - version: {}",
+                shared_dependency.dependency.id.clone(),
+                shared_dependency.version.to_string()
+            ));
+
+            module
+                .prefix_lines
+                .push("include $(CLEAR_VARS)".to_string());
+
+            module.extra_lines.push(if static_linking {
+                "include $(PREBUILT_STATIC_LIBRARY)".to_string()
+            } else {
+                "include $(PREBUILT_SHARED_LIBRARY)".to_string()
+            });
+
+            self.modules.insert(0, module);
+        }
+    }
+
+    pub fn update_shared_package(&mut self, shared_package: &SharedPackageConfig) {
+        for shared_dependency in shared_package.restored_dependencies.iter() {
+            self.update_shared_dependency(shared_dependency);
+        }
+
+        let static_linking = shared_package
+            .config
+            .info
+            .additional_data
+            .static_linking
+            .unwrap_or(false);
+
+        let override_so_name = &shared_package.config.info.additional_data.override_so_name;
+        let id = if let Some(override_so_name) = &override_so_name {
+            override_so_name[3..override_so_name.len() - if static_linking { 2 } else { 3 }]
+                .to_string()
+        } else {
+            shared_package.config.info.id.clone()
+        };
+
+        self.modules.last_mut().unwrap().id = if let Some(override_so_name) = override_so_name {
+            override_so_name[3..override_so_name.len() - if static_linking { 2 } else { 3 }]
+                .to_string()
+        } else {
+            id
+        };
+
+        let mut shared_libs = Vec::new();
+        let mut static_libs = Vec::new();
+
+        for submodule in self.modules.iter() {
+            if submodule
+                .extra_lines
+                .iter()
+                .any(|l| l.contains("PREBUILT_SHARED_LIBRARY"))
+            {
+                // it's shared
+                shared_libs.push(submodule.id.clone());
+            } else if submodule
+                .extra_lines
+                .iter()
+                .any(|l| l.contains("PREBUILT_STATIC_LIBRARY"))
+            {
+                static_libs.push(submodule.id.clone());
+            }
+        }
+
+        self.modules.last_mut().unwrap().shared_libs = shared_libs;
+        self.modules.last_mut().unwrap().static_libs = static_libs;
     }
 }
 

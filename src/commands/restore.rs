@@ -9,10 +9,10 @@ pub fn execute_restore_operation() {
 
     shared_package.restore();
 
-    let android_mk = AndroidMk::read();
-    // TODO: Edit android.mk here!
-    // TODO: Do we switch to cmake now ?
+    if let Some(mut android_mk) = AndroidMk::read() {
+        android_mk.update_shared_package(&shared_package);
+        android_mk.write();
+    }
 
-    android_mk.write();
     shared_package.write();
 }

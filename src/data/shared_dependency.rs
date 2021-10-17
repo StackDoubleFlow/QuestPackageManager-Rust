@@ -43,7 +43,7 @@ impl SharedDependency {
     }
 
     pub fn collect(
-        &self,
+        &mut self,
         this_id: &str,
         collected: &mut HashMap<SharedDependency, SharedPackageConfig>,
     ) {
@@ -90,7 +90,7 @@ impl SharedDependency {
                         // if they are the same
                         if override_so_name.to_lowercase() == self_override_so_name.to_lowercase() {
                             // if self version is higher, remove it (and we add it back later)
-                            if self.version > shared_dependency.version {
+                            if self.version >= shared_dependency.version {
                                 return false;
                             } else {
                                 // we found a good dep, we don't need to add this one again
@@ -109,13 +109,17 @@ impl SharedDependency {
 
             // if we didn't find a valid version
             if !found {
+                self.dependency
+                    .additional_data
+                    .merge_package(shared_package.config.info.additional_data.clone());
+
                 // insert into hashmap
                 collected.insert(self.clone(), shared_package.clone());
             }
         }
 
         // collect all the shared deps
-        for shared_dependency in shared_package.restored_dependencies.iter() {
+        for shared_dependency in shared_package.restored_dependencies.iter_mut() {
             shared_dependency.collect(&shared_package.config.info.id, collected);
         }
     }
@@ -237,18 +241,17 @@ impl SharedDependency {
                     }
 
                     if let Some(gitidx_so) = so_download.find("github.com") {
-                        let filename: String;
-                        if let Some(override_name) =
+                        let filename = if let Some(override_name) =
                             shared_package.config.info.additional_data.override_so_name
                         {
-                            filename = override_name;
+                            override_name
                         } else {
-                            filename = format!(
+                            format!(
                                 "lib{}_{}.so",
                                 self.dependency.id,
                                 self.version.to_string().replace('.', "_")
-                            );
-                        }
+                            )
+                        };
 
                         // github url, probably release
                         if let Ok(token) = get_keyring().get_password() {
