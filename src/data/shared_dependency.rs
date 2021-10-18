@@ -7,10 +7,9 @@ use std::{
 
 use duct::cmd;
 use fs_extra::dir::copy as copy_directory;
-use owo_colors::*;
+use owo_colors::OwoColorize;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use symlink::*;
 use zip::ZipArchive;
 
 use crate::data::{
@@ -38,10 +37,9 @@ pub struct GithubReleaseAsset {
 pub struct GithubReleaseData {
     pub assets: Vec<GithubReleaseAsset>,
 }
-#[allow(dead_code)]
 impl SharedDependency {
     pub fn get_shared_package(&self) -> SharedPackageConfig {
-        qpackages::get_shared_package(&self.dependency.id, &self.version.to_string())
+        qpackages::get_shared_package(&self.dependency.id, &self.version)
     }
 
     pub fn collect(
@@ -415,7 +413,7 @@ impl SharedDependency {
             if from.is_dir() {
                 std::fs::create_dir_all(to.parent().unwrap()).ok();
             }
-            if let Err(e) = symlink_auto(&from, &to) {
+            if let Err(e) = symlink::symlink_auto(&from, &to) {
                 #[cfg(windows)]
                 println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist, or did you not enable windows dev mode?\nTo disable this warning (and default to copy), use the command {}", e.bright_red(), "qpm config symlink disable".bright_yellow());
                 #[cfg(not(windows))]

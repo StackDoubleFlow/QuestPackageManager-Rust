@@ -1,6 +1,6 @@
 use std::{collections::HashMap, process::exit};
 
-use semver::{Version, VersionReq};
+use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
 use crate::data::{
@@ -92,14 +92,11 @@ impl AdditionalDependencyData {
     }
 }
 
-#[allow(dead_code)]
 impl Dependency {
     pub fn get_shared_package(&self) -> Option<SharedPackageConfig> {
-        let versions = qpackages::get_versions(&self.id, "*", 0);
+        let versions = qpackages::get_versions(&self.id);
         for v in versions.iter() {
-            let ver = Version::parse(&v.version).expect("Parsing found version failed");
-
-            if self.version_range.matches(&ver) {
+            if self.version_range.matches(&v.version) {
                 return Option::Some(qpackages::get_shared_package(&self.id, &v.version));
             }
         }

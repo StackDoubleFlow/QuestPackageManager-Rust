@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{AppSettings, Clap};
-use owo_colors::*;
+use owo_colors::OwoColorize;
 
 use crate::data::config::{get_keyring, Config as AppConfig};
 

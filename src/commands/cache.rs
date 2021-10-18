@@ -1,6 +1,6 @@
 use clap::{AppSettings, Clap};
-use owo_colors::*;
-use remove_dir_all::*;
+use owo_colors::OwoColorize;
+use remove_dir_all::remove_dir_contents;
 use walkdir::WalkDir;
 
 use crate::data::config::Config;

@@ -3,7 +3,6 @@ use std::{
     path::PathBuf,
 };
 
-use dirs;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -28,7 +27,6 @@ impl Default for Config {
     }
 }
 
-#[allow(dead_code)]
 impl Config {
     /// always gets the global config
     pub fn read() -> Config {

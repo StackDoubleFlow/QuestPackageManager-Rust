@@ -1,4 +1,4 @@
-use owo_colors::*;
+use owo_colors::OwoColorize;
 
 use crate::data::package;
 

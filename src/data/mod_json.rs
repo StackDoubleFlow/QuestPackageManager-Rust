@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
+use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
-//use crate::data::package::{PackageConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -19,7 +19,7 @@ pub struct ModJson {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub porter: Option<String>,
     /// Mod version
-    pub version: String,
+    pub version: Version,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     pub package_id: String,
     /// Version of the package, ex. 1.1.0
@@ -40,32 +40,12 @@ pub struct ModJson {
     pub file_copies: Vec<String>,
 }
 
-impl Default for ModJson {
-    fn default() -> ModJson {
-        ModJson {
-            schema_version: "0.1.1".to_string(),
-            name: String::default(),
-            id: String::default(),
-            author: String::default(),
-            porter: Option::default(),
-            version: String::default(),
-            package_id: String::default(),
-            package_version: String::default(),
-            description: Option::default(),
-            cover_image: Option::default(),
-            dependencies: Vec::default(),
-            mod_files: Vec::default(),
-            library_files: Vec::default(),
-            file_copies: Vec::default(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ModDependency {
     /// the version requirement for this dependency
-    pub version_range: String,
+    #[serde(deserialize_with = "cursed_semver_parser::deserialize")]
+    pub version_range: VersionReq,
     /// the id of this dependency
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
@@ -83,17 +63,11 @@ pub struct FileCopy {
 }
 
 impl ModJson {
-    #[allow(dead_code)]
-    pub fn from_package() -> ModJson {
-        //let package = PackageConfig::read();
-
-        ModJson {
-            ..Default::default()
-        }
+    pub fn _from_package() -> ModJson {
+        todo!()
     }
 
-    #[allow(dead_code)]
-    pub fn read() -> ModJson {
+    pub fn _read() -> ModJson {
         let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Reading data failed");

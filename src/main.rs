@@ -1,11 +1,11 @@
-#![allow(dead_code)]
-#![feature(is_symlink)]
-//use std::fs::{read_to_string};
+#![feature(is_symlink, once_cell)]
+
 use clap::{AppSettings, Clap};
 use serde::{Deserialize, Serialize};
 
 mod commands;
 mod data;
+mod resolver;
 
 /// QPM is a command line tool that allows modmakers to
 /// easily download dependencies for interacting with a game or other mods

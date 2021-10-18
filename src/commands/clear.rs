@@ -1,6 +1,5 @@
-use owo_colors::*;
-use remove_dir_all::*;
-use symlink::*;
+use owo_colors::OwoColorize;
+use remove_dir_all::remove_dir_all;
 use walkdir::WalkDir;
 
 use crate::data::package::PackageConfig;
@@ -11,7 +10,7 @@ pub fn execute_clear_operation() {
         let path = entry.unwrap().into_path();
         if path.is_symlink() {
             if path.is_dir() {
-                if let Err(e) = remove_symlink_dir(&path) {
+                if let Err(e) = symlink::remove_symlink_dir(&path) {
                     println!(
                         "Failed to remove symlink for directory {}: {}",
                         path.display().bright_yellow(),
@@ -19,7 +18,7 @@ pub fn execute_clear_operation() {
                     );
                 }
             } else if path.is_file() {
-                if let Err(e) = remove_symlink_file(&path) {
+                if let Err(e) = symlink::remove_symlink_file(&path) {
                     println!(
                         "Failed to remove symlink for directory {}: {}",
                         path.display().bright_yellow(),

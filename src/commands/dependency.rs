@@ -1,5 +1,5 @@
 use clap::{AppSettings, Clap};
-use owo_colors::*;
+use owo_colors::OwoColorize;
 use semver::VersionReq;
 
 use crate::data::{dependency, package::PackageConfig};

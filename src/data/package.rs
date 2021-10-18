@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use owo_colors::*;
+use owo_colors::OwoColorize;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 

@@ -40,6 +40,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic_refcell"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "73b5e5f48b927f04e952dedc932f31995a65a0bf65ec971c74436e51bf6e970d"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -745,23 +751,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "pubgrub"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cdd14552ad5f5d743a323c10d576f26822a044355d6601f377d813ece46f38fd"
+dependencies = [
+ "rustc-hash",
+ "thiserror",
+]
+
+[[package]]
 name = "qpm-rust"
 version = "0.1.0"
 dependencies = [
+ "atomic_refcell",
  "clap",
  "cursed-semver-parser",
  "dirs",
  "duct",
  "fs_extra",
  "keyring",
- "once_cell",
  "owo-colors",
+ "pubgrub",
  "remove_dir_all",
  "semver",
  "serde",
  "serde_json",
  "symlink",
- "unwrap",
  "ureq",
  "walkdir",
  "zip",
@@ -894,6 +910,12 @@ dependencies = [
  "web-sys",
  "winapi",
 ]
+
+[[package]]
+name = "rustc-hash"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
 name = "rustls"
@@ -1183,12 +1205,6 @@ name = "untrusted"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
-
-[[package]]
-name = "unwrap"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e33648dd74328e622c7be51f3b40a303c63f93e6fa5f08778b6203a4c25c20f"
 
 [[package]]
 name = "ureq"

@@ -1,4 +1,5 @@
 use clap::{AppSettings, Clap};
+use semver::Version;
 
 use crate::data::mod_json::ModJson;
 
@@ -29,7 +30,7 @@ pub struct CreateQmodJsonOperationArgs {
     pub porter: Option<String>,
     /// Mod version
     #[clap(long)]
-    pub version: String,
+    pub version: Version,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     #[clap(long = "packageID")]
     pub package_id: String,
@@ -78,7 +79,10 @@ fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs) {
         package_version: create_parameters.package_version,
         description: create_parameters.description,
         cover_image: create_parameters.cover_image,
-        ..Default::default()
+        dependencies: Default::default(),
+        mod_files: Default::default(),
+        library_files: Default::default(),
+        file_copies: Default::default(),
     };
 
     json.write();

@@ -1,17 +1,16 @@
-use std::{collections::HashMap, sync::Mutex};
+use std::{collections::HashMap, lazy::SyncLazy as Lazy};
 
-use once_cell::sync::Lazy;
+use atomic_refcell::AtomicRefCell;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 
 use crate::data::shared_package::SharedPackageConfig;
 
 static API_URL: &str = "https://qpackages.com";
 
-// https://stackoverflow.com/questions/27791532/how-do-i-create-a-global-mutable-singleton
-
-static VERSIONS_CACHE: Lazy<Mutex<HashMap<String, Vec<PackageVersion>>>> =
+static VERSIONS_CACHE: Lazy<AtomicRefCell<HashMap<String, Vec<PackageVersion>>>> =
     Lazy::new(Default::default);
-static SHARED_PACKAGE_CACHE: Lazy<Mutex<HashMap<String, SharedPackageConfig>>> =
+static SHARED_PACKAGE_CACHE: Lazy<AtomicRefCell<HashMap<String, SharedPackageConfig>>> =
     Lazy::new(Default::default);
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, PartialEq, Eq)]
@@ -19,14 +18,14 @@ static SHARED_PACKAGE_CACHE: Lazy<Mutex<HashMap<String, SharedPackageConfig>>> =
 #[serde(rename_all = "camelCase")]
 pub struct PackageVersion {
     pub id: String,
-    pub version: String,
+    pub version: Version,
 }
 
 /// Requests the appriopriate package info from qpackage.com
-pub fn get_versions(id: &str, req: &str, limit: i32) -> Vec<PackageVersion> {
-    let url = format!("{}/{}/?req={}&limit={}", &API_URL, &id, &req, &limit);
+pub fn get_versions(id: &str) -> Vec<PackageVersion> {
+    let url = format!("{}/{}/?limit=0", API_URL, id);
 
-    if let Some(entry) = VERSIONS_CACHE.lock().unwrap().get(&url) {
+    if let Some(entry) = VERSIONS_CACHE.borrow().get(&url) {
         return entry.clone();
     }
 
@@ -36,13 +35,14 @@ pub fn get_versions(id: &str, req: &str, limit: i32) -> Vec<PackageVersion> {
         .into_json::<Vec<PackageVersion>>()
         .expect("Into json failed");
 
-    VERSIONS_CACHE.lock().unwrap().insert(url, versions.clone());
+    VERSIONS_CACHE.borrow_mut().insert(url, versions.clone());
     versions
 }
 
-pub fn get_shared_package(id: &str, ver: &str) -> SharedPackageConfig {
-    let url = format!("{}/{}/{}", &API_URL, &id, &ver);
-    if let Some(entry) = SHARED_PACKAGE_CACHE.lock().unwrap().get(&url) {
+pub fn get_shared_package(id: &str, ver: &Version) -> SharedPackageConfig {
+    let url = format!("{}/{}/{}", API_URL, id, ver);
+
+    if let Some(entry) = SHARED_PACKAGE_CACHE.borrow().get(&url) {
         return entry.clone();
     }
 
@@ -53,8 +53,7 @@ pub fn get_shared_package(id: &str, ver: &str) -> SharedPackageConfig {
         .expect("Into json failed");
 
     SHARED_PACKAGE_CACHE
-        .lock()
-        .unwrap()
+        .borrow_mut()
         .insert(url, shared_package.clone());
     shared_package
 }

@@ -11,7 +11,6 @@ pub struct SharedPackageConfig {
     pub restored_dependencies: Vec<SharedDependency>,
 }
 
-#[allow(dead_code)]
 impl SharedPackageConfig {
     pub fn read() -> SharedPackageConfig {
         let mut file =
