@@ -145,7 +145,8 @@ impl SharedDependency {
             .cache
             .unwrap()
             .join(&self.dependency.id)
-            .join(self.version.to_string());
+            .join(self.version.to_string())
+            .join("src");
         let path_data = Path::new(&path);
 
         if !path_data.exists() {
@@ -351,7 +352,7 @@ impl SharedDependency {
         let libs_path = base_path.join("libs");
         let dependencies_path = Path::new(&package.dependencies_dir);
         std::fs::create_dir_all(dependencies_path).unwrap();
-        let dependencies_path = dependencies_path.canonicalize().unwrap();
+        let dependencies_path = dependencies_path.canonicalize().unwrap().join("includes");
         let local_path = dependencies_path.join(&self.dependency.id);
         let so_name: String;
         if let Some(override_so_name) = shared_package.config.info.additional_data.override_so_name
@@ -384,6 +385,7 @@ impl SharedDependency {
             let local_so_path = Path::new(&package.dependencies_dir)
                 .canonicalize()
                 .unwrap()
+                .join("libs")
                 .join(&so_name);
             // from to
             to_copy.push((lib_so_path, local_so_path));
@@ -426,6 +428,9 @@ impl SharedDependency {
                     options.content_only = true;
                     copy_directory(&from, &to, &options).expect("Failed to copy directory!");
                 } else if from.is_file() {
+                    // we can get the parent beccause this is a file path
+                    std::fs::create_dir_all(&to.parent().unwrap())
+                        .expect("Failed to create containing directory");
                     std::fs::copy(&from, &to).expect("Failed to copy file!");
                 }
             }

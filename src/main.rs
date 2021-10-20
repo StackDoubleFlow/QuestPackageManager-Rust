@@ -1,4 +1,10 @@
 #![feature(is_symlink, once_cell)]
+#![allow(dead_code)]
+
+use std::{
+    io::{Read, Write},
+    str::FromStr,
+};
 
 use clap::{AppSettings, Clap};
 use serde::{Deserialize, Serialize};
@@ -34,13 +40,15 @@ enum MainCommand {
     /// Package control
     Package(commands::package::Package),
     /// List all properties that are currently supported by QPM
-    PropertiesList,
+    List(commands::list::ListOperation),
     /// Publish package
     Publish,
     /// Restore and resolve all dependencies from the package
     Restore,
     /// Qmod control
     Qmod(commands::qmod::Qmod),
+    /// Test parsing and writing of cmake files
+    TestCMakeParse,
 }
 
 fn main() {
@@ -54,12 +62,11 @@ fn main() {
         MainCommand::Config(c) => commands::config::execute_config_operation(c),
         MainCommand::Dependency(d) => commands::dependency::execute_dependency_operation(d),
         MainCommand::Package(p) => commands::package::execute_package_operation(p),
-        MainCommand::PropertiesList => {
-            commands::propertieslist::execute_properties_list_operation()
-        }
+        MainCommand::List(l) => commands::list::execute_list_operation(l),
         MainCommand::Publish => commands::publish::execute_publish_operation(),
         MainCommand::Restore => commands::restore::execute_restore_operation(),
         MainCommand::Qmod(q) => commands::qmod::execute_qmod_operation(q),
+        MainCommand::TestCMakeParse => test_cmake_parse(),
     }
 }
 
@@ -67,4 +74,17 @@ fn main() {
 pub struct Config {
     pub cache_path: String,
     pub timeout: u32,
+}
+
+fn test_cmake_parse() {
+    let mut file = std::fs::File::open("CMakeLists.txt").expect("Opening qpm.json failed");
+    let mut buf = String::new();
+    file.read_to_string(&mut buf).unwrap();
+
+    let cmake_list = crate::data::c_make::CMakeList::from_str(&buf).unwrap();
+
+    std::fs::File::create("CMakeLists.txt")
+        .unwrap()
+        .write_all(cmake_list.to_string().as_bytes())
+        .expect("Failed to write out file");
 }

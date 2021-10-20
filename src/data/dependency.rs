@@ -20,6 +20,38 @@ pub struct Dependency {
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalDependencyData {
+    /// Copy a dependency from a location that is local to this root path instead of from a remote url
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub local_path: Option<String>,
+
+    /// Whether or not the package is header only
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub headers_only: Option<bool>,
+
+    /// Whether or not the package is statically linked
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub static_linking: Option<bool>,
+
+    /// Whether to use the release .so for linking
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_release: Option<bool>,
+
+    /// the link to the so file
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub so_link: Option<String>,
+
+    /// the link to the debug .so file
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub debug_so_link: Option<String>,
+
+    /// the overridden so file name
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_so_name: Option<String>,
+
+    /// the link to the qmod
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qmod_link: Option<String>,
+
     /// Branch name of a Github repo. Only used when a valid github url is provided
     #[serde(skip_serializing_if = "Option::is_none")]
     pub branch_name: Option<String>,
@@ -28,24 +60,12 @@ pub struct AdditionalDependencyData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub extra_files: Option<Vec<String>>,
 
-    /// Copy a dependency from a location that is local to this root path instead of from a remote url
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub local_path: Option<String>,
-
-    /// Specify if a dependency should download a release .so or .a file. Default to false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub use_release: Option<bool>,
-
     /// Whether or not the dependency is private and should be used in restore
     #[serde(
         skip_serializing_if = "Option::is_none",
         rename(serialize = "private", deserialize = "private")
     )]
     pub is_private: Option<bool>,
-
-    /// Qmod link to make a qmod downloadable in the mod.json
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub qmod_link: Option<String>,
 }
 
 impl AdditionalDependencyData {
@@ -83,7 +103,7 @@ impl AdditionalDependencyData {
 
     pub fn merge_package(&mut self, other: AdditionalPackageData) {
         if let Some(static_linking) = other.static_linking {
-            self.use_release = Some(static_linking);
+            self.static_linking = Some(static_linking);
         }
 
         if self.qmod_link.is_none() {

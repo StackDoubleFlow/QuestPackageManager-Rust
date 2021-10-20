@@ -1,8 +1,11 @@
 use std::io::{Read, Write};
 
+use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{package::PackageConfig, shared_dependency::SharedDependency};
+use crate::data::{
+    dependency::Dependency, package::PackageConfig, shared_dependency::SharedDependency,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -62,12 +65,16 @@ impl SharedPackageConfig {
         }
     }
 
-    pub fn from_package(package: PackageConfig) -> SharedPackageConfig {
-        let collapsed = package.collapse();
+    pub fn from_package(package: &PackageConfig) -> SharedPackageConfig {
+        let shared_iter = package.resolve();
 
         let mut shared_package = SharedPackageConfig {
-            config: package,
-            restored_dependencies: collapsed.into_keys().collect(),
+            config: package.clone(),
+            restored_dependencies: shared_iter
+                .collect::<Vec<SharedPackageConfig>>()
+                .iter()
+                .map(|cfg| cfg.to_shared_dependency())
+                .collect::<Vec<SharedDependency>>(),
         };
 
         for dep in shared_package.config.dependencies.iter() {
@@ -86,10 +93,32 @@ impl SharedPackageConfig {
         shared_package
     }
 
+    pub fn to_shared_dependency(&self) -> SharedDependency {
+        let result = SharedDependency {
+            dependency: Dependency {
+                id: self.config.info.id.to_string(),
+                version_range: VersionReq::parse(&format!("={}", self.config.info.version))
+                    .unwrap(),
+                additional_data: self.config.info.additional_data.to_dependency_data(),
+            },
+            version: self.config.info.version.clone(),
+        };
+
+        result
+    }
+
     pub fn restore(&self) {
         for restore in self.restored_dependencies.iter() {
-            restore.cache();
-            restore.restore_from_cache();
+            // if the shared dep is contained within the direct dependencies, copy them over
+            if self
+                .config
+                .dependencies
+                .iter()
+                .any(|dep| dep.id == restore.dependency.id)
+            {
+                restore.cache();
+                restore.restore_from_cache();
+            }
         }
 
         // todo edit android_mk

@@ -13,22 +13,48 @@ use crate::data::{
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub branch_name: Option<String>,
+    /// Whether or not the package is header only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub headers_only: Option<bool>,
+
+    /// Whether or not the package is statically linked
     #[serde(skip_serializing_if = "Option::is_none")]
     pub static_linking: Option<bool>,
+
+    /// the link to the so file
     #[serde(skip_serializing_if = "Option::is_none")]
     pub so_link: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub extra_files: Option<Vec<String>>,
+
+    /// the link to the debug .so file
     #[serde(skip_serializing_if = "Option::is_none")]
     pub debug_so_link: Option<String>,
+
+    /// the overridden so file name
     #[serde(skip_serializing_if = "Option::is_none")]
     pub override_so_name: Option<String>,
+
+    /// the link to the qmod
     #[serde(skip_serializing_if = "Option::is_none")]
     pub qmod_link: Option<String>,
+
+    /// Branch name of a Github repo. Only used when a valid github url is provided
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub branch_name: Option<String>,
+
+    /// Specify any additional files to be downloaded
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extra_files: Option<Vec<String>>,
+
+    /// Whether or not the dependency is private and should be used in restore
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        rename(serialize = "private", deserialize = "private")
+    )]
+    pub is_private: Option<bool>,
+
+    /// Whether to use the release .so for linking
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_release: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -156,6 +182,16 @@ impl PackageConfig {
         });
 
         collapsed
+    }
+
+    pub fn resolve(&self) -> impl Iterator<Item = SharedPackageConfig> + '_ {
+        crate::resolver::resolve(self)
+    }
+}
+
+impl AdditionalPackageData {
+    pub fn to_dependency_data(&self) -> AdditionalDependencyData {
+        serde_json::from_str(&serde_json::to_string(&self).unwrap()).unwrap()
     }
 }
 

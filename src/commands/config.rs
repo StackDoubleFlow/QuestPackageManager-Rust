@@ -64,6 +64,14 @@ pub struct Token {
     #[clap(long)]
     pub delete: bool,
 }
+
+#[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColoredHelp)]
+pub struct NDKPath {
+    /// The path to set for the ndk path
+    pub ndk_path: Option<String>,
+}
+
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub enum ConfigOperation {
@@ -77,6 +85,8 @@ pub enum ConfigOperation {
     Token(Token),
     /// Print the location of the global config
     Location,
+    /// Get or set the ndk path used in generation of build files
+    NDKPath(NDKPath),
 }
 
 pub fn execute_config_operation(operation: Config) {
@@ -101,6 +111,7 @@ pub fn execute_config_operation(operation: Config) {
             "Global Config is located at {}",
             AppConfig::global_config_path().display().bright_yellow()
         ),
+        ConfigOperation::NDKPath(p) => execute_ndk_config_operation(&mut config, p),
     }
 
     if !changed_any {
@@ -243,5 +254,15 @@ fn execute_token_config_operation(operation: Token) {
         } else {
             println!("No token was configured, or getting the token failed!");
         }
+    }
+}
+
+fn execute_ndk_config_operation(config: &mut AppConfig, operation: NDKPath) {
+    if let Some(path) = operation.ndk_path {
+        config.ndk_path = Some(path);
+    } else if let Some(path) = &config.ndk_path {
+        println!("Configured ndk path: {}", path.bright_yellow());
+    } else {
+        println!("No ndk path was configured!");
     }
 }

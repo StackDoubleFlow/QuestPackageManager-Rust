@@ -14,6 +14,8 @@ pub struct Config {
     pub cache: Option<PathBuf>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeout: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ndk_path: Option<String>,
 }
 
 impl Default for Config {
@@ -23,6 +25,7 @@ impl Default for Config {
             symlink: Some(true),
             cache: Some(dirs::data_dir().unwrap().join("QPM-Rust").join("cache")),
             timeout: Some(5000),
+            ndk_path: None,
         }
     }
 }
@@ -66,6 +69,7 @@ impl Config {
                 symlink: None,
                 cache: None,
                 timeout: None,
+                ndk_path: None,
             }
         }
     }
@@ -92,6 +96,9 @@ impl Config {
             }
             if local_config.timeout.is_some() {
                 config.timeout = local_config.timeout;
+            }
+            if local_config.ndk_path.is_some() {
+                config.ndk_path = local_config.ndk_path;
             }
         }
 

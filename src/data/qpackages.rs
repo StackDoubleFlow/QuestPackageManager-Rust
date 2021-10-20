@@ -57,3 +57,11 @@ pub fn get_shared_package(id: &str, ver: &Version) -> SharedPackageConfig {
         .insert(url, shared_package.clone());
     shared_package
 }
+
+pub fn get_packages() -> Vec<String> {
+    ureq::get(API_URL)
+        .call()
+        .expect("Request to qpackages.com failed")
+        .into_json::<Vec<String>>()
+        .expect("Into json failed")
+}
