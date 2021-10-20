@@ -15,6 +15,20 @@ impl<'a> DependencyProvider<'a> {
     }
 }
 
+impl DependencyProvider<'_> {
+    fn get_package_versions(&self, id: &str) -> Vec<qpackages::PackageVersion> {
+        let mut result = qpackages::get_versions(id.borrow());
+        if result.is_empty() && id == self.root.info.id {
+            result.push(qpackages::PackageVersion {
+                id: self.root.info.id.clone(),
+                version: self.root.info.version.clone(),
+            });
+        }
+
+        result
+    }
+}
+
 impl pubgrub::solver::DependencyProvider<String, Version> for DependencyProvider<'_> {
     fn choose_package_version<T: Borrow<String>, U: Borrow<Range<Version>>>(
         &self,
@@ -22,9 +36,9 @@ impl pubgrub::solver::DependencyProvider<String, Version> for DependencyProvider
     ) -> Result<(T, Option<Version>), Box<dyn std::error::Error>> {
         Ok(pubgrub::solver::choose_package_with_fewest_versions(
             |id| {
-                qpackages::get_versions(id.borrow())
+                self.get_package_versions(id.borrow())
                     .into_iter()
-                    .map(|pv| pv.version.into())
+                    .map(|pv: qpackages::PackageVersion| pv.version.into())
             },
             potential_packages,
         ))
@@ -49,7 +63,13 @@ impl pubgrub::solver::DependencyProvider<String, Version> for DependencyProvider
                 .collect();
             Ok(Dependencies::Known(deps))
         } else {
-            let package = qpackages::get_shared_package(id, &version.clone().into());
+            let mut package = qpackages::get_shared_package(id, &version.clone().into());
+            // remove any private dependencies
+            package
+                .config
+                .dependencies
+                .retain(|dep| !dep.additional_data.is_private.unwrap_or(false));
+
             let deps = package
                 .config
                 .dependencies

@@ -20,7 +20,7 @@ pub fn resolve(root: &PackageConfig) -> impl Iterator<Item = SharedPackageConfig
             .map(|(id, version)| qpackages::get_shared_package(&id, &version.into())),
         Err(PubGrubError::NoSolution(tree)) => {
             let report = DefaultStringReporter::report(&tree);
-            eprintln!("{}", report);
+            eprintln!("failed to resolve dependencies: \n{}", report);
             process::exit(1)
         }
         Err(err) => {
