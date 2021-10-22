@@ -164,7 +164,7 @@ impl SharedPackageConfig {
         ));
         result.push_str("# derived from override .so name or just id_version\n");
         result.push_str(&format!(
-            "set(MOD_ID \"{}\")\n",
+            "set(COMPILE_ID \"{}\")\n",
             self.config.get_module_id()
         ));
         result.push_str(
