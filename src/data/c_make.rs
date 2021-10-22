@@ -251,11 +251,13 @@ impl ToString for CMakeList {
                 result.push_str(")\n");
             }
         }
-        result.push('\n');
 
-        result.push_str("# Misc extra lines: \n");
-        for extra in self.extra_lines.iter() {
-            result.push_str(&format!("{}\n", extra));
+        if !self.extra_lines.is_empty() {
+            result.push('\n');
+            result.push_str("# Misc extra lines: \n");
+            for extra in self.extra_lines.iter() {
+                result.push_str(&format!("{}\n", extra));
+            }
         }
 
         result

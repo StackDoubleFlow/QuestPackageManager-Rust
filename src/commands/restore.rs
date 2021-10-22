@@ -1,6 +1,4 @@
-use crate::data::{
-    android_mk::AndroidMk, package::PackageConfig, shared_package::SharedPackageConfig,
-};
+use crate::data::{package::PackageConfig, shared_package::SharedPackageConfig};
 
 pub fn execute_restore_operation() {
     println!("package should be restoring");

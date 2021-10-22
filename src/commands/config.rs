@@ -111,7 +111,7 @@ pub fn execute_config_operation(operation: Config) {
             "Global Config is located at {}",
             AppConfig::global_config_path().display().bright_yellow()
         ),
-        ConfigOperation::NDKPath(p) => execute_ndk_config_operation(&mut config, p),
+        ConfigOperation::NDKPath(p) => changed_any = execute_ndk_config_operation(&mut config, p),
     }
 
     if !changed_any {
@@ -257,12 +257,16 @@ fn execute_token_config_operation(operation: Token) {
     }
 }
 
-fn execute_ndk_config_operation(config: &mut AppConfig, operation: NDKPath) {
+fn execute_ndk_config_operation(config: &mut AppConfig, operation: NDKPath) -> bool {
     if let Some(path) = operation.ndk_path {
+        println!("Set ndk path to {}!", path.bright_yellow());
         config.ndk_path = Some(path);
+        true
     } else if let Some(path) = &config.ndk_path {
-        println!("Configured ndk path: {}", path.bright_yellow());
+        println!("Current configured ndk path is: {}", path.bright_yellow());
+        false
     } else {
         println!("No ndk path was configured!");
+        false
     }
 }

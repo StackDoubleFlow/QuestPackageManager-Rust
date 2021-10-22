@@ -187,6 +187,32 @@ impl PackageConfig {
     pub fn resolve(&self) -> impl Iterator<Item = SharedPackageConfig> + '_ {
         crate::resolver::resolve(self)
     }
+
+    pub fn get_module_id(&self) -> String {
+        let name = self.get_so_name();
+        if self.additional_data.static_linking.unwrap_or(false) {
+            name[3..name.len() - 2].to_string()
+        } else {
+            name[3..name.len() - 3].to_string()
+        }
+    }
+
+    pub fn get_so_name(&self) -> String {
+        self.info
+            .additional_data
+            .override_so_name
+            .clone()
+            .unwrap_or(format!(
+                "lib{}_{}.{}",
+                self.info.id,
+                self.info.version.to_string().replace('.', "_"),
+                if self.additional_data.static_linking.unwrap_or(false) {
+                    "a"
+                } else {
+                    "so"
+                },
+            ))
+    }
 }
 
 impl AdditionalPackageData {
