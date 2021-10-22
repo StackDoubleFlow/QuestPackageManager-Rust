@@ -1,6 +1,6 @@
 use std::{
     io::{Read, Write},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 
 use semver::VersionReq;
@@ -112,16 +112,14 @@ impl SharedPackageConfig {
 
     pub fn restore(&self) {
         for restore in self.restored_dependencies.iter() {
-            // if the shared dep is contained within the direct dependencies, copy them over
-            if self
-                .config
-                .dependencies
-                .iter()
-                .any(|dep| dep.id == restore.dependency.id)
-            {
-                restore.cache();
-                restore.restore_from_cache();
-            }
+            // if the shared dep is contained within the direct dependencies, link against that, always copy headers!
+            restore.cache();
+            restore.restore_from_cache(
+                self.config
+                    .dependencies
+                    .iter()
+                    .any(|dep| dep.id == restore.dependency.id),
+            );
         }
 
         let extern_cmake_path = PathBuf::new()

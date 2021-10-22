@@ -10,13 +10,5 @@ pub fn execute_restore_operation() {
     std::fs::create_dir_all(&shared_package.config.shared_dir).expect("Failed to create directory");
 
     shared_package.restore();
-
-    /*
-    if let Some(mut android_mk) = AndroidMk::read() {
-        android_mk.update_shared_package(&shared_package);
-        android_mk.write();
-    }
-    */
-
     shared_package.write();
 }

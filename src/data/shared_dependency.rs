@@ -326,19 +326,19 @@ impl SharedDependency {
         }
     }
 
-    pub fn restore_from_cache(&self) {
+    pub fn restore_from_cache(&self, also_lib: bool) {
         // restore from cached files, give error on fail (nonexistent?)
         // make sure to check the symlink setting (can we even do that in rust ?)
         // also keep cache location in mind
 
-        if Config::read_combine().symlink.unwrap() {
-            self.restore_from_cache_symlink();
+        if Config::read_combine().symlink.unwrap_or(false) {
+            self.restore_from_cache_symlink(also_lib);
         } else {
-            self.restore_from_cache_copy();
+            self.restore_from_cache_copy(also_lib);
         }
     }
 
-    pub fn collect_to_copy(&self) -> Vec<(PathBuf, PathBuf)> {
+    pub fn collect_to_copy(&self, also_lib: bool) -> Vec<(PathBuf, PathBuf)> {
         let config = Config::read_combine();
         let package = PackageConfig::read();
         let shared_package = self.get_shared_package();
@@ -354,43 +354,45 @@ impl SharedDependency {
         std::fs::create_dir_all(dependencies_path).unwrap();
         let dependencies_path = dependencies_path.canonicalize().unwrap().join("includes");
         let local_path = dependencies_path.join(&self.dependency.id);
-        let so_name: String;
-        if let Some(override_so_name) = shared_package.config.info.additional_data.override_so_name
-        {
-            so_name = override_so_name;
-        } else {
-            so_name = format!(
-                "lib{}_{}.so",
-                self.dependency.id,
-                self.version.to_string().replace('.', "_")
-            );
-        }
-
         let mut to_copy = Vec::new();
-        // if not headers only, copy over .so file
-        if shared_package
-            .config
-            .info
-            .additional_data
-            .headers_only
-            .is_none()
-            || !shared_package
+        if also_lib {
+            let so_name: String;
+            if let Some(override_so_name) =
+                shared_package.config.info.additional_data.override_so_name
+            {
+                so_name = override_so_name;
+            } else {
+                so_name = format!(
+                    "lib{}_{}.so",
+                    self.dependency.id,
+                    self.version.to_string().replace('.', "_")
+                );
+            }
+
+            // if not headers only, copy over .so file
+            if shared_package
                 .config
                 .info
                 .additional_data
                 .headers_only
-                .unwrap()
-        {
-            let lib_so_path = libs_path.join(&so_name);
-            let local_so_path = Path::new(&package.dependencies_dir)
-                .canonicalize()
-                .unwrap()
-                .join("libs")
-                .join(&so_name);
-            // from to
-            to_copy.push((lib_so_path, local_so_path));
+                .is_none()
+                || !shared_package
+                    .config
+                    .info
+                    .additional_data
+                    .headers_only
+                    .unwrap()
+            {
+                let lib_so_path = libs_path.join(&so_name);
+                let local_so_path = Path::new(&package.dependencies_dir)
+                    .canonicalize()
+                    .unwrap()
+                    .join("libs")
+                    .join(&so_name);
+                // from to
+                to_copy.push((lib_so_path, local_so_path));
+            }
         }
-
         // copy  shared / include over
         let cache_shared_path = src_path.join(&shared_package.config.shared_dir);
         let shared_path = local_path.join(&shared_package.config.shared_dir);
@@ -407,14 +409,12 @@ impl SharedDependency {
         to_copy
     }
 
-    pub fn restore_from_cache_symlink(&self) {
-        let to_copy = self.collect_to_copy();
+    pub fn restore_from_cache_symlink(&self, also_lib: bool) {
+        let to_copy = self.collect_to_copy(also_lib);
         // sort out issues with the symlinking, stuff is being symlinked weirdly
         for (from, to) in to_copy.iter() {
             // make sure to parent dir exists!
-            if from.is_dir() {
-                std::fs::create_dir_all(to.parent().unwrap()).ok();
-            }
+            std::fs::create_dir_all(to.parent().unwrap()).ok();
             if let Err(e) = symlink::symlink_auto(&from, &to) {
                 #[cfg(windows)]
                 println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist, or did you not enable windows dev mode?\nTo disable this warning (and default to copy), use the command {}", e.bright_red(), "qpm config symlink disable".bright_yellow());
@@ -437,9 +437,9 @@ impl SharedDependency {
         }
     }
 
-    pub fn restore_from_cache_copy(&self) {
+    pub fn restore_from_cache_copy(&self, also_lib: bool) {
         // get the files to copy
-        let to_copy = self.collect_to_copy();
+        let to_copy = self.collect_to_copy(also_lib);
         for (from_str, to_str) in to_copy.iter() {
             let from = Path::new(&from_str);
             let to = Path::new(&to_str);
