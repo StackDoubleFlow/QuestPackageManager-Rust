@@ -50,7 +50,7 @@ pub struct AdditionalDependencyData {
 
     /// the link to the qmod
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub qmod_link: Option<String>,
+    pub mod_link: Option<String>,
 
     /// Branch name of a Github repo. Only used when a valid github url is provided
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,8 +106,8 @@ impl AdditionalDependencyData {
             self.static_linking = Some(static_linking);
         }
 
-        if self.qmod_link.is_none() {
-            self.qmod_link = other.mod_link;
+        if self.mod_link.is_none() {
+            self.mod_link = other.mod_link;
         }
     }
 }
@@ -158,8 +158,8 @@ impl Dependency {
             version: shared_package.config.info.version.clone(),
         };
 
-        if to_add.dependency.additional_data.qmod_link.is_none() {
-            to_add.dependency.additional_data.qmod_link =
+        if to_add.dependency.additional_data.mod_link.is_none() {
+            to_add.dependency.additional_data.mod_link =
                 shared_package.config.info.additional_data.mod_link.clone();
         }
 

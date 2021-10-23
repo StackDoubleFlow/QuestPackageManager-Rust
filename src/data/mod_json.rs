@@ -50,7 +50,7 @@ pub struct ModDependency {
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub qmod_link: Option<String>,
+    pub mod_link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -81,5 +81,21 @@ impl ModJson {
         let mut file = std::fs::File::create("mod.json").expect("create failed");
         file.write_all(json.as_bytes()).expect("write failed");
         println!("Mod json {} Written!", self.id);
+    }
+}
+
+impl From<crate::data::dependency::Dependency> for ModDependency {
+    fn from(dep: crate::data::dependency::Dependency) -> Self {
+        Self {
+            id: dep.id,
+            version_range: dep.version_range,
+            mod_link: dep.additional_data.mod_link,
+        }
+    }
+}
+
+impl From<crate::data::shared_dependency::SharedDependency> for ModDependency {
+    fn from(dep: crate::data::shared_dependency::SharedDependency) -> Self {
+        dep.dependency.into()
     }
 }
