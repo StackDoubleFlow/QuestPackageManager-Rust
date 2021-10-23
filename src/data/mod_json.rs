@@ -3,6 +3,11 @@ use std::io::{Read, Write};
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
+use crate::data::{
+    dependency::Dependency, shared_dependency::SharedDependency,
+    shared_package::SharedPackageConfig,
+};
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ModJson {
@@ -63,11 +68,7 @@ pub struct FileCopy {
 }
 
 impl ModJson {
-    pub fn _from_package() -> ModJson {
-        todo!()
-    }
-
-    pub fn _read() -> ModJson {
+    pub fn read() -> ModJson {
         let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Reading data failed");
@@ -84,8 +85,52 @@ impl ModJson {
     }
 }
 
-impl From<crate::data::dependency::Dependency> for ModDependency {
-    fn from(dep: crate::data::dependency::Dependency) -> Self {
+impl From<SharedPackageConfig> for ModJson {
+    fn from(mut shared_package: SharedPackageConfig) -> Self {
+        shared_package
+            .restored_dependencies
+            .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
+
+        let mut libs = shared_package
+            .restored_dependencies
+            .iter()
+            .map(|dep| dep.get_so_name())
+            .collect::<Vec<String>>();
+        libs.retain(|lib| !lib.contains("modloader"));
+
+        shared_package
+            .restored_dependencies
+            .retain(|dep| dep.dependency.additional_data.mod_link.is_some());
+
+        let mods: Vec<ModDependency> = shared_package
+            .restored_dependencies
+            .iter()
+            .map(|dep| dep.clone().into())
+            .collect();
+
+        libs.retain(|lib| !mods.iter().any(|dep| lib.contains(&dep.id)));
+
+        Self {
+            schema_version: "0.1.2".to_string(),
+            name: shared_package.config.info.name.clone(),
+            id: shared_package.config.info.id.clone(),
+            author: Default::default(),
+            porter: None,
+            version: shared_package.config.info.version.clone(),
+            package_id: "com.beatgames.beatsaber".to_string(),
+            package_version: "*".to_string(),
+            description: None,
+            cover_image: None,
+            dependencies: mods,
+            mod_files: vec![shared_package.config.get_so_name()],
+            library_files: libs,
+            file_copies: Default::default(),
+        }
+    }
+}
+
+impl From<Dependency> for ModDependency {
+    fn from(dep: Dependency) -> Self {
         Self {
             id: dep.id,
             version_range: dep.version_range,
@@ -94,8 +139,8 @@ impl From<crate::data::dependency::Dependency> for ModDependency {
     }
 }
 
-impl From<crate::data::shared_dependency::SharedDependency> for ModDependency {
-    fn from(dep: crate::data::shared_dependency::SharedDependency) -> Self {
+impl From<SharedDependency> for ModDependency {
+    fn from(dep: SharedDependency) -> Self {
         dep.dependency.into()
     }
 }

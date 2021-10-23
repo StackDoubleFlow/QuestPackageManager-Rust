@@ -18,6 +18,15 @@ pub fn execute_restore_operation() {
         file.write_all(ndk_path.as_bytes())
             .expect("Failed to write out ndkpath.txt");
     }
+
+    if !std::path::Path::new("mod.json").exists() {
+        let mod_json: crate::data::mod_json::ModJson = shared_package.clone().into();
+        let mut mod_json_file = std::fs::File::create("mod.json").unwrap();
+        mod_json_file
+            .write_all(serde_json::to_string_pretty(&mod_json).unwrap().as_bytes())
+            .unwrap();
+    }
+
     shared_package.restore();
     shared_package.write();
 }

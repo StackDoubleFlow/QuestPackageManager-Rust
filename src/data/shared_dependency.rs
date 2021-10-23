@@ -124,6 +124,28 @@ impl SharedDependency {
         }
     }
 
+    pub fn get_so_name(&self) -> String {
+        self.dependency
+            .additional_data
+            .override_so_name
+            .clone()
+            .unwrap_or(format!(
+                "lib{}_{}.{}",
+                self.dependency.id,
+                self.version.to_string().replace('.', "_"),
+                if self
+                    .dependency
+                    .additional_data
+                    .static_linking
+                    .unwrap_or(false)
+                {
+                    "a"
+                } else {
+                    "so"
+                },
+            ))
+    }
+
     pub fn get_hash(&self) -> u64 {
         let mut s = DefaultHasher::new();
         self.hash(&mut s);
