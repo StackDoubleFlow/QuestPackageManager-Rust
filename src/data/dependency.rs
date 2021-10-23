@@ -107,7 +107,7 @@ impl AdditionalDependencyData {
         }
 
         if self.qmod_link.is_none() {
-            self.qmod_link = other.qmod_link;
+            self.qmod_link = other.mod_link;
         }
     }
 }
@@ -160,7 +160,7 @@ impl Dependency {
 
         if to_add.dependency.additional_data.qmod_link.is_none() {
             to_add.dependency.additional_data.qmod_link =
-                shared_package.config.info.additional_data.qmod_link.clone();
+                shared_package.config.info.additional_data.mod_link.clone();
         }
 
         println!("{:#?}", self.additional_data.extra_files);

@@ -46,25 +46,17 @@ pub struct Edit {
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct EditExtra {
-    /// Change the branch name in additional data
-    #[clap(long = "branchName")]
-    pub branch_name: Option<String>,
-
     /// Change the headers only bool in additional data, 0 for false, 1 for true
     #[clap(long = "headersOnly")]
     pub headers_only: Option<i8>,
 
     /// Make the package be statically linked, 0 for false, 1 for true
     #[clap(long = "staticLinking")]
-    pub static_linking: Option<bool>,
+    pub static_linking: Option<i8>,
 
     /// Provide a so link for downloading the regular .so file
     #[clap(long = "soLink")]
     pub so_link: Option<String>,
-
-    /// Provide an additional file to add to the extra files list, prepend with - to remove an entry
-    #[clap(long = "extraFiles")]
-    pub extra_files: Option<String>,
 
     /// Provide a debug so link for downloading the debug .so file
     #[clap(long = "debugSoLink")]
@@ -73,6 +65,18 @@ pub struct EditExtra {
     /// Provide an overridden name for the .so file
     #[clap(long = "overrideSoName")]
     pub override_so_name: Option<String>,
+
+    /// Provide a link to the mod
+    #[clap(long = "modLink")]
+    pub mod_link: Option<String>,
+
+    /// Change the branch name in additional data
+    #[clap(long = "branchName")]
+    pub branch_name: Option<String>,
+
+    /// Provide an additional file to add to the extra files list, prepend with - to remove an entry
+    #[clap(long = "extraFiles")]
+    pub extra_files: Option<String>,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -152,19 +156,28 @@ fn package_create_operation(create_parameters: PackageOperationCreateArgs) {
 
 fn package_edit_operation(edit_parameters: Edit) {
     let mut package = PackageConfig::read();
-    if edit_parameters.id.is_some() {
-        package_set_id(&mut package, edit_parameters.id.unwrap());
+    let mut any_changed = false;
+    if let Some(id) = edit_parameters.id {
+        package_set_id(&mut package, id);
+        any_changed = true;
     }
-    if edit_parameters.name.is_some() {
-        package_set_name(&mut package, edit_parameters.name.unwrap());
+    if let Some(name) = edit_parameters.name {
+        package_set_name(&mut package, name);
+        any_changed = true;
     }
-    if edit_parameters.url.is_some() {
-        package_set_url(&mut package, edit_parameters.url.unwrap());
+    if let Some(url) = edit_parameters.url {
+        package_set_url(&mut package, url);
+        any_changed = true;
     }
-    if edit_parameters.version.is_some() {
-        package_set_version(&mut package, edit_parameters.version.unwrap());
+    if let Some(version) = edit_parameters.version {
+        package_set_version(&mut package, version);
+        any_changed = true;
     }
-    package.write();
+
+    if any_changed {
+        package.write();
+        // TODO: Edit shared package and qpm defines.cmake, as well as mod.json
+    }
 }
 
 fn package_set_id(package: &mut PackageConfig, id: String) {
@@ -191,31 +204,44 @@ fn package_set_version(package: &mut PackageConfig, version: Version) {
 
 fn package_edit_extra_operation(edit_parameters: EditExtra) {
     let mut package = PackageConfig::read();
-    if edit_parameters.branch_name.is_some() {
-        package_edit_extra_branch_name(&mut package, edit_parameters.branch_name.unwrap());
+    let mut any_changed = false;
+    if let Some(branch_name) = edit_parameters.branch_name {
+        package_edit_extra_branch_name(&mut package, branch_name);
+        any_changed = true;
     }
-    if edit_parameters.headers_only.is_some() {
-        package_edit_extra_headers_only(&mut package, edit_parameters.headers_only.unwrap());
+    if let Some(headers_only) = edit_parameters.headers_only {
+        package_edit_extra_headers_only(&mut package, headers_only);
+        any_changed = true;
     }
-    if edit_parameters.static_linking.is_some() {
-        package_edit_extra_static_linking(&mut package, edit_parameters.static_linking.unwrap());
+    if let Some(static_linking) = edit_parameters.static_linking {
+        package_edit_extra_static_linking(&mut package, static_linking);
+        any_changed = true;
     }
-    if edit_parameters.so_link.is_some() {
-        package_edit_extra_so_link(&mut package, edit_parameters.so_link.unwrap());
+    if let Some(so_link) = edit_parameters.so_link {
+        package_edit_extra_so_link(&mut package, so_link);
+        any_changed = true;
     }
-    if edit_parameters.extra_files.is_some() {
-        package_edit_extra_extra_files(&mut package, edit_parameters.extra_files.unwrap());
+    if let Some(extra_files) = edit_parameters.extra_files {
+        package_edit_extra_extra_files(&mut package, extra_files);
+        any_changed = true;
     }
-    if edit_parameters.debug_so_link.is_some() {
-        package_edit_extra_debug_so_link(&mut package, edit_parameters.debug_so_link.unwrap());
+    if let Some(debug_so_link) = edit_parameters.debug_so_link {
+        package_edit_extra_debug_so_link(&mut package, debug_so_link);
+        any_changed = true;
     }
-    if edit_parameters.override_so_name.is_some() {
-        package_edit_extra_override_so_name(
-            &mut package,
-            edit_parameters.override_so_name.unwrap(),
-        );
+    if let Some(mod_link) = edit_parameters.mod_link {
+        package_edit_extra_mod_link(&mut package, mod_link);
+        any_changed = true;
     }
-    package.write();
+    if let Some(override_so_name) = edit_parameters.override_so_name {
+        package_edit_extra_override_so_name(&mut package, override_so_name);
+        any_changed = true;
+    }
+
+    if any_changed {
+        package.write();
+        // TODO: Edit shared package and qpm defines.cmake, as well as mod.json
+    }
 }
 
 pub fn package_edit_extra_branch_name(package: &mut PackageConfig, branch_name: String) {
@@ -228,14 +254,19 @@ pub fn package_edit_extra_headers_only(package: &mut PackageConfig, headers_only
     package.info.additional_data.headers_only = Some(headers_only != 0);
 }
 
-pub fn package_edit_extra_static_linking(package: &mut PackageConfig, static_linking: bool) {
+pub fn package_edit_extra_static_linking(package: &mut PackageConfig, static_linking: i8) {
     println!("Setting static_linking: {:#?}", static_linking);
-    package.info.additional_data.static_linking = Some(static_linking);
+    package.info.additional_data.static_linking = Some(static_linking != 0);
 }
 
 pub fn package_edit_extra_so_link(package: &mut PackageConfig, so_link: String) {
     println!("Setting so_link: {:#?}", so_link);
     package.info.additional_data.so_link = Some(so_link);
+}
+
+pub fn package_edit_extra_mod_link(package: &mut PackageConfig, mod_link: String) {
+    println!("Setting mod_link: {:#?}", mod_link);
+    package.info.additional_data.mod_link = Some(mod_link);
 }
 
 pub fn package_edit_extra_extra_files(package: &mut PackageConfig, extra_file: String) {

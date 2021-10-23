@@ -35,7 +35,7 @@ pub struct AdditionalPackageData {
 
     /// the link to the qmod
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub qmod_link: Option<String>,
+    pub mod_link: Option<String>,
 
     /// Branch name of a Github repo. Only used when a valid github url is provided
     #[serde(skip_serializing_if = "Option::is_none")]

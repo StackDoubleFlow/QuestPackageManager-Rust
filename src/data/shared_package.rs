@@ -1,7 +1,4 @@
-use std::{
-    io::{Read, Write},
-    path::PathBuf,
-};
+use std::io::{Read, Write};
 
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
@@ -129,14 +126,8 @@ impl SharedPackageConfig {
     }
 
     pub fn write_extern_cmake(&self) {
-        let extern_cmake_path = PathBuf::new()
-            .join(&self.config.dependencies_dir)
-            .canonicalize()
-            .unwrap()
-            .join("extern.cmake");
-
         let mut extern_cmake_file =
-            std::fs::File::create(&extern_cmake_path).expect("Failed to create extern cmake file");
+            std::fs::File::create("extern.cmake").expect("Failed to create extern cmake file");
 
         extern_cmake_file
         .write_all("# always added\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)\n\n# there are different codegens, so dependending on which is used, the id changes\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/${CODEGEN_ID}/include)\n\n# libs dir -> stores .so or .a files (or symlinked!)\ntarget_link_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/libs)\n\nRECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)\nRECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n\n# every .so or .a that needs to be linked, put here!\n# I don't believe you need to specify if a lib is static or not, poggers!\ntarget_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)"
