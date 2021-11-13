@@ -189,6 +189,9 @@ impl SharedPackageConfig {
             "set(SHARED_DIR_NAME \"{}\")\n\n",
             self.config.shared_dir.display()
         ));
+
+        result.push_str("# if no target given, use Debug\nif (NOT DEFINED CMAKE_BUILD_TYPE)\n\tset(CMAKE_BUILD_TYPE \"Debug\")\nendif()\n\n");
+        result.push_str("# defines used in ninja / cmake ndk builds\nif (NOT DEFINED CMAKE_ANDROID_NDK)\n\tif(DEFINED ENV{ANDROID_NDK_ROOT})\n\t\tset(CMAKE_ANDROID_NDK ENV{ANDROID_NDK_ROOT})\n\telse()\n\t\tfile (STRINGS \"ndkpath.txt\" CMAKE_ANDROID_NDK)\n\tendif()\nendif()\nstring(REPLACE \"\\\\\" \"/\" CMAKE_ANDROID_NDK ${CMAKE_ANDROID_NDK})\n\nset(ANDROID_PLATFORM 24)\nset(ANDROID_ABI arm64-v8a)\nset(ANDROID_STL c++_static)\n\nset(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)\n\n");
         result.push_str("# define used for external data, mostly just the qpm dependencies\nset(EXTERN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${EXTERN_DIR_NAME})\nset(SHARED_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${SHARED_DIR_NAME})\n\n");
         result.push_str("# get files by filter recursively\nMACRO(RECURSE_FILES return_list filter)\n\tFILE(GLOB_RECURSE new_list ${filter})\n\tSET(file_list \"\")\n\tFOREACH(file_path ${new_list})\n\t\tSET(file_list ${file_list} ${file_path})\n\tENDFOREACH()\n\tLIST(REMOVE_DUPLICATES file_list)\n\tSET(${return_list} ${file_list})\nENDMACRO()");
 
