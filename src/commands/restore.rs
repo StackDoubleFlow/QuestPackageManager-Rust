@@ -7,6 +7,7 @@ pub fn execute_restore_operation() {
     let package = PackageConfig::read();
     let shared_package = SharedPackageConfig::from_package(&package);
 
+    // create used dirs
     std::fs::create_dir_all("src").expect("Failed to create directory");
     std::fs::create_dir_all("include").expect("Failed to create directory");
     std::fs::create_dir_all(&shared_package.config.shared_dir).expect("Failed to create directory");
@@ -19,14 +20,18 @@ pub fn execute_restore_operation() {
             .expect("Failed to write out ndkpath.txt");
     }
 
+    shared_package.restore();
+    shared_package.write();
+
+    // make mod.json if it doesn't exist
     if !std::path::Path::new("mod.json").exists() {
+        #[allow(clippy::redundant_clone)]
         let mod_json: crate::data::mod_json::ModJson = shared_package.clone().into();
         let mut mod_json_file = std::fs::File::create("mod.json").unwrap();
         mod_json_file
             .write_all(serde_json::to_string_pretty(&mod_json).unwrap().as_bytes())
             .unwrap();
+    } else {
+        // TODO: Update mod.json from current shared_package
     }
-
-    shared_package.restore();
-    shared_package.write();
 }

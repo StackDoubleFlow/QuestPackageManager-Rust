@@ -1,7 +1,6 @@
 pub mod cache;
 pub mod clear;
 pub mod collapse;
-pub mod collect;
 pub mod config;
 pub mod dependency;
 pub mod list;

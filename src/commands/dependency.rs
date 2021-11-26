@@ -78,8 +78,6 @@ fn put_dependency(
         id.bright_red(),
         version.bright_blue()
     );
-    // TODO make it actually add the dependency
-    // TODO make it check already added dependencies
 
     let mut package = crate::data::package::PackageConfig::read();
     let dep = dependency::Dependency {

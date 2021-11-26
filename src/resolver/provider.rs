@@ -18,7 +18,8 @@ impl<'a> DependencyProvider<'a> {
 impl DependencyProvider<'_> {
     fn get_package_versions(&self, id: &str) -> Vec<qpackages::PackageVersion> {
         let mut result = qpackages::get_versions(id.borrow());
-        if result.is_empty() && id == self.root.info.id {
+        // we add ourselves to the gotten versions, so the local version always can be resolved as most ideal
+        if id == self.root.info.id {
             result.push(qpackages::PackageVersion {
                 id: self.root.info.id.clone(),
                 version: self.root.info.version.clone(),

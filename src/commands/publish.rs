@@ -7,6 +7,7 @@ pub fn execute_publish_operation() {
         return;
     }
 
+    // TODO: verify all packages w/ versions are available off of qpackages.com
     package.publish();
     println!("package should now be published");
 }

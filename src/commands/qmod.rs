@@ -56,13 +56,13 @@ pub enum QmodOperation {
 
 pub fn execute_qmod_operation(operation: Qmod) {
     match operation.op {
-        QmodOperation::Create(q) => execute_qmod_create(q),
-        QmodOperation::Build => execute_qmod_build(),
-        QmodOperation::Edit => execute_qmod_edit(),
+        QmodOperation::Create(q) => execute_qmod_create_operation(q),
+        QmodOperation::Build => execute_qmod_build_operation(),
+        QmodOperation::Edit => execute_qmod_edit_operation(),
     }
 }
 
-fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs) {
+fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs) {
     let schema_version: String;
     match create_parameters.schema_version {
         Option::Some(s) => schema_version = s,
@@ -88,6 +88,10 @@ fn execute_qmod_create(create_parameters: CreateQmodJsonOperationArgs) {
     json.write();
 }
 
-fn execute_qmod_build() {}
+fn execute_qmod_build_operation() {
+    // TODO: Make it work (probably executing cmake --build ./ or something like that)
+}
 
-fn execute_qmod_edit() {}
+fn execute_qmod_edit_operation() {
+    // TODO: Make it actually edit qmod stuff like mod files and other things
+}

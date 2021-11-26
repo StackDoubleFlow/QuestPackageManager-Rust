@@ -1,12 +1,7 @@
-use std::{collections::HashMap, process::exit};
-
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{
-    package::AdditionalPackageData, qpackages, shared_dependency::SharedDependency,
-    shared_package::SharedPackageConfig,
-};
+use crate::data::{package::AdditionalPackageData, qpackages, shared_package::SharedPackageConfig};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -122,50 +117,5 @@ impl Dependency {
         }
 
         Option::None
-    }
-
-    pub fn collect(
-        &self,
-        this_id: &str,
-        collected: &mut HashMap<SharedDependency, SharedPackageConfig>,
-    ) {
-        if self.id.to_lowercase().eq(&this_id.to_lowercase()) {
-            return;
-        }
-
-        let mut shared_package: SharedPackageConfig;
-        match self.get_shared_package() {
-            Option::Some(s) => {
-                shared_package = s;
-            }
-            Option::None => {
-                println!("Could not find config for {}", &self.id);
-                exit(0);
-            }
-        }
-
-        shared_package.restored_dependencies.retain(|dep| {
-            if let Some(is_private) = dep.dependency.additional_data.is_private {
-                !is_private
-            } else {
-                true
-            }
-        });
-
-        // make a shared dependency out of this dependency
-        let mut to_add = SharedDependency {
-            dependency: self.clone(),
-            version: shared_package.config.info.version.clone(),
-        };
-
-        if to_add.dependency.additional_data.mod_link.is_none() {
-            to_add.dependency.additional_data.mod_link =
-                shared_package.config.info.additional_data.mod_link.clone();
-        }
-
-        println!("{:#?}", self.additional_data.extra_files);
-        collected.insert(to_add.clone(), shared_package);
-        // collect for this shared dep
-        to_add.collect(this_id, collected);
     }
 }

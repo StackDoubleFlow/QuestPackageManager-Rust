@@ -19,12 +19,15 @@ pub enum CacheOperation {
     Clear,
     /// Lists versions for each cached package
     List,
+    /// Shows you the current cache path
+    Path,
 }
 
 pub fn execute_cache_operation(operation: Cache) {
     match operation.op {
         CacheOperation::Clear => clear(),
         CacheOperation::List => list(),
+        CacheOperation::Path => path(),
     }
 }
 
@@ -32,6 +35,14 @@ fn clear() {
     let config = Config::read_combine();
     let path = config.cache.unwrap();
     remove_dir_contents(path).expect("Failed to remove cached folders");
+}
+
+fn path() {
+    let config = Config::read_combine();
+    println!(
+        "Config path is: {}",
+        config.cache.unwrap().display().bright_yellow()
+    );
 }
 
 fn list() {

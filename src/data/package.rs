@@ -1,12 +1,10 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 
-use owo_colors::OwoColorize;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
 use crate::data::{
     dependency::{AdditionalDependencyData, Dependency},
-    shared_dependency::SharedDependency,
     shared_package::SharedPackageConfig,
 };
 
@@ -124,64 +122,6 @@ impl PackageConfig {
         }
 
         println!("Not removing dependency {} because it did not exist", id);
-    }
-
-    pub fn collect(&self) -> HashMap<SharedDependency, SharedPackageConfig> {
-        // fd new vector for storing our values
-        let mut collected = HashMap::<SharedDependency, SharedPackageConfig>::new();
-
-        // for every dependency defined in our local package (qpm.json)
-        for dependency in self.dependencies.iter() {
-            dependency.collect(&self.info.id, &mut collected);
-        }
-
-        collected
-    }
-
-    pub fn collapse(&self) -> HashMap<SharedDependency, SharedPackageConfig> {
-        // collect our dependencies first
-        let mut collapsed = self.collect();
-        let collapsed_clone = collapsed.clone();
-
-        collapsed.retain(|shared_dependency, _shared_package|{
-            for pair in collapsed_clone.iter() {
-                if pair.0.dependency.id.eq(&shared_dependency.dependency.id) && pair.0.get_hash() != shared_dependency.get_hash() {
-                    let req = intersect(pair.0.dependency.version_range.clone(), shared_dependency.dependency.version_range.clone());
-                    let match1 = req.matches(&pair.0.version);
-                    let match2 = req.matches(&shared_dependency.version);
-                    if match1 && match2
-                    {
-                        // both are good
-                        if pair.0.version > shared_dependency.version
-                        {
-                            // if the first version is larger than the second, then that means this is a bad one, remove second
-                            return false;
-                        }
-                    }
-                    else if match1
-                    {
-                        // just the first is good, remove second
-                        return false;
-                    }
-                    else if match2
-                    {
-                        // just the second is good, this means do nothing right now, we'll get to the point where it'll be removed
-                    }
-                    else
-                    {
-                        // neither is good, this means the config is unusable!
-                        println!("Cannot collapse {}, Ranges do not intersect:", shared_dependency.dependency.id.bright_red());
-                        println!("Range 1: {} --> {}", &pair.0.dependency.version_range.bright_blue(), &pair.0.version.bright_green());
-                        println!("Range 2: {} --> {}", &shared_dependency.dependency.version_range.bright_blue(), &shared_dependency.version.bright_green());
-                        println!("Consider running {} and see which packages are using incompatible version ranges", "qpm-rust collect".bright_yellow());
-                        std::process::exit(0);
-                    }
-                }
-            }
-            true
-        });
-
-        collapsed
     }
 
     pub fn resolve(&self) -> impl Iterator<Item = SharedPackageConfig> + '_ {

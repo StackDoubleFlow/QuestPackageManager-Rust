@@ -31,8 +31,6 @@ enum MainCommand {
     Clear,
     /// Collect and collapse dependencies and print them to console
     Collapse,
-    /// Collect dependencies and print them to console
-    Collect,
     /// Config control
     Config(commands::config::Config),
     /// Dependency control
@@ -58,7 +56,6 @@ fn main() {
         MainCommand::Cache(c) => commands::cache::execute_cache_operation(c),
         MainCommand::Clear => commands::clear::execute_clear_operation(),
         MainCommand::Collapse => commands::collapse::execute_collapse_operation(),
-        MainCommand::Collect => commands::collect::execute_collect_operation(),
         MainCommand::Config(c) => commands::config::execute_config_operation(c),
         MainCommand::Dependency(d) => commands::dependency::execute_dependency_operation(d),
         MainCommand::Package(p) => commands::package::execute_package_operation(p),

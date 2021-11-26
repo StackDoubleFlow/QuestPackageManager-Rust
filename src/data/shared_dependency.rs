@@ -1,5 +1,5 @@
 use std::{
-    collections::{hash_map::DefaultHasher, HashMap},
+    collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     io::{Cursor, Read, Write},
     path::{Path, PathBuf},
@@ -42,88 +42,6 @@ impl SharedDependency {
         qpackages::get_shared_package(&self.dependency.id, &self.version)
     }
 
-    pub fn collect(
-        &mut self,
-        this_id: &str,
-        collected: &mut HashMap<SharedDependency, SharedPackageConfig>,
-    ) {
-        if this_id.eq(&self.dependency.id) {
-            return;
-        }
-
-        // get shared package to add to the hashmap
-        let mut shared_package = self.get_shared_package();
-
-        // remove private deps
-        shared_package
-            .restored_dependencies
-            .retain(|restored_dependency| {
-                if let Some(is_private) = restored_dependency.dependency.additional_data.is_private
-                {
-                    return !is_private;
-                }
-
-                true
-            });
-
-        if !collected.contains_key(self) {
-            let mut found = false;
-
-            // some need to be removed and imo this is the easiest way to do it because borrowing is a bitch and I hate it
-            collected.retain(|shared_dependency, _| {
-                // if the passed thing is the same ID as self
-                if shared_dependency.dependency.id.eq(&self.dependency.id) {
-                    // if it has an override so name
-                    if let (Some(override_so_name), Some(self_override_so_name)) = (
-                        shared_dependency
-                            .get_shared_package()
-                            .config
-                            .info
-                            .additional_data
-                            .override_so_name,
-                        self.get_shared_package()
-                            .config
-                            .info
-                            .additional_data
-                            .override_so_name,
-                    ) {
-                        // if they are the same
-                        if override_so_name.to_lowercase() == self_override_so_name.to_lowercase() {
-                            // if self version is higher, remove it (and we add it back later)
-                            if self.version >= shared_dependency.version {
-                                return false;
-                            } else {
-                                // we found a good dep, we don't need to add this one again
-                                found = true;
-                            }
-                        }
-                    }
-                    // if id == id (checked before) & version is exact same, don't add it again
-                    else if self.version == shared_dependency.version {
-                        found = true;
-                    }
-                }
-
-                true
-            });
-
-            // if we didn't find a valid version
-            if !found {
-                self.dependency
-                    .additional_data
-                    .merge_package(shared_package.config.info.additional_data.clone());
-
-                // insert into hashmap
-                collected.insert(self.clone(), shared_package.clone());
-            }
-        }
-
-        // collect all the shared deps
-        for shared_dependency in shared_package.restored_dependencies.iter_mut() {
-            shared_dependency.collect(&shared_package.config.info.id, collected);
-        }
-    }
-
     pub fn get_so_name(&self) -> String {
         self.dependency
             .additional_data
@@ -153,6 +71,7 @@ impl SharedDependency {
     }
 
     pub fn cache(&self) {
+        // TODO: This method is cringe and needs to be redone
         // check if current version already cached
         // if not, git clone (using token?)
         // else return
@@ -247,6 +166,7 @@ impl SharedDependency {
                         .headers_only
                         .unwrap()
                 {
+                    // TODO: Download both .so files since users can decide to use release version in qpm.json
                     // get download link to use
                     let mut so_download: String;
                     // if debug link defined, use that to link against
@@ -276,6 +196,7 @@ impl SharedDependency {
                             )
                         };
 
+                        // TODO: Improve the way it gets the token url so it doesn't smell as much
                         // github url, probably release
                         if let Ok(token) = get_keyring().get_password() {
                             // had token, use it!
@@ -324,10 +245,13 @@ impl SharedDependency {
                         file.write_all(&buffer)
                             .expect("Failed to write out .so file");
                     } else {
-                        // not a git url, just straight download
+                        // not a git url, just straight download for .so
+                        // TODO: Actually Implement
                     }
                 }
             } else {
+                // this is a header only download
+                // not a git url, just straight download
                 // it was not a github url, probably a zipped file download
                 println!("Url was not a github url, assuming it's a zipped file download...");
                 let mut buffer = Cursor::new(Vec::new());
@@ -350,9 +274,6 @@ impl SharedDependency {
 
     pub fn restore_from_cache(&self, also_lib: bool) {
         // restore from cached files, give error on fail (nonexistent?)
-        // make sure to check the symlink setting (can we even do that in rust ?)
-        // also keep cache location in mind
-
         if Config::read_combine().symlink.unwrap_or(false) {
             self.restore_from_cache_symlink(also_lib);
         } else {
@@ -361,6 +282,7 @@ impl SharedDependency {
     }
 
     pub fn collect_to_copy(&self, also_lib: bool) -> Vec<(PathBuf, PathBuf)> {
+        // TODO: Look into improving the way it gets all the things to copy
         let config = Config::read_combine();
         let package = PackageConfig::read();
         let shared_package = self.get_shared_package();
