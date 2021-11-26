@@ -114,6 +114,7 @@ impl SharedDependency {
 
                 println!("Cloning git repo...");
                 // git clone
+                // TODO: Clone into a tmp folder, so we can move it into a src folder, or use subfolder
                 if let Some(branch) = shared_package.config.info.additional_data.branch_name {
                     cmd!(
                         "git",

@@ -37,7 +37,7 @@ pub fn execute_list_operation(operation: ListOperation) {
 }
 
 fn execute_extra_properties_list() {
-    println!("TODO print all extra properties");
+    println!("TODO: print all extra properties");
 }
 
 fn execute_packages_list() {

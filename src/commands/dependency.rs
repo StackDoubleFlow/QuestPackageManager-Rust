@@ -50,7 +50,7 @@ pub fn execute_dependency_operation(operation: Dependency) {
 }
 
 fn add_dependency(dependency_args: DependencyOperationAddArgs) {
-    // TODO make it actually add
+    // TODO: make it actually add
     let version: VersionReq;
     let additional_data: dependency::AdditionalDependencyData;
     match dependency_args.version {
@@ -90,7 +90,7 @@ fn put_dependency(
 }
 
 fn remove_dependency(dependency_args: DependencyOperationRemoveArgs) {
-    // TODO make it actually remove
+    // TODO: make it actually remove
     let mut package = PackageConfig::read();
     package.remove_dependency(&dependency_args.id);
     package.write();

@@ -57,6 +57,7 @@ impl SharedPackageConfig {
     pub fn from_package(package: &PackageConfig) -> SharedPackageConfig {
         let shared_iter = package.resolve();
 
+        #[allow(unused_mut)]
         let mut shared_package = SharedPackageConfig {
             config: package.clone(),
             restored_dependencies: shared_iter
@@ -66,6 +67,7 @@ impl SharedPackageConfig {
                 .collect::<Vec<SharedDependency>>(),
         };
 
+        /*
         for dep in shared_package.config.dependencies.iter() {
             let restored_dep = shared_package
                 .restored_dependencies
@@ -78,6 +80,7 @@ impl SharedPackageConfig {
                 .additional_data
                 .merge(dep.additional_data.clone());
         }
+        */
 
         shared_package
     }
@@ -97,21 +100,21 @@ impl SharedPackageConfig {
     }
 
     pub fn restore(&self) {
-        for restore in self.restored_dependencies.iter() {
+        for to_restore in self.restored_dependencies.iter() {
             // if the shared dep is contained within the direct dependencies, link against that, always copy headers!
-            restore.cache();
-            restore.restore_from_cache(
+            to_restore.cache();
+            to_restore.restore_from_cache(
                 self.config
                     .dependencies
                     .iter()
-                    .any(|dep| dep.id == restore.dependency.id),
+                    .any(|dep| dep.id == to_restore.dependency.id),
             );
         }
 
         self.write_extern_cmake();
         self.write_define_cmake();
 
-        // todo edit mod.json
+        // TODO: edit mod.json
     }
 
     pub fn write_extern_cmake(&self) {

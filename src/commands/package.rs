@@ -182,7 +182,7 @@ fn package_edit_operation(edit_parameters: Edit) {
 
 fn package_set_id(package: &mut PackageConfig, id: String) {
     println!("Setting package id: {}", id);
-    // TODO edit mod.json and android.mk
+    // TODO: edit mod.json and android.mk
     package.info.id = id;
 }
 
@@ -198,7 +198,7 @@ fn package_set_url(package: &mut PackageConfig, url: String) {
 
 fn package_set_version(package: &mut PackageConfig, version: Version) {
     println!("Setting package version: {}", version);
-    // TODO  make it edit the version in mod.json and android.mk
+    // TODO:  make it edit the version in mod.json and android.mk
     package.info.version = version;
 }
 

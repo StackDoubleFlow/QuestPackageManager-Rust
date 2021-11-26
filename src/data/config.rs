@@ -33,7 +33,7 @@ impl Default for Config {
 impl Config {
     /// always gets the global config
     pub fn read() -> Config {
-        // todo make it use a local qpm settings file
+        // TODO: make it use a local qpm settings file
         let path = Config::global_config_path();
         std::fs::create_dir_all(Config::global_config_dir()).expect("Failed to make config folder");
 
@@ -53,7 +53,7 @@ impl Config {
     }
 
     pub fn read_local() -> Config {
-        // todo make it use a local qpm settings file
+        // TODO: make it use a local qpm settings file
         let path = "qpm.settings.json";
 
         if let Ok(mut file) = std::fs::File::open(path) {

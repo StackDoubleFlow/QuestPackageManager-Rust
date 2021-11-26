@@ -129,7 +129,7 @@ fn execute_cache_config_operation(config: &mut AppConfig, operation: Cache) -> b
     match operation.op {
         CacheOperation::Path(p) => {
             if let Some(path) = p.path {
-                // TODO implement check if valid
+                // TODO: implement check if valid
                 let path_data = path.as_path();
                 // if it's relative, that is bad, do not accept!
                 if path_data.is_relative() {
@@ -159,7 +159,7 @@ fn execute_cache_config_operation(config: &mut AppConfig, operation: Cache) -> b
                         std::fs::remove_file(&temp_path).expect("Couldn't remove created file");
                         println!("Set cache path to {}", path.display().bright_yellow());
                         config.cache = Some(path);
-                        // TODO clean up old cache place ?
+                        // TODO: clean up old cache place ?
                         return true;
                     } else {
                         println!("Failed to set cache path to {}, since opening a test file there was not succesful", path.display().bright_yellow());
@@ -210,7 +210,7 @@ fn execute_symlink_config_operation(config: &mut AppConfig, operation: Symlink) 
 
 fn execute_timeout_config_operation(config: &mut AppConfig, operation: Timeout) -> bool {
     if let Some(timeout) = operation.timeout {
-        // TODO actually set the value
+        // TODO: actually set the value
         println!("Set timeout to {}!", timeout.bright_yellow());
         config.timeout = Some(timeout);
         return true;
