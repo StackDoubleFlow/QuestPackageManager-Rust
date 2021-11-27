@@ -8,6 +8,30 @@ use crate::data::{
     shared_package::SharedPackageConfig,
 };
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CompileOptions {
+    /// Additional include paths to add, relative to the extern directory.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_paths: Option<Vec<String>>,
+
+    /// Additional system include paths to add, relative to the extern directory.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system_includes: Option<Vec<String>>,
+
+    /// Additional C++ features to add.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cpp_features: Option<Vec<String>>,
+
+    /// Additional C++ flags to add.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cpp_flags: Option<Vec<String>>,
+
+    /// Additional C flags to add.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub c_flags: Option<Vec<String>>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
@@ -53,6 +77,14 @@ pub struct AdditionalPackageData {
     /// Whether to use the release .so for linking
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_release: Option<bool>,
+
+    /// Additional Compile options to be used with this package
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compile_options: Option<CompileOptions>,
+
+    /// Sub folder to use from the downloaded repo / zip, so one repo can contain multiple packages
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub_folder: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -80,6 +112,10 @@ impl PackageConfig {
         let file = std::fs::File::create("qpm.json").expect("create failed");
         serde_json::to_writer_pretty(file, &self).expect("Serialization failed");
         println!("Package {} Written!", self.info.id);
+    }
+
+    pub fn check() -> bool {
+        std::path::Path::new("qpm.json").exists()
     }
 
     pub fn read() -> PackageConfig {
@@ -155,13 +191,13 @@ impl PackageConfig {
     }
 }
 
-impl AdditionalPackageData {
-    pub fn to_dependency_data(&self) -> AdditionalDependencyData {
-        serde_json::from_str(&serde_json::to_string(&self).unwrap()).unwrap()
-    }
-}
-
 fn intersect(mut lhs: VersionReq, mut rhs: VersionReq) -> VersionReq {
     lhs.comparators.append(&mut rhs.comparators);
     lhs
+}
+
+impl From<AdditionalDependencyData> for AdditionalPackageData {
+    fn from(dependency_data: AdditionalDependencyData) -> Self {
+        serde_json::from_str(&serde_json::to_string(&dependency_data).unwrap()).unwrap()
+    }
 }

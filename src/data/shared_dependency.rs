@@ -12,12 +12,15 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use zip::ZipArchive;
 
-use crate::data::{
-    config::{get_keyring, Config},
-    dependency::Dependency,
-    package::PackageConfig,
-    qpackages,
-    shared_package::SharedPackageConfig,
+use crate::{
+    data::{
+        config::{get_keyring, Config},
+        dependency::Dependency,
+        package::PackageConfig,
+        qpackages,
+        shared_package::SharedPackageConfig,
+    },
+    utils::github,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
@@ -68,6 +71,136 @@ impl SharedDependency {
         let mut s = DefaultHasher::new();
         self.hash(&mut s);
         s.finish()
+    }
+
+    pub fn cache2electricboogaloo(&self) {
+        // TODO: Check if already cached
+        // TODO: if true, don't download repo / header files
+        // TODO: else cache to tmp folder in package id folder @ cache path
+        //          git repo -> git clone w/ or without github token
+        //          not git repo (no github.com) -> assume it's a zip
+        //          !! HANDLE SUBFOLDER FROM TMP, OR IF NO SUBFOLDER JUST RENAME TMP TO SRC !!
+        //          -- now we have the header files --
+        // TODO: Check if .so files are downloaded, if not:
+        // TODO: Download release .so and possibly debug .so to libs folder, if from github use token if available
+        // TODO: Now it should be cached!
+
+        println!(
+            "Checking cache for dependency {} {}",
+            self.dependency.id.bright_red(),
+            self.version.bright_green()
+        );
+        let config = Config::read_combine();
+        let base_path = config
+            .cache
+            .unwrap()
+            .join(&self.dependency.id)
+            .join(self.version.to_string());
+
+        let src_path = base_path.join("src");
+        let lib_path = base_path.join("lib");
+        let tmp_path = base_path.join("tmp");
+
+        let shared_package = self.dependency.get_shared_package().unwrap();
+
+        let so_path = lib_path.join(shared_package.config.get_so_name());
+        let debug_so_path = lib_path.join(format!("debug_{}", shared_package.config.get_so_name()));
+
+        // Downloads the repo / zip file into src folder w/ subfolder taken into account
+        if !src_path.exists() {
+            // src did not exist, this means that we need to download the repo/zip file from packageconfig.info.url
+            std::fs::create_dir_all(&src_path).expect("Failed to create lib path");
+            let url = shared_package.config.info.url.unwrap();
+
+            if url.contains("github.com") {
+                // github url!
+                github::clone(
+                    url,
+                    shared_package.config.info.additional_data.branch_name,
+                    &tmp_path,
+                );
+            } else {
+                // not a github url, assume it's a zip
+                let mut buffer = Cursor::new(Vec::new());
+                ureq::get(&url)
+                    .call()
+                    .unwrap()
+                    .into_reader()
+                    .read_to_end(buffer.get_mut())
+                    .unwrap();
+                // Extract to tmp folder
+                ZipArchive::new(buffer).unwrap().extract(&tmp_path).unwrap();
+            }
+            // the only way the above if else would break is if someone put a link to a zip file on github in the url slot
+            // if you are reading this and think of doing that so I have to fix this, fuck you
+
+            let options = fs_extra::dir::CopyOptions::new();
+            let from_path =
+                if let Some(sub_folder) = shared_package.config.info.additional_data.sub_folder {
+                    // the package exists in a subfolder of the downloaded thing, just move the subfolder to src
+                    tmp_path.join(sub_folder)
+                } else {
+                    // the downloaded thing IS the package, just rename the folder to src
+                    tmp_path.clone()
+                };
+
+            fs_extra::dir::move_dir(&from_path, src_path, &options).expect("Failed to move folder");
+
+            // clear up tmp folder
+            std::fs::remove_dir_all(tmp_path).expect("Failed to remove tmp folder");
+        }
+
+        if !lib_path.exists() {
+            std::fs::create_dir_all(&lib_path).expect("Failed to create lib path");
+            // TODO: libs didn't exist or the release object didn't exist, we need to download from packageconfig.info.additional_data.so_link and packageconfig.info.additional_data.debug_so_link
+            if !so_path.exists() {
+                if let Some(so_link) = shared_package.config.info.additional_data.so_link {
+                    // so_link existed, download
+                    if so_link.contains("github.com") {
+                        // github url!
+                        github::get_release(so_link, &so_path);
+                    } else {
+                        // other dl link, assume it's a raw lib file download
+                        let mut buffer = Cursor::new(Vec::new());
+                        ureq::get(&so_link)
+                            .call()
+                            .unwrap()
+                            .into_reader()
+                            .read_to_end(buffer.get_mut())
+                            .unwrap();
+                        let mut file =
+                            std::fs::File::create(so_path).expect("create so file failed");
+                        file.write_all(&*buffer.into_inner())
+                            .expect("Failed to write out downloaded bytes");
+                    }
+                }
+            }
+
+            if !debug_so_path.exists() {
+                if let Some(debug_so_link) =
+                    shared_package.config.info.additional_data.debug_so_link
+                {
+                    // debug_so_link existed, download
+                    if debug_so_link.contains("github.com") {
+                        // github url!
+                        github::get_release(debug_so_link, &debug_so_path);
+                    } else {
+                        // other dl link, assume it's a raw lib file download
+                        let mut buffer = Cursor::new(Vec::new());
+                        ureq::get(&debug_so_link)
+                            .call()
+                            .unwrap()
+                            .into_reader()
+                            .read_to_end(buffer.get_mut())
+                            .unwrap();
+                        let mut file =
+                            std::fs::File::create(debug_so_path).expect("create so file failed");
+                        file.write_all(&*buffer.into_inner())
+                            .expect("Failed to write out downloaded bytes");
+                    }
+                }
+            }
+        }
     }
 
     pub fn cache(&self) {
@@ -251,7 +384,6 @@ impl SharedDependency {
                     }
                 }
             } else {
-                // this is a header only download
                 // not a git url, just straight download
                 // it was not a github url, probably a zipped file download
                 println!("Url was not a github url, assuming it's a zipped file download...");

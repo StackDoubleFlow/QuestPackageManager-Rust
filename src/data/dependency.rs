@@ -62,7 +62,25 @@ pub struct AdditionalDependencyData {
     )]
     pub is_private: Option<bool>,
 }
-
+/*
+impl Default for AdditionalDependencyData {
+    fn default() -> Self {
+        Self {
+            local_path: None,
+            headers_only: None,
+            static_linking: None,
+            use_release: None,
+            so_link: None,
+            debug_so_link: None,
+            override_so_name: None,
+            mod_link: None,
+            branch_name: None,
+            extra_files: None,
+            is_private: None,
+        }
+    }
+}
+*/
 impl AdditionalDependencyData {
     pub fn merge(&mut self, other: AdditionalDependencyData) {
         if self.branch_name.is_none() {
@@ -117,5 +135,11 @@ impl Dependency {
         }
 
         Option::None
+    }
+}
+
+impl From<AdditionalPackageData> for AdditionalDependencyData {
+    fn from(package_data: AdditionalPackageData) -> Self {
+        serde_json::from_str(&serde_json::to_string(&package_data).unwrap()).unwrap()
     }
 }

@@ -91,7 +91,7 @@ impl SharedPackageConfig {
                 id: self.config.info.id.to_string(),
                 version_range: VersionReq::parse(&format!("={}", self.config.info.version))
                     .unwrap(),
-                additional_data: self.config.info.additional_data.to_dependency_data(),
+                additional_data: Default::default(), //self.config.info.additional_data.to_dependency_data(),
             },
             version: self.config.info.version.clone(),
         };
@@ -118,6 +118,7 @@ impl SharedPackageConfig {
     }
 
     pub fn write_extern_cmake(&self) {
+        // TODO: add incclude paths from the new qpm stuff
         let mut extern_cmake_file =
             std::fs::File::create("extern.cmake").expect("Failed to create extern cmake file");
 

@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use clap::{AppSettings, Clap};
+use owo_colors::OwoColorize;
 use semver::Version;
 
 use crate::data::{
@@ -118,6 +119,15 @@ pub fn execute_package_operation(operation: Package) {
 }
 
 fn package_create_operation(create_parameters: PackageOperationCreateArgs) {
+    if PackageConfig::check() {
+        println!(
+            "{}",
+            "Package already existed, not creating a new package!".bright_red()
+        );
+        println!("Did you try to make a package in the same directory as another, or did you not use a clean folder?");
+        return;
+    }
+
     let additional_data = AdditionalPackageData {
         branch_name: create_parameters.branch_name,
         headers_only: create_parameters.headers_only,
