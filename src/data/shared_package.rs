@@ -102,7 +102,7 @@ impl SharedPackageConfig {
     pub fn restore(&self) {
         for to_restore in self.restored_dependencies.iter() {
             // if the shared dep is contained within the direct dependencies, link against that, always copy headers!
-            to_restore.cache();
+            to_restore.cache2electricboogaloo();
             to_restore.restore_from_cache(
                 self.config
                     .dependencies

@@ -5,7 +5,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use duct::cmd;
 use fs_extra::dir::copy as copy_directory;
 use owo_colors::OwoColorize;
 use semver::Version;
@@ -14,13 +13,10 @@ use zip::ZipArchive;
 
 use crate::{
     data::{
-        config::{get_keyring, Config},
-        dependency::Dependency,
-        package::PackageConfig,
-        qpackages,
+        config::Config, dependency::Dependency, package::PackageConfig, qpackages,
         shared_package::SharedPackageConfig,
     },
-    utils::github,
+    utils::git,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
@@ -109,12 +105,12 @@ impl SharedDependency {
         // Downloads the repo / zip file into src folder w/ subfolder taken into account
         if !src_path.exists() {
             // src did not exist, this means that we need to download the repo/zip file from packageconfig.info.url
-            std::fs::create_dir_all(&src_path).expect("Failed to create lib path");
+            std::fs::create_dir_all(&src_path.parent().unwrap())
+                .expect("Failed to create lib path");
             let url = shared_package.config.info.url.unwrap();
-
             if url.contains("github.com") {
                 // github url!
-                github::clone(
+                git::clone(
                     url,
                     shared_package.config.info.additional_data.branch_name,
                     &tmp_path,
@@ -143,8 +139,17 @@ impl SharedDependency {
                     // the downloaded thing IS the package, just rename the folder to src
                     tmp_path.clone()
                 };
-
-            fs_extra::dir::move_dir(&from_path, src_path, &options).expect("Failed to move folder");
+            if from_path.exists() {
+                println!(
+                    "from: {}\nto: {}",
+                    from_path.display().bright_yellow(),
+                    src_path.display().bright_yellow()
+                );
+                fs_extra::dir::move_dir(&from_path, src_path, &options)
+                    .expect("Failed to move folder");
+            } else {
+                panic!("Failed to restore folder for this dependency\nif you have a token configured check if it's still valid\nIf it is, check if you can manually reach the repo");
+            }
 
             // clear up tmp folder
             std::fs::remove_dir_all(tmp_path).expect("Failed to remove tmp folder");
@@ -152,13 +157,13 @@ impl SharedDependency {
 
         if !lib_path.exists() {
             std::fs::create_dir_all(&lib_path).expect("Failed to create lib path");
-            // TODO: libs didn't exist or the release object didn't exist, we need to download from packageconfig.info.additional_data.so_link and packageconfig.info.additional_data.debug_so_link
+            // libs didn't exist or the release object didn't exist, we need to download from packageconfig.info.additional_data.so_link and packageconfig.info.additional_data.debug_so_link
             if !so_path.exists() {
                 if let Some(so_link) = shared_package.config.info.additional_data.so_link {
                     // so_link existed, download
                     if so_link.contains("github.com") {
                         // github url!
-                        github::get_release(so_link, &so_path);
+                        git::get_release(so_link, &so_path);
                     } else {
                         // other dl link, assume it's a raw lib file download
                         let mut buffer = Cursor::new(Vec::new());
@@ -183,7 +188,7 @@ impl SharedDependency {
                     // debug_so_link existed, download
                     if debug_so_link.contains("github.com") {
                         // github url!
-                        github::get_release(debug_so_link, &debug_so_path);
+                        git::get_release(debug_so_link, &debug_so_path);
                     } else {
                         // other dl link, assume it's a raw lib file download
                         let mut buffer = Cursor::new(Vec::new());
@@ -202,7 +207,7 @@ impl SharedDependency {
             }
         }
     }
-
+    /*
     pub fn cache(&self) {
         // TODO: This method is cringe and needs to be redone
         // check if current version already cached
@@ -404,7 +409,7 @@ impl SharedDependency {
             // found it, do nothing!
         }
     }
-
+    */
     pub fn restore_from_cache(&self, also_lib: bool) {
         // restore from cached files, give error on fail (nonexistent?)
         if Config::read_combine().symlink.unwrap_or(false) {
