@@ -23,7 +23,7 @@ pub struct PackageVersion {
 
 /// Requests the appriopriate package info from qpackage.com
 pub fn get_versions(id: &str) -> Vec<PackageVersion> {
-    let url = format!("{}/{}/?limit=0", API_URL, id);
+    let url = format!("{}/{}?limit=0", API_URL, id);
 
     if let Some(entry) = VERSIONS_CACHE.borrow().get(&url) {
         return entry.clone();

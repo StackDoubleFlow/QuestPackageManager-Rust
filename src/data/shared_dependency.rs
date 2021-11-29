@@ -145,6 +145,8 @@ impl SharedDependency {
                     from_path.display().bright_yellow(),
                     src_path.display().bright_yellow()
                 );
+                std::fs::create_dir_all(&src_path)
+                    .expect("Failed to create destination src directory");
                 fs_extra::dir::move_dir(&from_path, src_path, &options)
                     .expect("Failed to move folder");
             } else {
