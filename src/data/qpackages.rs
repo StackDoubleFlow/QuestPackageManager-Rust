@@ -1,4 +1,4 @@
-use std::{collections::HashMap, lazy::SyncLazy as Lazy};
+use std::{collections::HashMap, lazy::SyncLazy as Lazy, time::Duration};
 
 use atomic_refcell::AtomicRefCell;
 use semver::Version;
@@ -12,6 +12,20 @@ static VERSIONS_CACHE: Lazy<AtomicRefCell<HashMap<String, Vec<PackageVersion>>>>
     Lazy::new(Default::default);
 static SHARED_PACKAGE_CACHE: Lazy<AtomicRefCell<HashMap<String, SharedPackageConfig>>> =
     Lazy::new(Default::default);
+
+static AGENT: Lazy<AtomicRefCell<ureq::Agent>> = Lazy::new({
+    || {
+        AtomicRefCell::new(
+            ureq::AgentBuilder::new()
+                .timeout_read(Duration::from_secs(10))
+                .timeout_write(Duration::from_secs(10))
+                .user_agent(
+                    format!("questpackagemanager-rust/{}", env!("CARGO_PKG_VERSION")).as_str(),
+                )
+                .build(),
+        )
+    }
+});
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, PartialEq, Eq)]
 #[allow(non_snake_case)]
@@ -29,7 +43,9 @@ pub fn get_versions(id: &str) -> Vec<PackageVersion> {
         return entry.clone();
     }
 
-    let versions = ureq::get(&url)
+    let versions = AGENT
+        .borrow_mut()
+        .get(&url)
         .call()
         .expect("Request to qpackages.com failed")
         .into_json::<Vec<PackageVersion>>()
@@ -46,7 +62,9 @@ pub fn get_shared_package(id: &str, ver: &Version) -> SharedPackageConfig {
         return entry.clone();
     }
 
-    let shared_package = ureq::get(&url)
+    let shared_package = AGENT
+        .borrow_mut()
+        .get(&url)
         .call()
         .expect("Request to qpackages.com failed")
         .into_json::<SharedPackageConfig>()
@@ -59,7 +77,9 @@ pub fn get_shared_package(id: &str, ver: &Version) -> SharedPackageConfig {
 }
 
 pub fn get_packages() -> Vec<String> {
-    ureq::get(API_URL)
+    AGENT
+        .borrow_mut()
+        .get(API_URL)
         .call()
         .expect("Request to qpackages.com failed")
         .into_json::<Vec<String>>()
