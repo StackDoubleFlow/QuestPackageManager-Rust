@@ -89,19 +89,23 @@ impl From<SharedPackageConfig> for ModJson {
     fn from(mut shared_package: SharedPackageConfig) -> Self {
         shared_package
             .restored_dependencies
+            // keep if header only is false, or if not defined
             .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
 
+        // actual direct lib deps
         let mut libs = shared_package
             .restored_dependencies
             .iter()
             .map(|dep| dep.get_so_name())
             .collect::<Vec<String>>();
+
         libs.retain(|lib| !lib.contains("modloader"));
 
         shared_package
             .restored_dependencies
             .retain(|dep| dep.dependency.additional_data.mod_link.is_some());
 
+        // downloadable mods links n stuff
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()

@@ -1,7 +1,8 @@
 use std::io::Write;
 
-use crate::data::{config::Config, package::PackageConfig, shared_package::SharedPackageConfig};
-
+use crate::data::{
+    config::Config, mod_json::ModJson, package::PackageConfig, shared_package::SharedPackageConfig,
+};
 pub fn execute_restore_operation() {
     println!("package should be restoring");
     let package = PackageConfig::read();
@@ -24,14 +25,19 @@ pub fn execute_restore_operation() {
     shared_package.write();
 
     // make mod.json if it doesn't exist
+    let mod_json: ModJson = shared_package.into();
     if !std::path::Path::new("mod.json").exists() {
-        #[allow(clippy::redundant_clone)]
-        let mod_json: crate::data::mod_json::ModJson = shared_package.clone().into();
-        let mut mod_json_file = std::fs::File::create("mod.json").unwrap();
-        mod_json_file
-            .write_all(serde_json::to_string_pretty(&mod_json).unwrap().as_bytes())
-            .unwrap();
+        mod_json.write();
     } else {
-        // TODO: Update mod.json from current shared_package
+        // Update mod.json from current shared_package, pretty sure it's done but could be bad
+        let mut existing_json = ModJson::read();
+
+        existing_json.mod_files = mod_json.mod_files;
+        existing_json.dependencies = mod_json.dependencies;
+        existing_json.library_files = mod_json.library_files;
+        existing_json.id = mod_json.id;
+        existing_json.version = mod_json.version;
+
+        existing_json.write();
     }
 }
