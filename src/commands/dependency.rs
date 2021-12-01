@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use clap::{AppSettings, Clap};
 use owo_colors::OwoColorize;
 use semver::VersionReq;
@@ -50,13 +52,32 @@ pub fn execute_dependency_operation(operation: Dependency) {
 }
 
 fn add_dependency(dependency_args: DependencyOperationAddArgs) {
-    // TODO: make it actually add
+    if dependency_args.id == "yourmom" {
+        println!("The dependency was too big to add, we can't add this one!");
+        return;
+    }
+
     let version: VersionReq;
     let additional_data: dependency::AdditionalDependencyData;
-    match dependency_args.version {
-        Option::Some(v) => version = v,
-        Option::None => version = VersionReq::STAR,
+    let versions = crate::data::qpackages::get_versions(&dependency_args.id);
+
+    if versions.is_empty() {
+        println!(
+            "Package {} does not seem to exist qpackages, please make sure you spelled it right, and that it's an actual package!",
+            dependency_args.id.bright_green()
+        );
+        return;
     }
+
+    version = match dependency_args.version {
+        Option::Some(v) => v,
+        // if no version given, use ^latest instead, should've specified a version idiot
+        Option::None => semver::VersionReq::parse(&format!(
+            "^{}",
+            versions.last().unwrap().version.to_string()
+        ))
+        .unwrap(),
+    };
 
     match &dependency_args.additional_data {
         Option::Some(d) => {

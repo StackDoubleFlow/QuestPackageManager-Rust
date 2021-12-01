@@ -121,12 +121,30 @@ impl SharedPackageConfig {
         // TODO: add incclude paths from the new qpm stuff
         let mut extern_cmake_file =
             std::fs::File::create("extern.cmake").expect("Failed to create extern cmake file");
+        let mut result = "".to_string();
+        result.push_str("# always added\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)\n\n# includes added by other libraries\n");
+        let mut any = false;
+        for shared_dep in self.restored_dependencies.iter() {
+            let shared_package = shared_dep.get_shared_package();
+            if let Some(compile_options) =
+                shared_package.config.info.additional_data.compile_options
+            {
+                if let Some(include_dirs) = compile_options.include_paths {
+                    for dir in include_dirs.iter() {
+                        any = true;
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", shared_package.config.info.id, dir));
+                    }
+                }
+            }
+        }
+        if !any {
+            result.push_str("# Sadly, there were none with extra include dirs\n");
+        }
 
+        result.push_str("\n# libs dir -> stores .so or .a files (or symlinked!)\ntarget_link_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/libs)\n\nRECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)\nRECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n\n# every .so or .a that needs to be linked, put here!\n# I don't believe you need to specify if a lib is static or not, poggers!\ntarget_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)");
         extern_cmake_file
-        .write_all("# always added\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)\n\n# there are different codegens, so dependending on which is used, the id changes\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/${CODEGEN_ID}/include)\n\n# libs dir -> stores .so or .a files (or symlinked!)\ntarget_link_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/libs)\n\nRECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)\nRECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n\n# every .so or .a that needs to be linked, put here!\n# I don't believe you need to specify if a lib is static or not, poggers!\ntarget_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)"
-            .as_bytes(),
-        )
-        .expect("Failed to write out extern cmake file");
+            .write_all(result.as_bytes())
+            .expect("Failed to write out extern cmake file");
     }
 
     pub fn write_define_cmake(&self) {

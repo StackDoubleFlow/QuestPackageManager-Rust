@@ -129,7 +129,6 @@ fn execute_cache_config_operation(config: &mut AppConfig, operation: Cache) -> b
     match operation.op {
         CacheOperation::Path(p) => {
             if let Some(path) = p.path {
-                // TODO: implement check if valid
                 let path_data = path.as_path();
                 // if it's relative, that is bad, do not accept!
                 if path_data.is_relative() {
@@ -158,8 +157,11 @@ fn execute_cache_config_operation(config: &mut AppConfig, operation: Cache) -> b
                     if std::fs::File::create(&temp_path).is_ok() {
                         std::fs::remove_file(&temp_path).expect("Couldn't remove created file");
                         println!("Set cache path to {}", path.display().bright_yellow());
+                        println!(
+                            "\nDon't forget to clean up your old cache location if needed: {}",
+                            config.cache.clone().unwrap().display().bright_yellow()
+                        );
                         config.cache = Some(path);
-                        // TODO: clean up old cache place ?
                         return true;
                     } else {
                         println!("Failed to set cache path to {}, since opening a test file there was not succesful", path.display().bright_yellow());
@@ -210,23 +212,19 @@ fn execute_symlink_config_operation(config: &mut AppConfig, operation: Symlink) 
 
 fn execute_timeout_config_operation(config: &mut AppConfig, operation: Timeout) -> bool {
     if let Some(timeout) = operation.timeout {
-        // TODO: actually set the value
         println!("Set timeout to {}!", timeout.bright_yellow());
         config.timeout = Some(timeout);
-        return true;
+        true
+    } else if let Some(timeout) = config.timeout {
+        println!(
+            "Current configured timeout is set to: {}",
+            timeout.bright_yellow()
+        );
+        false
     } else {
-        // TODO: make it actually read the value from config
-        if let Some(timeout) = config.timeout.as_ref() {
-            println!(
-                "Current configured timeout is set to: {}",
-                timeout.bright_yellow()
-            );
-        } else {
-            println!("Timeout is not configured!");
-        }
+        println!("Timeout is not configured!");
+        false
     }
-
-    false
 }
 
 fn execute_token_config_operation(operation: Token) {

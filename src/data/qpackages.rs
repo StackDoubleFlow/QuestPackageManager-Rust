@@ -4,8 +4,7 @@ use atomic_refcell::AtomicRefCell;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use crate::data::shared_package::SharedPackageConfig;
-
+use crate::data::{config::Config, shared_package::SharedPackageConfig};
 static API_URL: &str = "https://qpackages.com";
 
 static VERSIONS_CACHE: Lazy<AtomicRefCell<HashMap<String, Vec<PackageVersion>>>> =
@@ -17,8 +16,12 @@ static AGENT: Lazy<AtomicRefCell<ureq::Agent>> = Lazy::new({
     || {
         AtomicRefCell::new(
             ureq::AgentBuilder::new()
-                .timeout_read(Duration::from_secs(10))
-                .timeout_write(Duration::from_secs(10))
+                .timeout_read(Duration::from_millis(
+                    Config::read_combine().timeout.unwrap() / 1000,
+                ))
+                .timeout_write(Duration::from_millis(
+                    Config::read_combine().timeout.unwrap() / 1000,
+                ))
                 .user_agent(
                     format!("questpackagemanager-rust/{}", env!("CARGO_PKG_VERSION")).as_str(),
                 )
