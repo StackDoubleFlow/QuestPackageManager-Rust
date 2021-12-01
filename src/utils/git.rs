@@ -50,11 +50,17 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
 
     //https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/tags/$TAG
 
-    let data = ureq::get(&asset_data_link)
+    let data;
+    match ureq::get(&asset_data_link)
         .call()
-        .unwrap()
-        .into_json::<GithubReleaseData>()
-        .unwrap();
+        {
+            Ok(o) => {data = o.into_json::<GithubReleaseData>()
+                .unwrap()},
+            Err(e) => { 
+                let error_string = e.to_string().replace(&token, "***"); 
+                panic!("{}", error_string);
+            }
+        }
 
     for asset in data.assets.iter() {
         if asset.name.eq(filename) {
@@ -106,10 +112,10 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         .run()
         //.expect("Failed to run git clone");
         {
-            Ok(o) => {
-                println!("status: {}", o.status);
-                println!("stdout: {:?}", &o.stdout);
-                println!("stderr: {:?}", &o.stderr);
+            Ok(_o) => {
+                //println!("status: {}", o.status);
+                //println!("stdout: {:?}", &o.stdout);
+                //println!("stderr: {:?}", &o.stderr);
             },
             Err(e) => {
                 let mut error_string = e.to_string();
@@ -123,7 +129,7 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         }
     } else {
         println!("No branch name found, cloning default branch");
-        cmd!(
+        match cmd!(
             "git",
             "clone",
             format!("{}.git", url),
@@ -137,7 +143,23 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         .stdout_capture()
         .stderr_capture()
         .run()
-        .expect("running git clone failed!");
+        //.expect("Failed to run git clone");
+        {
+            Ok(_o) => {
+                //println!("status: {}", o.status);
+                //println!("stdout: {:?}", &o.stdout);
+                //println!("stderr: {:?}", &o.stderr);
+            },
+            Err(e) => {
+                let mut error_string = e.to_string();
+                
+                if let Ok(token_unwrapped) = get_keyring().get_password() {
+                    error_string = error_string.replace(&token_unwrapped, "***");
+                }
+
+                println!("{}", error_string);
+            }
+        }
     }
 
     out.exists()

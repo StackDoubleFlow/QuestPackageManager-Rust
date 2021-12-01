@@ -130,7 +130,6 @@ impl SharedDependency {
             // the only way the above if else would break is if someone put a link to a zip file on github in the url slot
             // if you are reading this and think of doing that so I have to fix this, fuck you
 
-            let options = fs_extra::dir::CopyOptions::new();
             let from_path =
                 if let Some(sub_folder) = shared_package.config.info.additional_data.sub_folder {
                     // the package exists in a subfolder of the downloaded thing, just move the subfolder to src
@@ -145,16 +144,29 @@ impl SharedDependency {
                     from_path.display().bright_yellow(),
                     src_path.display().bright_yellow()
                 );
-                std::fs::create_dir_all(&src_path)
-                    .expect("Failed to create destination src directory");
-                fs_extra::dir::move_dir(&from_path, src_path, &options)
-                    .expect("Failed to move folder");
+
+                //if from_path == tmp_path {
+                //    std::fs::rename(from_path, src_path);
+                //} else {
+                //    let mut options = fs_extra::dir::CopyOptions::new();
+                //    options.overwrite = true;
+                //    options.copy_inside = true;
+                //    options.content_only = true;
+                //    copy_directory(&from, &to, &options).expect("Failed to copy directory!");
+                //}
+
+                //std::fs::create_dir_all(&src_path)
+                //    .expect("Failed to create destination src directory");
+                //let options = fs_extra::dir::CopyOptions::new();
+                std::fs::rename(&from_path, src_path).expect("Failed to move folder");
             } else {
                 panic!("Failed to restore folder for this dependency\nif you have a token configured check if it's still valid\nIf it is, check if you can manually reach the repo");
             }
 
             // clear up tmp folder
-            std::fs::remove_dir_all(tmp_path).expect("Failed to remove tmp folder");
+            if tmp_path.exists() {
+                std::fs::remove_dir_all(tmp_path).expect("Failed to remove tmp folder");
+            }
         }
 
         if !lib_path.exists() {
