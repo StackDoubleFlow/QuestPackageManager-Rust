@@ -145,6 +145,7 @@ impl SharedPackageConfig {
     }
 
     pub fn make_defines_string(&self) -> String {
+        // TODO: use additional_data.compile_options here or in the extern cmake file ? include dirs are set there at least
         let mut result = String::new();
 
         result.push_str("# YOU SHOULD NOT MANUALLY EDIT THIS FILE, QPM WILL VOID ALL CHANGES\n# Version defines, pretty useful\n");
