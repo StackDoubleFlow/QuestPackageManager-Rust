@@ -14,8 +14,6 @@ pub fn get_release(url: String, out: &std::path::Path) -> bool {
 }
 
 pub fn get_release_without_token(url: String, out: &std::path::Path) -> bool {
-    // TODO:
-    // other dl link, assume it's a raw lib file download
     let mut buffer = Cursor::new(Vec::new());
     ureq::get(&url)
         .call()
@@ -31,13 +29,14 @@ pub fn get_release_without_token(url: String, out: &std::path::Path) -> bool {
 }
 
 pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -> bool {
-    // TODO:
     // had token, use it!
     // download url for a private thing: still need to get asset id!
     // from this: "https://github.com/$USER/$REPO/releases/download/$TAG/$FILENAME"
     // to this: "https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/assets/$ASSET_ID"
     let split: Vec<String> = url.split('/').map(|el| el.to_string()).collect();
 
+    // Obviously this is a bad way of parsing the GH url but like I see no better way, people better not use direct lib uploads lol
+    // (I know mentioning it here will make people do that, so fuck y'all actually thinking of doing that)
     let user = split.get(3).unwrap();
     let repo = split.get(4).unwrap();
     let tag = split.get(7).unwrap();
@@ -47,8 +46,6 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
         "https://{}@api.github.com/repos/{}/{}/releases/tags/{}",
         &token, &user, &repo, &tag
     );
-
-    //https://$TOKEN@api.github.com/repos/$USER/$REPO/releases/tags/$TAG
 
     let data;
     match ureq::get(&asset_data_link)

@@ -7,6 +7,7 @@ use semver::Version;
 use crate::data::{
     dependency::{AdditionalDependencyData, Dependency},
     package::{AdditionalPackageData, PackageConfig, PackageInfo},
+    shared_package::SharedPackageConfig,
 };
 
 #[derive(Clap, Debug, Clone)]
@@ -186,7 +187,10 @@ fn package_edit_operation(edit_parameters: Edit) {
 
     if any_changed {
         package.write();
-        // TODO: Edit shared package and qpm defines.cmake, as well as mod.json
+        let mut shared_package = SharedPackageConfig::read();
+        shared_package.config = package;
+        shared_package.write();
+        // TODO: Edit qpm defines.cmake, as well as mod.json
     }
 }
 
@@ -250,7 +254,11 @@ fn package_edit_extra_operation(edit_parameters: EditExtra) {
 
     if any_changed {
         package.write();
-        // TODO: Edit shared package and qpm defines.cmake, as well as mod.json
+        let mut shared_package = SharedPackageConfig::read();
+        shared_package.config = package;
+        shared_package.write();
+
+        // TODO: Edit qpm defines.cmake, as well as mod.json
     }
 }
 

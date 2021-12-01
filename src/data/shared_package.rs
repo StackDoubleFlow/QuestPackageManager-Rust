@@ -36,22 +36,9 @@ impl SharedPackageConfig {
     }
 
     pub fn publish(&self) {
-        for dependency in self.config.dependencies.iter() {
-            match dependency.get_shared_package() {
-                Option::Some(_s) => {}
-                Option::None => {
-                    println!(
-                        "dependency {} was not available on qpackages in the given version range",
-                        &dependency.id
-                    );
-                    println!(
-                        "make sure {} exists for this dependency",
-                        &dependency.version_range
-                    );
-                    std::process::exit(0);
-                }
-            };
-        }
+        // TODO: Probably consists of a http post request of the qpm.shared.json to qpackages.
+        // Down the line maybe have some sort of auth added so that only the actual author can execute these
+        println!("Not done!");
     }
 
     pub fn from_package(package: &PackageConfig) -> SharedPackageConfig {
@@ -118,11 +105,11 @@ impl SharedPackageConfig {
     }
 
     pub fn write_extern_cmake(&self) {
-        // TODO: add incclude paths from the new qpm stuff
         let mut extern_cmake_file =
             std::fs::File::create("extern.cmake").expect("Failed to create extern cmake file");
         let mut result = "".to_string();
         result.push_str("# always added\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)\n\n# includes added by other libraries\n");
+
         let mut any = false;
         for shared_dep in self.restored_dependencies.iter() {
             let shared_package = shared_dep.get_shared_package();
@@ -137,6 +124,7 @@ impl SharedPackageConfig {
                 }
             }
         }
+
         if !any {
             result.push_str("# Sadly, there were none with extra include dirs\n");
         }

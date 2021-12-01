@@ -7,7 +7,23 @@ pub fn execute_publish_operation() {
         return;
     }
 
-    // TODO: verify all packages w/ versions are available off of qpackages.com
+    for dependency in package.config.dependencies.iter() {
+        match dependency.get_shared_package() {
+            Option::Some(_s) => {}
+            Option::None => {
+                println!(
+                    "dependency {} was not available on qpackages in the given version range",
+                    &dependency.id
+                );
+                println!(
+                    "make sure {} exists for this dependency",
+                    &dependency.version_range
+                );
+                std::process::exit(0);
+            }
+        };
+    }
+
     package.publish();
     println!("package should now be published");
 }

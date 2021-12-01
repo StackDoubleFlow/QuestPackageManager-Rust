@@ -70,16 +70,16 @@ impl SharedDependency {
     }
 
     pub fn cache2electricboogaloo(&self) {
-        // TODO: Check if already cached
-        // TODO: if true, don't download repo / header files
-        // TODO: else cache to tmp folder in package id folder @ cache path
+        // Check if already cached
+        // if true, don't download repo / header files
+        // else cache to tmp folder in package id folder @ cache path
         //          git repo -> git clone w/ or without github token
         //          not git repo (no github.com) -> assume it's a zip
         //          !! HANDLE SUBFOLDER FROM TMP, OR IF NO SUBFOLDER JUST RENAME TMP TO SRC !!
         //          -- now we have the header files --
-        // TODO: Check if .so files are downloaded, if not:
-        // TODO: Download release .so and possibly debug .so to libs folder, if from github use token if available
-        // TODO: Now it should be cached!
+        // Check if .so files are downloaded, if not:
+        // Download release .so and possibly debug .so to libs folder, if from github use token if available
+        // Now it should be cached!
 
         println!(
             "Checking cache for dependency {} {}",
@@ -223,7 +223,7 @@ impl SharedDependency {
     }
     /*
     pub fn cache(&self) {
-        // TODO: This method is cringe and needs to be redone
+        // TODO This method is cringe and needs to be redone
         // check if current version already cached
         // if not, git clone (using token?)
         // else return
@@ -266,7 +266,7 @@ impl SharedDependency {
 
                 println!("Cloning git repo...");
                 // git clone
-                // TODO: Clone into a tmp folder, so we can move it into a src folder, or use subfolder
+                // TODO Clone into a tmp folder, so we can move it into a src folder, or use subfolder
                 if let Some(branch) = shared_package.config.info.additional_data.branch_name {
                     cmd!(
                         "git",
@@ -319,7 +319,7 @@ impl SharedDependency {
                         .headers_only
                         .unwrap()
                 {
-                    // TODO: Download both .so files since users can decide to use release version in qpm.json
+                    // TODO Download both .so files since users can decide to use release version in qpm.json
                     // get download link to use
                     let mut so_download: String;
                     // if debug link defined, use that to link against
@@ -349,7 +349,7 @@ impl SharedDependency {
                             )
                         };
 
-                        // TODO: Improve the way it gets the token url so it doesn't smell as much
+                        // TODO Improve the way it gets the token url so it doesn't smell as much
                         // github url, probably release
                         if let Ok(token) = get_keyring().get_password() {
                             // had token, use it!
@@ -399,7 +399,7 @@ impl SharedDependency {
                             .expect("Failed to write out .so file");
                     } else {
                         // not a git url, just straight download for .so
-                        // TODO: Actually Implement
+                        // TODO Actually Implement
                     }
                 }
             } else {

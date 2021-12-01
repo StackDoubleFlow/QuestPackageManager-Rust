@@ -111,7 +111,6 @@ fn put_dependency(
 }
 
 fn remove_dependency(dependency_args: DependencyOperationRemoveArgs) {
-    // TODO: make it actually remove
     let mut package = PackageConfig::read();
     package.remove_dependency(&dependency_args.id);
     package.write();
