@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use clap::{AppSettings, Clap};
 use owo_colors::OwoColorize;
 use semver::VersionReq;
