@@ -6,10 +6,10 @@ use semver::Version;
 
 use crate::data::{
     dependency::{AdditionalDependencyData, Dependency},
+    mod_json::ModJson,
     package::{AdditionalPackageData, PackageConfig, PackageInfo},
     shared_package::SharedPackageConfig,
 };
-
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct Package {
@@ -190,13 +190,19 @@ fn package_edit_operation(edit_parameters: Edit) {
         let mut shared_package = SharedPackageConfig::read();
         shared_package.config = package;
         shared_package.write();
-        // TODO: Edit qpm defines.cmake, as well as mod.json
+
+        let mut mod_json = ModJson::read();
+        mod_json.version = shared_package.config.info.version;
+        mod_json.id = shared_package.config.info.id;
+        mod_json.name = shared_package.config.info.name;
+        mod_json.write();
+
+        // TODO: Edit qpm defines.cmake
     }
 }
 
 fn package_set_id(package: &mut PackageConfig, id: String) {
     println!("Setting package id: {}", id);
-    // TODO: edit mod.json and android.mk
     package.info.id = id;
 }
 
@@ -212,7 +218,6 @@ fn package_set_url(package: &mut PackageConfig, url: String) {
 
 fn package_set_version(package: &mut PackageConfig, version: Version) {
     println!("Setting package version: {}", version);
-    // TODO:  make it edit the version in mod.json and android.mk
     package.info.version = version;
 }
 
@@ -258,7 +263,7 @@ fn package_edit_extra_operation(edit_parameters: EditExtra) {
         shared_package.config = package;
         shared_package.write();
 
-        // TODO: Edit qpm defines.cmake, as well as mod.json
+        // TODO: Edit qpm defines.cmake
     }
 }
 
