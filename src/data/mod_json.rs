@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{Read, BufReader};
 
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
@@ -67,21 +67,48 @@ pub struct FileCopy {
     pub destination: String,
 }
 
+pub struct PreProcessingData {
+    pub version: String,
+    pub mod_id: String,
+}
+
 impl ModJson {
-    pub fn read() -> ModJson {
-        let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
+    pub fn read_parse(preprocess_data: &PreProcessingData) -> Self {
+        let mut file = std::fs::File::open("mod.template.json").expect("Opening mod.json failed");
+
+        // Get data
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Reading data failed");
 
-        serde_json::from_str::<ModJson>(&json).expect("Deserializing package failed")
+        // Pre process
+        let processsed = Self::preprocess(json, preprocess_data);
+
+        
+        serde_json::from_str(&processsed).expect("Deserializing package failed")
     }
 
-    pub fn write(&self) {
-        let json = serde_json::to_string_pretty(&self).expect("Serialization failed");
+    fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
+        s
+        .replace("${version}", &preprocess_data.version)
+        .replace("{mod_id}", &preprocess_data.mod_id)
+    }
 
-        let mut file = std::fs::File::create("mod.json").expect("create failed");
-        file.write_all(json.as_bytes()).expect("write failed");
-        println!("Mod json {} Written!", self.id);
+    pub fn read_template() -> ModJson {
+        let file = std::fs::File::open("mod.template.json").expect("Opening mod.json failed");
+        let reader = BufReader::new(file);
+
+
+        serde_json::from_reader(reader).expect("Deserializing package failed")
+    }
+
+    pub fn write_template(&self) {
+        let file = std::fs::File::create("mod.template.json").expect("create failed");
+        serde_json::to_writer_pretty(file, self).expect("Write failed");
+    }
+    
+    pub fn write_result(&self) {
+        let file = std::fs::File::create("mod.json").expect("create failed");
+        serde_json::to_writer_pretty(file, self).expect("Write failed");
     }
 }
 

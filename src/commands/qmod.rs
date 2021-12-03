@@ -85,7 +85,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         file_copies: Default::default(),
     };
 
-    json.write();
+    json.write_template();
 }
 
 fn execute_qmod_build_operation() {
