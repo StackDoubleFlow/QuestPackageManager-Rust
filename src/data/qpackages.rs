@@ -17,10 +17,10 @@ static AGENT: Lazy<AtomicRefCell<ureq::Agent>> = Lazy::new({
         AtomicRefCell::new(
             ureq::AgentBuilder::new()
                 .timeout_read(Duration::from_millis(
-                    Config::read_combine().timeout.unwrap() / 1000,
+                    Config::read_combine().timeout.unwrap(),
                 ))
                 .timeout_write(Duration::from_millis(
-                    Config::read_combine().timeout.unwrap() / 1000,
+                    Config::read_combine().timeout.unwrap(),
                 ))
                 .user_agent(
                     format!("questpackagemanager-rust/{}", env!("CARGO_PKG_VERSION")).as_str(),
