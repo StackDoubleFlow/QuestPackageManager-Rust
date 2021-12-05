@@ -90,7 +90,7 @@ impl ModJson {
     fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
         s
         .replace("${version}", &preprocess_data.version)
-        .replace("{mod_id}", &preprocess_data.mod_id)
+        .replace("${mod_id}", &preprocess_data.mod_id)
     }
 
     pub fn read_template() -> ModJson {
