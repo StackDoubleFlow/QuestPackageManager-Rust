@@ -119,14 +119,7 @@ impl From<SharedPackageConfig> for ModJson {
             // keep if header only is false, or if not defined
             .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
 
-        // actual direct lib deps
-        let mut libs = shared_package
-            .restored_dependencies
-            .iter()
-            .map(|dep| dep.get_so_name())
-            .collect::<Vec<String>>();
 
-        libs.retain(|lib| !lib.contains("modloader")); // todo: How to blacklist dependencies such as coremods?
 
         // downloadable mods links n stuff
         let mods: Vec<ModDependency> = shared_package
@@ -137,8 +130,21 @@ impl From<SharedPackageConfig> for ModJson {
             .map(|dep| dep.clone().into())
             .collect();
 
-        // Only keep libs that aren't downloadable
-        libs.retain(|lib| !mods.iter().any(|dep| lib.contains(&dep.id)));
+        // actual direct lib deps
+        let libs = shared_package
+            .restored_dependencies
+            .iter()
+             // todo: How to blacklist dependencies such as coremods?
+            .filter(|lib|
+
+                // Modloader should never be included
+                lib.dependency.id != "modloader" && 
+
+                // Only keep libs that aren't downloadable
+                !mods.iter().any(|dep| lib.dependency.id == dep.id))
+
+            .map(|dep| dep.get_so_name())
+            .collect::<Vec<String>>();
 
         Self {
             schema_version: "0.1.2".to_string(),
