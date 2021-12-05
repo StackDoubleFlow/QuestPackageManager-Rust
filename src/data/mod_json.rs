@@ -126,19 +126,18 @@ impl From<SharedPackageConfig> for ModJson {
             .map(|dep| dep.get_so_name())
             .collect::<Vec<String>>();
 
-        libs.retain(|lib| !lib.contains("modloader"));
-
-        shared_package
-            .restored_dependencies
-            .retain(|dep| dep.dependency.additional_data.mod_link.is_some());
+        libs.retain(|lib| !lib.contains("modloader")); // todo: How to blacklist dependencies such as coremods?
 
         // downloadable mods links n stuff
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()
+            // Removes any dependency without a qmod link
+            .filter(|dep| dep.dependency.additional_data.mod_link.is_some())
             .map(|dep| dep.clone().into())
             .collect();
 
+        // Only keep libs that aren't downloadable
         libs.retain(|lib| !mods.iter().any(|dep| lib.contains(&dep.id)));
 
         Self {

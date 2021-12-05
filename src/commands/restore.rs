@@ -25,7 +25,7 @@ pub fn execute_restore_operation() {
     shared_package.write();
 
     // make mod.json if it doesn't exist
-    let mod_json: ModJson = shared_package.into();
+    let mut mod_json: ModJson = shared_package.into();
     if !std::path::Path::new("mod.template.json").exists() {
         mod_json.write_template();
     } else {
@@ -33,11 +33,12 @@ pub fn execute_restore_operation() {
         let preprocess_data = PreProcessingData{ version: package.info.version.to_string(), mod_id: package.info.id };
         let mut existing_json = ModJson::read_parse(&preprocess_data);
 
-        existing_json.mod_files = mod_json.mod_files;
-        existing_json.dependencies = mod_json.dependencies;
-        existing_json.library_files = mod_json.library_files;
-        existing_json.id = mod_json.id;
-        existing_json.version = mod_json.version;
+        existing_json.mod_files.append(&mut mod_json.mod_files);
+        existing_json.dependencies.append(&mut mod_json.dependencies);
+        existing_json.library_files.append(&mut mod_json.library_files);
+        // handled by preprocessing
+        // existing_json.id = mod_json.id;
+        // existing_json.version = mod_json.version;
 
         existing_json.write_result();
     }
