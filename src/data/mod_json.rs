@@ -1,4 +1,4 @@
-use std::io::{Read, BufReader};
+use std::{io::{Read, BufReader}, path::PathBuf};
 
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
@@ -73,8 +73,16 @@ pub struct PreProcessingData {
 }
 
 impl ModJson {
-    pub fn read_parse(preprocess_data: &PreProcessingData) -> Self {
-        let mut file = std::fs::File::open("mod.template.json").expect("Opening mod.json failed");
+    pub fn get_template_name() -> &'static str {
+        "mod.template.json"
+    }
+
+    pub fn get_result_name() -> &'static str {
+        "mod.json"
+    }
+
+    pub fn read_and_preprocess(preprocess_data: &PreProcessingData, path: PathBuf) -> Self {
+        let mut file = std::fs::File::open(path).expect("Opening mod.json failed");
 
         // Get data
         let mut json = String::new();
@@ -93,21 +101,16 @@ impl ModJson {
         .replace("${mod_id}", &preprocess_data.mod_id)
     }
 
-    pub fn read_template() -> ModJson {
-        let file = std::fs::File::open("mod.template.json").expect("Opening mod.json failed");
+    pub fn read(path: PathBuf) -> ModJson {
+        let file = std::fs::File::open(path).expect("Opening mod.json failed");
         let reader = BufReader::new(file);
 
 
         serde_json::from_reader(reader).expect("Deserializing package failed")
     }
 
-    pub fn write_template(&self) {
-        let file = std::fs::File::create("mod.template.json").expect("create failed");
-        serde_json::to_writer_pretty(file, self).expect("Write failed");
-    }
-    
-    pub fn write_result(&self) {
-        let file = std::fs::File::create("mod.json").expect("create failed");
+    pub fn write(&self, path: PathBuf) {
+        let file = std::fs::File::create(path).expect("create failed");
         serde_json::to_writer_pretty(file, self).expect("Write failed");
     }
 }

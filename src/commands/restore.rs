@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{io::Write, path::PathBuf};
 
 use crate::data::{
     config::Config, mod_json::{ModJson, PreProcessingData}, package::PackageConfig, shared_package::SharedPackageConfig,
@@ -26,25 +26,12 @@ pub fn execute_restore_operation() {
 
     // make mod.json if it doesn't exist
     let mut mod_json: ModJson = shared_package.into();
-    if !std::path::Path::new("mod.template.json").exists() {
+    if !std::path::Path::new(ModJson::get_template_name()).exists() {
         // These will be filled later
         mod_json.mod_files.clear();
         mod_json.dependencies.clear();
         mod_json.library_files.clear();
         
-        mod_json.write_template();
-    } else {
-        // Update mod.json from current shared_package, pretty sure it's done but could be bad
-        let preprocess_data = PreProcessingData{ version: package.info.version.to_string(), mod_id: package.info.id };
-        let mut existing_json = ModJson::read_parse(&preprocess_data);
-
-        existing_json.mod_files.append(&mut mod_json.mod_files);
-        existing_json.dependencies.append(&mut mod_json.dependencies);
-        existing_json.library_files.append(&mut mod_json.library_files);
-        // handled by preprocessing
-        // existing_json.id = mod_json.id;
-        // existing_json.version = mod_json.version;
-
-        existing_json.write_result();
+        mod_json.write(PathBuf::from(ModJson::get_template_name()));
     }
 }
