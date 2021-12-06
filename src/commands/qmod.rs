@@ -90,6 +90,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
     json.write(PathBuf::from(ModJson::get_template_name()));
 }
 
+// This will parse the `qmod.template.json` and process it, then finally export a `qmod.json` for packaging and deploying.
 fn execute_qmod_build_operation() {
     if !std::path::Path::new("mod.template.json").exists() {
         panic!("No mod.template.json found in the current directory, set it up please :) Hint: use \"qmod create\"");
@@ -103,7 +104,7 @@ fn execute_qmod_build_operation() {
 
     // Parse template mod.template.json
     let preprocess_data = PreProcessingData{ version: package.info.version.to_string(), mod_id: package.info.id };
-    let mut existing_json = ModJson::read_and_preprocess(&preprocess_data, PathBuf::from(ModJson::get_template_name()));
+    let mut existing_json = ModJson::read_and_preprocess(&preprocess_data);
 
     existing_json.mod_files.append(&mut mod_json.mod_files);
     existing_json.dependencies.append(&mut mod_json.dependencies);

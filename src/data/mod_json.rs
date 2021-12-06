@@ -81,8 +81,8 @@ impl ModJson {
         "mod.json"
     }
 
-    pub fn read_and_preprocess(preprocess_data: &PreProcessingData, path: PathBuf) -> Self {
-        let mut file = std::fs::File::open(path).expect("Opening mod.json failed");
+    pub fn read_and_preprocess(preprocess_data: &PreProcessingData) -> Self {
+        let mut file = std::fs::File::open(Self::get_template_name()).expect("Opening mod.json failed");
 
         // Get data
         let mut json = String::new();
@@ -112,6 +112,11 @@ impl ModJson {
     pub fn write(&self, path: PathBuf) {
         let file = std::fs::File::create(path).expect("create failed");
         serde_json::to_writer_pretty(file, self).expect("Write failed");
+    }
+
+    #[inline]
+    pub fn write_default(&self) {
+        self.write(PathBuf::from(Self::get_result_name()));
     }
 }
 
