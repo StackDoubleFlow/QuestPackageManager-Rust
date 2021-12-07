@@ -6,7 +6,6 @@ use semver::Version;
 
 use crate::data::{
     dependency::{AdditionalDependencyData, Dependency},
-    mod_json::ModJson,
     package::{AdditionalPackageData, PackageConfig, PackageInfo},
     shared_package::SharedPackageConfig,
 };

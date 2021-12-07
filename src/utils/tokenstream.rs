@@ -20,10 +20,10 @@ pub fn replace_fast(original_s: &str, replacements: &HashMap<&'static str, &str>
         let mut replaced = false;
 
         // The key of the replacement string we're checking
-        let mut key_i_loop = 0;
-        'check_replacements: for (key_string, replacement) in replacements {
-            let key_i = key_i_loop;
-            key_i_loop += 1; // Rust why no ++???
+
+        'check_replacements: for (key_i, (key_string, replacement)) in
+            replacements.iter().enumerate()
+        {
             let compared_string_index = compared_strings[key_i]; // index of char to check
 
             let compare_char: char = key_string.as_bytes()[compared_string_index].into();
@@ -75,7 +75,6 @@ pub fn replace_fast(original_s: &str, replacements: &HashMap<&'static str, &str>
             }
 
             replaced = true;
-
 
             // Reset all comparisons
             for j in &mut compared_strings {

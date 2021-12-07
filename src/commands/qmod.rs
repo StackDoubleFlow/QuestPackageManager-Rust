@@ -3,7 +3,11 @@ use std::path::PathBuf;
 use clap::{AppSettings, Clap};
 use semver::Version;
 
-use crate::data::{mod_json::{ModJson, PreProcessingData}, package::PackageConfig, shared_package::SharedPackageConfig};
+use crate::data::{
+    mod_json::{ModJson, PreProcessingData},
+    package::PackageConfig,
+    shared_package::SharedPackageConfig,
+};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -79,6 +83,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         version: create_parameters.version, // TODO: make this ${version}
         package_id: create_parameters.package_id,
         package_version: create_parameters.package_version,
+        // TODO: use default: ${mod_id}, version ${version}! ¯\_(ツ)_/¯
         description: create_parameters.description,
         cover_image: create_parameters.cover_image,
         dependencies: Default::default(),
@@ -92,9 +97,8 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
 
 // This will parse the `qmod.template.json` and process it, then finally export a `qmod.json` for packaging and deploying.
 fn execute_qmod_build_operation() {
-    if !std::path::Path::new("mod.template.json").exists() {
-        panic!("No mod.template.json found in the current directory, set it up please :) Hint: use \"qmod create\"");
-    }
+    assert!(std::path::Path::new("mod.template.json").exists(),
+        "No mod.template.json found in the current directory, set it up please :) Hint: use \"qmod create\"");
 
     println!("package should be restoring");
     let package = PackageConfig::read();
@@ -103,12 +107,19 @@ fn execute_qmod_build_operation() {
     let mut mod_json: ModJson = shared_package.into();
 
     // Parse template mod.template.json
-    let preprocess_data = PreProcessingData{ version: package.info.version.to_string(), mod_id: package.info.id };
+    let preprocess_data = PreProcessingData {
+        version: package.info.version.to_string(),
+        mod_id: package.info.id,
+    };
     let mut existing_json = ModJson::read_and_preprocess(&preprocess_data);
 
     existing_json.mod_files.append(&mut mod_json.mod_files);
-    existing_json.dependencies.append(&mut mod_json.dependencies);
-    existing_json.library_files.append(&mut mod_json.library_files);
+    existing_json
+        .dependencies
+        .append(&mut mod_json.dependencies);
+    existing_json
+        .library_files
+        .append(&mut mod_json.library_files);
     // handled by preprocessing
     // existing_json.id = mod_json.id;
     // existing_json.version = mod_json.version;
