@@ -191,12 +191,6 @@ fn package_edit_operation(edit_parameters: Edit) {
         shared_package.config = package;
         shared_package.write();
 
-        let mut mod_json = ModJson::read();
-        mod_json.version = shared_package.config.info.version;
-        mod_json.id = shared_package.config.info.id;
-        mod_json.name = shared_package.config.info.name;
-        mod_json.write();
-
         // TODO: Edit qpm defines.cmake
     }
 }

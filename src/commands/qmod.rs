@@ -1,7 +1,9 @@
+use std::path::PathBuf;
+
 use clap::{AppSettings, Clap};
 use semver::Version;
 
-use crate::data::mod_json::ModJson;
+use crate::data::{mod_json::{ModJson, PreProcessingData}, package::PackageConfig, shared_package::SharedPackageConfig};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
@@ -71,10 +73,10 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
     let json = ModJson {
         schema_version,
         name: create_parameters.name,
-        id: create_parameters.id,
+        id: "{mod_id}".to_string(),
         author: create_parameters.author,
         porter: create_parameters.porter,
-        version: create_parameters.version,
+        version: create_parameters.version, // TODO: make this ${version}
         package_id: create_parameters.package_id,
         package_version: create_parameters.package_version,
         description: create_parameters.description,
@@ -85,11 +87,34 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         file_copies: Default::default(),
     };
 
-    json.write();
+    json.write(PathBuf::from(ModJson::get_template_name()));
 }
 
+// This will parse the `qmod.template.json` and process it, then finally export a `qmod.json` for packaging and deploying.
 fn execute_qmod_build_operation() {
-    // TODO: Make it work (probably executing cmake --build ./ or something like that)
+    if !std::path::Path::new("mod.template.json").exists() {
+        panic!("No mod.template.json found in the current directory, set it up please :) Hint: use \"qmod create\"");
+    }
+
+    println!("package should be restoring");
+    let package = PackageConfig::read();
+    let shared_package = SharedPackageConfig::from_package(&package);
+
+    let mut mod_json: ModJson = shared_package.into();
+
+    // Parse template mod.template.json
+    let preprocess_data = PreProcessingData{ version: package.info.version.to_string(), mod_id: package.info.id };
+    let mut existing_json = ModJson::read_and_preprocess(&preprocess_data);
+
+    existing_json.mod_files.append(&mut mod_json.mod_files);
+    existing_json.dependencies.append(&mut mod_json.dependencies);
+    existing_json.library_files.append(&mut mod_json.library_files);
+    // handled by preprocessing
+    // existing_json.id = mod_json.id;
+    // existing_json.version = mod_json.version;
+
+    // Write mod.json
+    existing_json.write(PathBuf::from(ModJson::get_result_name()));
 }
 
 fn execute_qmod_edit_operation() {

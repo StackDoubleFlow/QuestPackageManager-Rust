@@ -1,12 +1,12 @@
-use std::io::{Read, Write};
+use std::{io::{Read, BufReader}, path::PathBuf, collections::HashMap};
 
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use crate::data::{
+use crate::{data::{
     dependency::Dependency, shared_dependency::SharedDependency,
     shared_package::SharedPackageConfig,
-};
+}, utils::tokenstream::replace_fast};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -67,21 +67,56 @@ pub struct FileCopy {
     pub destination: String,
 }
 
+pub struct PreProcessingData {
+    pub version: String,
+    pub mod_id: String,
+}
+
 impl ModJson {
-    pub fn read() -> ModJson {
-        let mut file = std::fs::File::open("mod.json").expect("Opening mod.json failed");
+    pub fn get_template_name() -> &'static str {
+        "mod.template.json"
+    }
+
+    pub fn get_result_name() -> &'static str {
+        "mod.json"
+    }
+
+    pub fn read_and_preprocess(preprocess_data: &PreProcessingData) -> Self {
+        let mut file = std::fs::File::open(Self::get_template_name()).expect("Opening mod.json failed");
+
+        // Get data
         let mut json = String::new();
         file.read_to_string(&mut json).expect("Reading data failed");
 
-        serde_json::from_str::<ModJson>(&json).expect("Deserializing package failed")
+        // Pre process
+        let processsed = Self::preprocess(json, preprocess_data);
+        
+        serde_json::from_str(&processsed).expect("Deserializing package failed")
     }
 
-    pub fn write(&self) {
-        let json = serde_json::to_string_pretty(&self).expect("Serialization failed");
+    fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
+        replace_fast(&s, &HashMap::from([
+        ("${version}", preprocess_data.version.as_str()),
+        ("${mod_id}", preprocess_data.mod_id.as_str())
+        ]))
+    }
 
-        let mut file = std::fs::File::create("mod.json").expect("create failed");
-        file.write_all(json.as_bytes()).expect("write failed");
-        println!("Mod json {} Written!", self.id);
+    pub fn read(path: PathBuf) -> ModJson {
+        let file = std::fs::File::open(path).expect("Opening mod.json failed");
+        let reader = BufReader::new(file);
+
+
+        serde_json::from_reader(reader).expect("Deserializing package failed")
+    }
+
+    pub fn write(&self, path: PathBuf) {
+        let file = std::fs::File::create(path).expect("create failed");
+        serde_json::to_writer_pretty(file, self).expect("Write failed");
+    }
+
+    #[inline]
+    pub fn write_default(&self) {
+        self.write(PathBuf::from(Self::get_result_name()));
     }
 }
 
@@ -92,27 +127,32 @@ impl From<SharedPackageConfig> for ModJson {
             // keep if header only is false, or if not defined
             .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
 
-        // actual direct lib deps
-        let mut libs = shared_package
-            .restored_dependencies
-            .iter()
-            .map(|dep| dep.get_so_name())
-            .collect::<Vec<String>>();
 
-        libs.retain(|lib| !lib.contains("modloader"));
-
-        shared_package
-            .restored_dependencies
-            .retain(|dep| dep.dependency.additional_data.mod_link.is_some());
 
         // downloadable mods links n stuff
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()
+            // Removes any dependency without a qmod link
+            .filter(|dep| dep.dependency.additional_data.mod_link.is_some())
             .map(|dep| dep.clone().into())
             .collect();
 
-        libs.retain(|lib| !mods.iter().any(|dep| lib.contains(&dep.id)));
+        // actual direct lib deps
+        let libs = shared_package
+            .restored_dependencies
+            .iter()
+             // todo: How to blacklist dependencies such as coremods?
+            .filter(|lib|
+
+                // Modloader should never be included
+                lib.dependency.id != "modloader" && 
+
+                // Only keep libs that aren't downloadable
+                !mods.iter().any(|dep| lib.dependency.id == dep.id))
+
+            .map(|dep| dep.get_so_name())
+            .collect::<Vec<String>>();
 
         Self {
             schema_version: "0.1.2".to_string(),
