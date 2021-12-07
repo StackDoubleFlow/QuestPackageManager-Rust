@@ -73,10 +73,10 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
     let json = ModJson {
         schema_version,
         name: create_parameters.name,
-        id: create_parameters.id,
+        id: "{mod_id}".to_string(),
         author: create_parameters.author,
         porter: create_parameters.porter,
-        version: create_parameters.version,
+        version: create_parameters.version, // TODO: make this ${version}
         package_id: create_parameters.package_id,
         package_version: create_parameters.package_version,
         description: create_parameters.description,

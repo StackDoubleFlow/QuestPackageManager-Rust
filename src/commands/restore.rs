@@ -23,15 +23,4 @@ pub fn execute_restore_operation() {
 
     shared_package.restore();
     shared_package.write();
-
-    // make mod.json if it doesn't exist
-    let mut mod_json: ModJson = shared_package.into();
-    if !std::path::Path::new(ModJson::get_template_name()).exists() {
-        // These will be filled later
-        mod_json.mod_files.clear();
-        mod_json.dependencies.clear();
-        mod_json.library_files.clear();
-        
-        mod_json.write(PathBuf::from(ModJson::get_template_name()));
-    }
 }
