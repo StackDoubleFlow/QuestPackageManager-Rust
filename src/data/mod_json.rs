@@ -1,12 +1,12 @@
-use std::{io::{Read, BufReader}, path::PathBuf};
+use std::{io::{Read, BufReader}, path::PathBuf, collections::HashMap};
 
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use crate::data::{
+use crate::{data::{
     dependency::Dependency, shared_dependency::SharedDependency,
     shared_package::SharedPackageConfig,
-};
+}, utils::tokenstream::replace_fast};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -90,15 +90,15 @@ impl ModJson {
 
         // Pre process
         let processsed = Self::preprocess(json, preprocess_data);
-
         
         serde_json::from_str(&processsed).expect("Deserializing package failed")
     }
 
     fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
-        s
-        .replace("${version}", &preprocess_data.version)
-        .replace("${mod_id}", &preprocess_data.mod_id)
+        replace_fast(&s, &HashMap::from([
+        ("${version}", preprocess_data.version.as_str()),
+        ("${mod_id}", preprocess_data.mod_id.as_str())
+        ]))
     }
 
     pub fn read(path: PathBuf) -> ModJson {
