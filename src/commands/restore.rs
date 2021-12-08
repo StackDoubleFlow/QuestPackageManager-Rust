@@ -18,7 +18,7 @@ pub fn execute_restore_operation() {
         file.write_all(ndk_path.as_bytes())
             .expect("Failed to write out ndkpath.txt");
     }
-
+    
     shared_package.restore();
     shared_package.write();
 }

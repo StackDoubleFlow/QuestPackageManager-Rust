@@ -80,7 +80,8 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         id: "{mod_id}".to_string(),
         author: create_parameters.author,
         porter: create_parameters.porter,
-        version: create_parameters.version, // TODO: make this ${version}
+        // TODO: make this ${version} VVV
+        version: create_parameters.version,
         package_id: create_parameters.package_id,
         package_version: create_parameters.package_version,
         // TODO: use default: ${mod_id}, version ${version}! ¯\_(ツ)_/¯

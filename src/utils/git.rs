@@ -47,7 +47,8 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
         &token, &user, &repo, &tag
     );
 
-    let data;
+    let data
+    ;
     match ureq::get(&asset_data_link)
         .call()
         {

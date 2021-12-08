@@ -48,8 +48,9 @@ impl SharedPackageConfig {
         let mut shared_package = SharedPackageConfig {
             config: package.clone(),
             restored_dependencies: shared_iter
-                .collect::<Vec<SharedPackageConfig>>()
-                .iter()
+                // this is not needed right?
+                //.collect::<Vec<SharedPackageConfig>>()
+                //.iter()
                 .map(|cfg| cfg.to_shared_dependency())
                 .collect::<Vec<SharedDependency>>(),
         };
