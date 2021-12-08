@@ -1,12 +1,19 @@
-use std::{io::{Read, BufReader}, path::PathBuf, collections::HashMap};
+use std::{
+    collections::HashMap,
+    io::{BufReader, Read},
+    path::PathBuf,
+};
 
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use crate::{data::{
-    dependency::Dependency, shared_dependency::SharedDependency,
-    shared_package::SharedPackageConfig,
-}, utils::tokenstream::replace_fast};
+use crate::{
+    data::{
+        dependency::Dependency, shared_dependency::SharedDependency,
+        shared_package::SharedPackageConfig,
+    },
+    utils::tokenstream::replace_fast,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -82,7 +89,8 @@ impl ModJson {
     }
 
     pub fn read_and_preprocess(preprocess_data: &PreProcessingData) -> Self {
-        let mut file = std::fs::File::open(Self::get_template_name()).expect("Opening mod.json failed");
+        let mut file =
+            std::fs::File::open(Self::get_template_name()).expect("Opening mod.json failed");
 
         // Get data
         let mut json = String::new();
@@ -90,21 +98,23 @@ impl ModJson {
 
         // Pre process
         let processsed = Self::preprocess(json, preprocess_data);
-        
+
         serde_json::from_str(&processsed).expect("Deserializing package failed")
     }
 
     fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
-        replace_fast(&s, &HashMap::from([
-        ("${version}", preprocess_data.version.as_str()),
-        ("${mod_id}", preprocess_data.mod_id.as_str())
-        ]))
+        replace_fast(
+            &s,
+            &HashMap::from([
+                ("${version}", preprocess_data.version.as_str()),
+                ("${mod_id}", preprocess_data.mod_id.as_str()),
+            ]),
+        )
     }
 
     pub fn read(path: PathBuf) -> ModJson {
         let file = std::fs::File::open(path).expect("Opening mod.json failed");
         let reader = BufReader::new(file);
-
 
         serde_json::from_reader(reader).expect("Deserializing package failed")
     }
@@ -127,8 +137,6 @@ impl From<SharedPackageConfig> for ModJson {
             // keep if header only is false, or if not defined
             .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
 
-
-
         // downloadable mods links n stuff
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
@@ -142,7 +150,7 @@ impl From<SharedPackageConfig> for ModJson {
         let libs = shared_package
             .restored_dependencies
             .iter()
-             // todo: How to blacklist dependencies such as coremods?
+            // TODO: How to blacklist dependencies such as coremods?
             .filter(|lib|
 
                 // Modloader should never be included
@@ -150,7 +158,6 @@ impl From<SharedPackageConfig> for ModJson {
 
                 // Only keep libs that aren't downloadable
                 !mods.iter().any(|dep| lib.dependency.id == dep.id))
-
             .map(|dep| dep.get_so_name())
             .collect::<Vec<String>>();
 
