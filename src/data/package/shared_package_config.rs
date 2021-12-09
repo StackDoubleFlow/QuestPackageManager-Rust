@@ -3,6 +3,14 @@ use std::io::{Read, Write};
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
+/// Fern: Adds line ending after each element
+/// thanks raft
+macro_rules! concatln {
+    ($s:expr $(, $ss:expr)*) => {
+        concat!($s $(, "\n", $ss)*)
+    }
+}
+
 use super::PackageConfig;
 use crate::data::dependency::{Dependency, SharedDependency};
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -48,9 +56,8 @@ impl SharedPackageConfig {
         let mut shared_package = SharedPackageConfig {
             config: package.clone(),
             restored_dependencies: shared_iter
-                // this is not needed right?
-                //.collect::<Vec<SharedPackageConfig>>()
-                //.iter()
+                .collect::<Vec<SharedPackageConfig>>()
+                .iter()
                 .map(|cfg| cfg.to_shared_dependency())
                 .collect::<Vec<SharedDependency>>(),
         };
@@ -108,8 +115,12 @@ impl SharedPackageConfig {
     pub fn write_extern_cmake(&self) {
         let mut extern_cmake_file =
             std::fs::File::create("extern.cmake").expect("Failed to create extern cmake file");
-        let mut result = "".to_string();
-        result.push_str("# always added\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)\ntarget_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)\n\n# includes added by other libraries\n");
+        let mut result = concatln!(
+            "# always added",
+            "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)",
+            "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)",
+            "\n# includes added by other libraries\n"
+        ).to_string();
 
         let mut any = false;
         for shared_dep in self.restored_dependencies.iter() {
@@ -130,7 +141,15 @@ impl SharedPackageConfig {
             result.push_str("# Sadly, there were none with extra include dirs\n");
         }
 
-        result.push_str("\n# libs dir -> stores .so or .a files (or symlinked!)\ntarget_link_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/libs)\n\nRECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)\nRECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n\n# every .so or .a that needs to be linked, put here!\n# I don't believe you need to specify if a lib is static or not, poggers!\ntarget_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)");
+        result.push_str(concatln!(
+            "\n# libs dir -> stores .so or .a files (or symlinked!)",
+            "target_link_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/libs)",
+            "RECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)",
+            "RECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n",
+            "# every .so or .a that needs to be linked, put here!",
+            "# I don't believe you need to specify if a lib is static or not, poggers!",
+            "target_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)"
+        ));
         extern_cmake_file
             .write_all(result.as_bytes())
             .expect("Failed to write out extern cmake file");
@@ -147,12 +166,13 @@ impl SharedPackageConfig {
 
     pub fn make_defines_string(&self) -> String {
         // TODO: use additional_data.compile_options here or in the extern cmake file ? include dirs are set there at least
-        let mut result = String::new();
+        let mut result: String = concatln!(
+            "# YOU SHOULD NOT MANUALLY EDIT THIS FILE, QPM WILL VOID ALL CHANGES",
+            "# Version defines, pretty useful").to_string();
 
-        result.push_str("# YOU SHOULD NOT MANUALLY EDIT THIS FILE, QPM WILL VOID ALL CHANGES\n# Version defines, pretty useful\n");
         result.push_str(&format!(
-            "set(MOD_VERSION \"{}\")\n",
-            self.config.info.version.to_string()
+            "\nset(MOD_VERSION \"{}\")\n",
+            self.config.info.version
         ));
         result.push_str("# take the mod name and just remove spaces, that will be MOD_ID, if you don't like it change it after the include of this file\n");
         result.push_str(&format!(
@@ -160,13 +180,16 @@ impl SharedPackageConfig {
             self.config.info.name.replace(' ', "")
         ));
         result.push_str("# derived from override .so name or just id_version\n");
+
         result.push_str(&format!(
             "set(COMPILE_ID \"{}\")\n",
             self.config.get_module_id()
         ));
+
         result.push_str(
             "# derived from whichever codegen package is installed, will default to just codegen\n",
         );
+
         result.push_str(&format!(
             "set(CODEGEN_ID \"{}\")\n\n",
             if let Some(codegen_dep) = self
@@ -182,6 +205,7 @@ impl SharedPackageConfig {
         ));
 
         result.push_str("# given from qpm, automatically updated from qpm.json\n");
+
         result.push_str(&format!(
             "set(EXTERN_DIR_NAME \"{}\")\n",
             self.config.dependencies_dir.display()
@@ -191,10 +215,44 @@ impl SharedPackageConfig {
             self.config.shared_dir.display()
         ));
 
-        result.push_str("# if no target given, use Debug\nif (NOT DEFINED CMAKE_BUILD_TYPE)\n\tset(CMAKE_BUILD_TYPE \"Debug\")\nendif()\n\n");
-        result.push_str("# defines used in ninja / cmake ndk builds\nif (NOT DEFINED CMAKE_ANDROID_NDK)\n\tif(DEFINED ENV{ANDROID_NDK_ROOT})\n\t\tset(CMAKE_ANDROID_NDK ENV{ANDROID_NDK_ROOT})\n\telse()\n\t\tfile (STRINGS \"ndkpath.txt\" CMAKE_ANDROID_NDK)\n\tendif()\nendif()\nstring(REPLACE \"\\\\\" \"/\" CMAKE_ANDROID_NDK ${CMAKE_ANDROID_NDK})\n\nset(ANDROID_PLATFORM 24)\nset(ANDROID_ABI arm64-v8a)\nset(ANDROID_STL c++_static)\n\nset(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)\n\n");
-        result.push_str("# define used for external data, mostly just the qpm dependencies\nset(EXTERN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${EXTERN_DIR_NAME})\nset(SHARED_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${SHARED_DIR_NAME})\n\n");
-        result.push_str("# get files by filter recursively\nMACRO(RECURSE_FILES return_list filter)\n\tFILE(GLOB_RECURSE new_list ${filter})\n\tSET(file_list \"\")\n\tFOREACH(file_path ${new_list})\n\t\tSET(file_list ${file_list} ${file_path})\n\tENDFOREACH()\n\tLIST(REMOVE_DUPLICATES file_list)\n\tSET(${return_list} ${file_list})\nENDMACRO()");
+        result.push_str(concatln!(
+            "# if no target given, use Debug",
+            "if (NOT DEFINED CMAKE_BUILD_TYPE)",
+            "\tset(CMAKE_BUILD_TYPE \"Debug\")",
+            "endif()\n"
+        ));
+        result.push_str(concatln!(
+            "\n# defines used in ninja / cmake ndk builds",
+            "if (NOT DEFINED CMAKE_ANDROID_NDK)",
+                "\tif(DEFINED ENV{ANDROID_NDK_ROOT})",
+                    "\t\tset(CMAKE_ANDROID_NDK ENV{ANDROID_NDK_ROOT})",
+                "\telse()",
+                    "\t\tfile (STRINGS \"ndkpath.txt\" CMAKE_ANDROID_NDK)",
+                "\tendif()",
+            "endif()",
+            "string(REPLACE \"\\\\\" \"/\" CMAKE_ANDROID_NDK ${CMAKE_ANDROID_NDK})",
+            "\nset(ANDROID_PLATFORM 24)",
+            "set(ANDROID_ABI arm64-v8a)",
+            "set(ANDROID_STL c++_static)",
+            "\nset(CMAKE_TOOLCHAIN_FILE ${CMAKE_ANDROID_NDK}/build/cmake/android.toolchain.cmake)"
+        ));
+        result.push_str(concatln!(
+            "\n# define used for external data, mostly just the qpm dependencies",
+            "set(EXTERN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${EXTERN_DIR_NAME})",
+            "set(SHARED_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${SHARED_DIR_NAME})"
+        ));
+        result.push_str(concatln!(
+            "\n# get files by filter recursively",
+            "MACRO(RECURSE_FILES return_list filter)",
+                "\tFILE(GLOB_RECURSE new_list ${filter})",
+                "\tSET(file_list \"\")",
+                "\tFOREACH(file_path ${new_list})",
+                    "\t\tSET(file_list ${file_list} ${file_path})",
+                "\tENDFOREACH()",
+                "\tLIST(REMOVE_DUPLICATES file_list)",
+                "\tSET(${return_list} ${file_list})",
+            "ENDMACRO()"
+        ));
 
         result
     }

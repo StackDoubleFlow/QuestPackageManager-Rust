@@ -107,7 +107,10 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         )
         .stdout_capture()
         .stderr_capture()
-        .run()
+        .start()
+        .unwrap()
+        .wait()
+        // .run()
         //.expect("Failed to run git clone");
         {
             Ok(_o) => {
@@ -140,7 +143,9 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         )
         .stdout_capture()
         .stderr_capture()
-        .run()
+        .start()
+        .unwrap()
+        .wait()
         //.expect("Failed to run git clone");
         {
             Ok(_o) => {
