@@ -1,0 +1,678 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "sharedDir": "shared",
+            "dependenciesDir": "extern",
+            "info": {
+                "name": "Qosmetics",
+                "id": "Qosmetics",
+                "version": "1.3.3",
+                "url": null,
+                "additionalData": {
+                    "branchName": "master",
+                    "headersOnly": false,
+                    "staticLinking": false,
+                    "soLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/libquestcosmetics.so",
+                    "debugSoLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/debug_libquestcosmetics.so",
+                    "extraFiles": [
+                        "src/extra"
+                    ],
+                    "overrideSoName": "libquestcosmetics.so",
+                    "subFolder": "subfolderpath",
+                    "compileOptions": {
+                        "includePaths": [
+                            "include"
+                        ],
+                        "systemIncludes": [
+                            ""
+                        ],
+                        "cppFeatures": [
+                            ""
+                        ],
+                        "cppFlags": [
+                            "frtti"
+                        ],
+                        "cFlags": [
+                            ""
+                        ]
+                    }
+                }
+            },
+            "dependencies": [
+                {
+                    "id": "beatsaber-hook",
+                    "versionRange": "=2.3.2",
+                    "additionalData": {
+                        "extraFiles": [
+                            "src/inline-hook"
+                        ]
+                    }
+                },
+                {
+                    "id": "questui",
+                    "versionRange": "=0.11.1",
+                    "additionalData": {}
+                },
+                {
+                    "id": "custom-types",
+                    "versionRange": "=0.12.7",
+                    "additionalData": {}
+                },
+                {
+                    "id": "conditional-dependencies",
+                    "versionRange": "=0.2.0",
+                    "additionalData": {}
+                },
+                {
+                    "id": "bs-utils",
+                    "versionRange": "=0.6.4",
+                    "additionalData": {}
+                },
+                {
+                    "id": "codegen",
+                    "versionRange": "=0.14.0",
+                    "additionalData": {}
+                },
+                {
+                    "id": "libcurl",
+                    "versionRange": "*",
+                    "additionalData": {}
+                },
+                {
+                    "id": "sombrero",
+                    "versionRange": "=0.1.24",
+                    "additionalData": {}
+                },
+                {
+                    "id": "chroma",
+                    "versionRange": "=2.4.15",
+                    "additionalData": {}
+                }
+            ],
+            "additionalData": {}
+        }
+    ],
+    "required": [
+        "sharedDir",
+        "dependenciesDir",
+        "info",
+        "dependencies",
+        "additionalData"
+    ],
+    "properties": {
+        "sharedDir": {
+            "$id": "#/properties/sharedDir",
+            "type": "string",
+            "title": "The sharedDir schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "shared"
+            ]
+        },
+        "dependenciesDir": {
+            "$id": "#/properties/dependenciesDir",
+            "type": "string",
+            "title": "The dependenciesDir schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "extern"
+            ]
+        },
+        "info": {
+            "$id": "#/properties/info",
+            "type": "object",
+            "title": "The info schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {
+                    "name": "Qosmetics",
+                    "id": "Qosmetics",
+                    "version": "1.3.3",
+                    "url": null,
+                    "additionalData": {
+                        "branchName": "master",
+                        "headersOnly": false,
+                        "staticLinking": false,
+                        "soLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/libquestcosmetics.so",
+                        "debugSoLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/debug_libquestcosmetics.so",
+                        "extraFiles": [
+                            "src/extra"
+                        ],
+                        "overrideSoName": "libquestcosmetics.so",
+                        "subFolder": "subfolderpath",
+                        "compileOptions": {
+                            "includePaths": [
+                                "include"
+                            ],
+                            "systemIncludes": [
+                                ""
+                            ],
+                            "cppFeatures": [
+                                ""
+                            ],
+                            "cppFlags": [
+                                "frtti"
+                            ],
+                            "cFlags": [
+                                ""
+                            ]
+                        }
+                    }
+                }
+            ],
+            "required": [
+                "name",
+                "id",
+                "version",
+                "url",
+                "additionalData"
+            ],
+            "properties": {
+                "name": {
+                    "$id": "#/properties/info/properties/name",
+                    "type": "string",
+                    "title": "The name schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "Qosmetics"
+                    ]
+                },
+                "id": {
+                    "$id": "#/properties/info/properties/id",
+                    "type": "string",
+                    "title": "The id schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "Qosmetics"
+                    ]
+                },
+                "version": {
+                    "$id": "#/properties/info/properties/version",
+                    "type": "string",
+                    "title": "The version schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": "",
+                    "examples": [
+                        "1.3.3"
+                    ]
+                },
+                "url": {
+                    "$id": "#/properties/info/properties/url",
+                    "type": "null",
+                    "title": "The url schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": null,
+                    "examples": [
+                        null
+                    ]
+                },
+                "additionalData": {
+                    "$id": "#/properties/info/properties/additionalData",
+                    "type": "object",
+                    "title": "The additionalData schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "default": {},
+                    "examples": [
+                        {
+                            "branchName": "master",
+                            "headersOnly": false,
+                            "staticLinking": false,
+                            "soLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/libquestcosmetics.so",
+                            "debugSoLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/debug_libquestcosmetics.so",
+                            "extraFiles": [
+                                "src/extra"
+                            ],
+                            "overrideSoName": "libquestcosmetics.so",
+                            "subFolder": "subfolderpath",
+                            "compileOptions": {
+                                "includePaths": [
+                                    "include"
+                                ],
+                                "systemIncludes": [
+                                    ""
+                                ],
+                                "cppFeatures": [
+                                    ""
+                                ],
+                                "cppFlags": [
+                                    "frtti"
+                                ],
+                                "cFlags": [
+                                    ""
+                                ]
+                            }
+                        }
+                    ],
+                    "required": [],
+                    "properties": {
+                        "branchName": {
+                            "$id": "#/properties/info/properties/additionalData/properties/branchName",
+                            "type": "string",
+                            "title": "The branchName schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "master"
+                            ]
+                        },
+                        "headersOnly": {
+                            "$id": "#/properties/info/properties/additionalData/properties/headersOnly",
+                            "type": "boolean",
+                            "title": "The headersOnly schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false,
+                            "examples": [
+                                false
+                            ]
+                        },
+                        "staticLinking": {
+                            "$id": "#/properties/info/properties/additionalData/properties/staticLinking",
+                            "type": "boolean",
+                            "title": "The staticLinking schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": false,
+                            "examples": [
+                                false
+                            ]
+                        },
+                        "soLink": {
+                            "$id": "#/properties/info/properties/additionalData/properties/soLink",
+                            "type": "string",
+                            "title": "The soLink schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/libquestcosmetics.so"
+                            ]
+                        },
+                        "debugSoLink": {
+                            "$id": "#/properties/info/properties/additionalData/properties/debugSoLink",
+                            "type": "string",
+                            "title": "The debugSoLink schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/debug_libquestcosmetics.so"
+                            ]
+                        },
+                        "extraFiles": {
+                            "$id": "#/properties/info/properties/additionalData/properties/extraFiles",
+                            "type": "array",
+                            "title": "The extraFiles schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": [],
+                            "examples": [
+                                [
+                                    "src/extra"
+                                ]
+                            ],
+                            "additionalItems": true,
+                            "items": {
+                                "$id": "#/properties/info/properties/additionalData/properties/extraFiles/items",
+                                "anyOf": [
+                                    {
+                                        "$id": "#/properties/info/properties/additionalData/properties/extraFiles/items/anyOf/0",
+                                        "type": "string",
+                                        "title": "The first anyOf schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": "",
+                                        "examples": [
+                                            "src/extra"
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        "overrideSoName": {
+                            "$id": "#/properties/info/properties/additionalData/properties/overrideSoName",
+                            "type": "string",
+                            "title": "The overrideSoName schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "libquestcosmetics.so"
+                            ]
+                        },
+                        "subFolder": {
+                            "$id": "#/properties/info/properties/additionalData/properties/subFolder",
+                            "type": "string",
+                            "title": "The subFolder schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": "",
+                            "examples": [
+                                "subfolderpath"
+                            ]
+                        },
+                        "compileOptions": {
+                            "$id": "#/properties/info/properties/additionalData/properties/compileOptions",
+                            "type": "object",
+                            "title": "The compileOptions schema",
+                            "description": "An explanation about the purpose of this instance.",
+                            "default": {},
+                            "examples": [
+                                {
+                                    "includePaths": [
+                                        "include"
+                                    ],
+                                    "systemIncludes": [
+                                        ""
+                                    ],
+                                    "cppFeatures": [
+                                        ""
+                                    ],
+                                    "cppFlags": [
+                                        "frtti"
+                                    ],
+                                    "cFlags": [
+                                        ""
+                                    ]
+                                }
+                            ],
+                            "required": [
+                                "includePaths",
+                                "systemIncludes",
+                                "cppFeatures",
+                                "cppFlags",
+                                "cFlags"
+                            ],
+                            "properties": {
+                                "includePaths": {
+                                    "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/includePaths",
+                                    "type": "array",
+                                    "title": "The includePaths schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": [],
+                                    "examples": [
+                                        [
+                                            "include"
+                                        ]
+                                    ],
+                                    "additionalItems": true,
+                                    "items": {
+                                        "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/includePaths/items",
+                                        "anyOf": [
+                                            {
+                                                "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/includePaths/items/anyOf/0",
+                                                "type": "string",
+                                                "title": "The first anyOf schema",
+                                                "description": "An explanation about the purpose of this instance.",
+                                                "default": "",
+                                                "examples": [
+                                                    "include"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "systemIncludes": {
+                                    "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/systemIncludes",
+                                    "type": "array",
+                                    "title": "The systemIncludes schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": [],
+                                    "examples": [
+                                        [
+                                            ""
+                                        ]
+                                    ],
+                                    "additionalItems": true,
+                                    "items": {
+                                        "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/systemIncludes/items",
+                                        "anyOf": [
+                                            {
+                                                "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/systemIncludes/items/anyOf/0",
+                                                "type": "string",
+                                                "title": "The first anyOf schema",
+                                                "description": "An explanation about the purpose of this instance.",
+                                                "default": "",
+                                                "examples": [
+                                                    ""
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "cppFeatures": {
+                                    "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cppFeatures",
+                                    "type": "array",
+                                    "title": "The cppFeatures schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": [],
+                                    "examples": [
+                                        [
+                                            ""
+                                        ]
+                                    ],
+                                    "additionalItems": true,
+                                    "items": {
+                                        "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cppFeatures/items",
+                                        "anyOf": [
+                                            {
+                                                "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cppFeatures/items/anyOf/0",
+                                                "type": "string",
+                                                "title": "The first anyOf schema",
+                                                "description": "An explanation about the purpose of this instance.",
+                                                "default": "",
+                                                "examples": [
+                                                    ""
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "cppFlags": {
+                                    "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cppFlags",
+                                    "type": "array",
+                                    "title": "The cppFlags schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": [],
+                                    "examples": [
+                                        [
+                                            "frtti"
+                                        ]
+                                    ],
+                                    "additionalItems": true,
+                                    "items": {
+                                        "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cppFlags/items",
+                                        "anyOf": [
+                                            {
+                                                "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cppFlags/items/anyOf/0",
+                                                "type": "string",
+                                                "title": "The first anyOf schema",
+                                                "description": "An explanation about the purpose of this instance.",
+                                                "default": "",
+                                                "examples": [
+                                                    "frtti"
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "cFlags": {
+                                    "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cFlags",
+                                    "type": "array",
+                                    "title": "The cFlags schema",
+                                    "description": "An explanation about the purpose of this instance.",
+                                    "default": [],
+                                    "examples": [
+                                        [
+                                            ""
+                                        ]
+                                    ],
+                                    "additionalItems": true,
+                                    "items": {
+                                        "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cFlags/items",
+                                        "anyOf": [
+                                            {
+                                                "$id": "#/properties/info/properties/additionalData/properties/compileOptions/properties/cFlags/items/anyOf/0",
+                                                "type": "string",
+                                                "title": "The first anyOf schema",
+                                                "description": "An explanation about the purpose of this instance.",
+                                                "default": "",
+                                                "examples": [
+                                                    ""
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            "additionalProperties": true
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true
+        },
+        "dependencies": {
+            "$id": "#/properties/dependencies",
+            "type": "array",
+            "title": "The dependencies schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "examples": [
+                [
+                    {
+                        "id": "beatsaber-hook",
+                        "versionRange": "=2.3.2",
+                        "additionalData": {
+                            "extraFiles": [
+                                "src/inline-hook"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "questui",
+                        "versionRange": "=0.11.1",
+                        "additionalData": {}
+                    }
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/dependencies/items",
+                "anyOf": [
+                    {
+                        "$id": "#/properties/dependencies/items/anyOf/0",
+                        "type": "object",
+                        "title": "The first anyOf schema",
+                        "description": "An explanation about the purpose of this instance.",
+                        "default": {},
+                        "examples": [
+                            {
+                                "id": "beatsaber-hook",
+                                "versionRange": "=2.3.2",
+                                "additionalData": {
+                                    "extraFiles": [
+                                        "src/inline-hook"
+                                    ]
+                                }
+                            }
+                        ],
+                        "required": [
+                            "id",
+                            "versionRange",
+                            "additionalData"
+                        ],
+                        "properties": {
+                            "id": {
+                                "$id": "#/properties/dependencies/items/anyOf/0/properties/id",
+                                "type": "string",
+                                "title": "The id schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": "",
+                                "examples": [
+                                    "beatsaber-hook"
+                                ]
+                            },
+                            "versionRange": {
+                                "$id": "#/properties/dependencies/items/anyOf/0/properties/versionRange",
+                                "type": "string",
+                                "title": "The versionRange schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": "",
+                                "examples": [
+                                    "=2.3.2"
+                                ]
+                            },
+                            "additionalData": {
+                                "$id": "#/properties/dependencies/items/anyOf/0/properties/additionalData",
+                                "type": "object",
+                                "title": "The additionalData schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": {},
+                                "examples": [
+                                    {
+                                        "extraFiles": [
+                                            "src/inline-hook"
+                                        ]
+                                    }
+                                ],
+                                "required": [
+                                    "extraFiles"
+                                ],
+                                "properties": {
+                                    "extraFiles": {
+                                        "$id": "#/properties/dependencies/items/anyOf/0/properties/additionalData/properties/extraFiles",
+                                        "type": "array",
+                                        "title": "The extraFiles schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": [],
+                                        "examples": [
+                                            [
+                                                "src/inline-hook"
+                                            ]
+                                        ],
+                                        "additionalItems": true,
+                                        "items": {
+                                            "$id": "#/properties/dependencies/items/anyOf/0/properties/additionalData/properties/extraFiles/items",
+                                            "anyOf": [
+                                                {
+                                                    "$id": "#/properties/dependencies/items/anyOf/0/properties/additionalData/properties/extraFiles/items/anyOf/0",
+                                                    "type": "string",
+                                                    "title": "The first anyOf schema",
+                                                    "description": "An explanation about the purpose of this instance.",
+                                                    "default": "",
+                                                    "examples": [
+                                                        "src/inline-hook"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "additionalProperties": true
+                            }
+                        },
+                        "additionalProperties": true
+                    }
+                ]
+            }
+        },
+        "additionalData": {
+            "$id": "#/properties/additionalData",
+            "type": "object",
+            "title": "The additionalData schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": {},
+            "examples": [
+                {}
+            ],
+            "required": [],
+            "additionalProperties": true
+        }
+    },
+    "additionalProperties": true
+}
