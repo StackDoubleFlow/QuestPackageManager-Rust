@@ -6,7 +6,10 @@ use pubgrub::{
 };
 
 use self::provider::DependencyProvider;
-use crate::data::{package::PackageConfig, qpackages, shared_package::SharedPackageConfig};
+use crate::data::{
+    package::{PackageConfig, SharedPackageConfig},
+    qpackages,
+};
 
 mod provider;
 mod semver;

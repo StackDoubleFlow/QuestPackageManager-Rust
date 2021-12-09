@@ -1,6 +1,9 @@
 use clap::{AppSettings, Clap};
 
-use crate::{data::package::PackageConfig, utils::toggle::Toggle};
+use crate::{
+    data::package::{PackageConfig, SharedPackageConfig},
+    utils::toggle::Toggle,
+};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]

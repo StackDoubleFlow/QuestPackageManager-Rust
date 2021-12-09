@@ -1,6 +1,9 @@
 use std::io::Write;
 
-use crate::data::{config::Config, package::PackageConfig, shared_package::SharedPackageConfig};
+use crate::data::{
+    config::Config,
+    package::{PackageConfig, SharedPackageConfig},
+};
 pub fn execute_restore_operation() {
     println!("package should be restoring");
     let package = PackageConfig::read();
@@ -18,7 +21,7 @@ pub fn execute_restore_operation() {
         file.write_all(ndk_path.as_bytes())
             .expect("Failed to write out ndkpath.txt");
     }
-    
+
     shared_package.restore();
     shared_package.write();
 }

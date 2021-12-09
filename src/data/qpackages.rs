@@ -4,7 +4,7 @@ use atomic_refcell::AtomicRefCell;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{config::Config, shared_package::SharedPackageConfig};
+use crate::data::{config::Config, package::SharedPackageConfig};
 static API_URL: &str = "https://qpackages.com";
 
 static VERSIONS_CACHE: Lazy<AtomicRefCell<HashMap<String, Vec<PackageVersion>>>> =

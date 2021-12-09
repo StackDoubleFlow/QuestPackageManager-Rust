@@ -1,7 +1,7 @@
 use clap::{AppSettings, Clap};
 use semver::Version;
 
-use crate::data::{package::PackageConfig, shared_package::SharedPackageConfig};
+use crate::data::package::{PackageConfig, SharedPackageConfig};
 
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]

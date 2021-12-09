@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     data::{
-        dependency::Dependency, shared_dependency::SharedDependency,
-        shared_package::SharedPackageConfig,
+        dependency::{Dependency, SharedDependency},
+        package::SharedPackageConfig,
     },
     utils::tokenstream::replace_fast,
 };

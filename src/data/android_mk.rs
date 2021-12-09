@@ -1,8 +1,8 @@
 use std::io::{Read, Write};
 
 use crate::data::{
-    package::PackageConfig, shared_dependency::SharedDependency,
-    shared_package::SharedPackageConfig,
+    dependency::SharedDependency,
+    package::{PackageConfig, SharedPackageConfig},
 };
 
 #[derive(Debug, Default)]

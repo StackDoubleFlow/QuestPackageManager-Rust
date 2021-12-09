@@ -1,4 +1,4 @@
-use crate::data::shared_package::SharedPackageConfig;
+use crate::data::package::SharedPackageConfig;
 
 pub fn execute_publish_operation() {
     let package = SharedPackageConfig::read();

@@ -5,8 +5,7 @@ use semver::Version;
 
 use crate::data::{
     mod_json::{ModJson, PreProcessingData},
-    package::PackageConfig,
-    shared_package::SharedPackageConfig,
+    package::{PackageConfig, SharedPackageConfig},
 };
 
 #[derive(Clap, Debug, Clone)]

@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use clap::{AppSettings, Clap};
+use owo_colors::OwoColorize;
 use semver::Version;
 
 use crate::data::{
