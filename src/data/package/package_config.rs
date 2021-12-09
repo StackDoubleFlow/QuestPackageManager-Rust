@@ -3,11 +3,8 @@ use std::path::PathBuf;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use crate::data::{
-    dependency::{AdditionalDependencyData, Dependency},
-    package::{CompileOptions, SharedPackageConfig},
-};
-
+use super::{CompileOptions, SharedPackageConfig};
+use crate::data::dependency::{AdditionalDependencyData, Dependency};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageConfig {

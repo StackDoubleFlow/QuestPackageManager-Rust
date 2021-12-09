@@ -3,15 +3,14 @@ use std::io::{Read, Write};
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{
-    dependency::{Dependency, SharedDependency},
-    package::PackageConfig,
-};
-
+use super::PackageConfig;
+use crate::data::dependency::{Dependency, SharedDependency};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedPackageConfig {
+    /// The packageconfig that is stored in qpm.json
     pub config: PackageConfig,
+    /// The dependencies as given by self.config.resolve()
     pub restored_dependencies: Vec<SharedDependency>,
 }
 

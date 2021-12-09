@@ -11,10 +11,10 @@ use semver::Version;
 use serde::{Deserialize, Serialize};
 use zip::ZipArchive;
 
+use super::Dependency;
 use crate::{
     data::{
         config::Config,
-        dependency::Dependency,
         package::{PackageConfig, SharedPackageConfig},
         qpackages,
     },
