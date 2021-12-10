@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{CompileOptions, SharedPackageConfig};
 use crate::data::dependency::{AdditionalDependencyData, Dependency};
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageConfig {
     pub shared_dir: PathBuf,
@@ -15,7 +15,7 @@ pub struct PackageConfig {
     pub additional_data: AdditionalDependencyData,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageInfo {
     pub name: String,
@@ -25,7 +25,7 @@ pub struct PackageInfo {
     pub additional_data: AdditionalPackageData,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
     /// Whether or not the package is header only
@@ -169,8 +169,10 @@ fn intersect(mut lhs: VersionReq, mut rhs: VersionReq) -> VersionReq {
     lhs
 }
 
+/*
 impl From<AdditionalDependencyData> for AdditionalPackageData {
     fn from(dependency_data: AdditionalDependencyData) -> Self {
         serde_json::from_str(&serde_json::to_string(&dependency_data).unwrap()).unwrap()
     }
 }
+*/
