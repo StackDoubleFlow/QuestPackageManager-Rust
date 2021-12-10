@@ -105,18 +105,17 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
 
     match git.output() {
         Ok(_o) => {
-            #[cfg(debug_assertions)]
-            println!("status: {}", _o.status);
-            #[cfg(debug_assertions)]
-            println!(
-                "stdout: {}",
-                std::str::from_utf8(_o.stdout.as_slice()).unwrap()
-            );
-            #[cfg(debug_assertions)]
-            println!(
-                "stderr: {}",
-                std::str::from_utf8(_o.stderr.as_slice()).unwrap()
-            );
+            if _o.status.code().unwrap_or(-1) != 0 {
+                let mut error_string = std::str::from_utf8(_o.stderr.as_slice())
+                    .unwrap()
+                    .to_string();
+
+                if let Ok(token_unwrapped) = get_keyring().get_password() {
+                    error_string = error_string.replace(&token_unwrapped, "***");
+                }
+
+                panic!("Exit code {}: {}", _o.status, error_string);
+            }
         }
         Err(e) => {
             let mut error_string = e.to_string();
@@ -125,7 +124,7 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
                 error_string = error_string.replace(&token_unwrapped, "***");
             }
 
-            println!("{}", error_string);
+            panic!("{}", error_string);
         }
     }
 
