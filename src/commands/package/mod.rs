@@ -30,7 +30,7 @@ pub fn execute_package_operation(operation: Package) {
     }
 }
 
-/*  TODO: Check if all these are supported here:
+/*  Check if all these are supported here:
     - branchName (System.String): Branch name of a Github repo. Only used when a valid github url is provided - Supported in: package, dependency
     - headersOnly (System.Boolean): Specify that this package is headers only and does not contain a .so or .a file - Supported in: package
     - staticLinking (System.Boolean): Specify that this package is static linking - Supported in: package
