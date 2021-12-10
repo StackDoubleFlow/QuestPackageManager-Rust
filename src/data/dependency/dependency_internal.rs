@@ -29,7 +29,7 @@ pub struct AdditionalDependencyData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub static_linking: Option<bool>,
 
-    /// Whether to use the release .so for linking
+    /// Whether to use the release or debug .so for linking
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_release: Option<bool>,
 

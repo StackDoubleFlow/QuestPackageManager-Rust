@@ -28,6 +28,11 @@ pub struct PackageInfo {
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalPackageData {
+    /// Copy a dependency from a location that is local to this root path instead of from a remote url
+    /// Technically just a dependency field
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub local_path: Option<String>,
+
     /// Whether or not the package is header only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub headers_only: Option<bool>,
@@ -35,6 +40,11 @@ pub struct AdditionalPackageData {
     /// Whether or not the package is statically linked
     #[serde(skip_serializing_if = "Option::is_none")]
     pub static_linking: Option<bool>,
+
+    /// Whether to use the release or debug .so for linking
+    /// Technically just a dependency field
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_release: Option<bool>,
 
     /// the link to the so file
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -61,15 +71,12 @@ pub struct AdditionalPackageData {
     pub extra_files: Option<Vec<String>>,
 
     /// Whether or not the dependency is private and should be used in restore
+    /// Technically just a dependency field
     #[serde(
         skip_serializing_if = "Option::is_none",
         rename(serialize = "private", deserialize = "private")
     )]
     pub is_private: Option<bool>,
-
-    /// Whether to use the release .so for linking
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub use_release: Option<bool>,
 
     /// Additional Compile options to be used with this package
     #[serde(skip_serializing_if = "Option::is_none")]
