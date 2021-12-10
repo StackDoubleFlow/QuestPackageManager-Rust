@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::{io::{Read, Write}, vec};
 
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
@@ -125,14 +125,37 @@ impl SharedPackageConfig {
         let mut any = false;
         for shared_dep in self.restored_dependencies.iter() {
             let shared_package = shared_dep.get_shared_package();
+            let package_id = shared_package.config.info.id;
             if let Some(compile_options) =
                 shared_package.config.info.additional_data.compile_options
             {
+                // TODO: Must ${{COMPILE_ID}} be changed to {package_id}?
                 if let Some(include_dirs) = compile_options.include_paths {
                     for dir in include_dirs.iter() {
                         any = true;
-                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", shared_package.config.info.id, dir));
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{package_id}/{dir})\n"));
                     }
+                }
+
+                if let Some(system_include_dirs) = compile_options.system_includes {
+                    for dir in system_include_dirs.iter() {
+                        any = true;
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM ${{EXTERN_DIR}}/includes/{package_id}/{dir})\n"));
+                    }
+                }
+
+                let mut features: Vec<String> = vec![];
+
+                if let Some(cpp_features) = compile_options.cpp_features {
+                    features.append(&mut cpp_features.clone());
+                }
+
+                if let Some(c_features) = compile_options.c_flags {
+                    features.append(&mut c_features.clone());
+                }
+
+                for feature in features.iter() {
+                    result.push_str(&format!("target_compile_features(${{COMPILE_ID}} PRIVATE {feature})\n"));
                 }
             }
         }
