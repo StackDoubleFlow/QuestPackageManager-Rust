@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read, Write};
 
-use duct::cmd;
+//use duct::cmd;
 use serde::{Deserialize, Serialize};
 
 use crate::data::config::get_keyring;
@@ -47,18 +47,14 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
         &token, &user, &repo, &tag
     );
 
-    let data
-    ;
-    match ureq::get(&asset_data_link)
-        .call()
-        {
-            Ok(o) => {data = o.into_json::<GithubReleaseData>()
-                .unwrap()},
-            Err(e) => { 
-                let error_string = e.to_string().replace(&token, "***"); 
-                panic!("{}", error_string);
-            }
+    let data;
+    match ureq::get(&asset_data_link).call() {
+        Ok(o) => data = o.into_json::<GithubReleaseData>().unwrap(),
+        Err(e) => {
+            let error_string = e.to_string().replace(&token, "***");
+            panic!("{}", error_string);
         }
+    }
 
     for asset in data.assets.iter() {
         if asset.name.eq(filename) {
@@ -91,72 +87,42 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         }
     }
 
-    if let Some(branch_unwrapped) = branch {
-        match cmd!(
-            "git",
-            "clone",
-            format!("{}.git", url),
-            &out,
-            "--branch",
-            branch_unwrapped,
-            "--depth",
-            "1",
-            "--recurse-submodules",
-            "--shallow-submodules",
-            "--quiet"
-        )
-        .stdout_capture()
-        .stderr_capture()
-        .run()
-        //.expect("Failed to run git clone");
-        {
-            Ok(_o) => {
-                //println!("status: {}", o.status);
-                //println!("stdout: {:?}", &o.stdout);
-                //println!("stderr: {:?}", &o.stderr);
-            },
-            Err(e) => {
-                let mut error_string = e.to_string();
-                
-                if let Ok(token_unwrapped) = get_keyring().get_password() {
-                    error_string = error_string.replace(&token_unwrapped, "***");
-                }
+    let mut git = std::process::Command::new("git");
+    git.arg("clone")
+        .arg(format!("{}.git", url))
+        .arg(&out)
+        .arg("--depth")
+        .arg("1")
+        .arg("--recurse-submodules")
+        .arg("--shallow-submodules")
+        .arg("--quiet");
 
-                println!("{}", error_string);
-            }
-        }
+    if let Some(branch_unwrapped) = branch {
+        git.arg("--branch").arg(branch_unwrapped);
     } else {
         println!("No branch name found, cloning default branch");
-        match cmd!(
-            "git",
-            "clone",
-            format!("{}.git", url),
-            &out,
-            "--depth",
-            "1",
-            "--recurse-submodules",
-            "--shallow-submodules",
-            "--quiet"
-        )
-        .stdout_capture()
-        .stderr_capture()
-        .run()
-        //.expect("Failed to run git clone");
-        {
-            Ok(_o) => {
-                //println!("status: {}", o.status);
-                //println!("stdout: {:?}", &o.stdout);
-                //println!("stderr: {:?}", &o.stderr);
-            },
-            Err(e) => {
-                let mut error_string = e.to_string();
-                
-                if let Ok(token_unwrapped) = get_keyring().get_password() {
-                    error_string = error_string.replace(&token_unwrapped, "***");
-                }
+    }
 
-                println!("{}", error_string);
+    match git.output() {
+        Ok(_o) => {
+            println!("status: {}", _o.status);
+            println!(
+                "stdout: {}",
+                std::str::from_utf8(_o.stdout.as_slice()).unwrap()
+            );
+            println!(
+                "stderr: {}",
+                std::str::from_utf8(_o.stderr.as_slice()).unwrap()
+            );
+        }
+        Err(e) => {
+            let mut error_string = e.to_string();
+
+            if let Ok(token_unwrapped) = get_keyring().get_password() {
+                error_string = error_string.replace(&token_unwrapped, "***");
             }
+
+            println!("{}", error_string);
         }
     }
 
