@@ -248,7 +248,13 @@ fn execute_token_config_operation(operation: Token) {
     } else {
         // read token
         if let Ok(token) = get_keyring().get_password() {
+            #[cfg(debug_assertions)]
             println!("Configured github token: {}", token.bright_yellow());
+            #[cfg(not(debug_assertions))]
+            println!(
+                "In release builds you {} view the configured github token, a token was configured though!",
+                "cannot".bright_red()
+            );
         } else {
             println!("No token was configured, or getting the token failed!");
         }

@@ -105,11 +105,14 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
 
     match git.output() {
         Ok(_o) => {
+            #[cfg(debug_assertions)]
             println!("status: {}", _o.status);
+            #[cfg(debug_assertions)]
             println!(
                 "stdout: {}",
                 std::str::from_utf8(_o.stdout.as_slice()).unwrap()
             );
+            #[cfg(debug_assertions)]
             println!(
                 "stderr: {}",
                 std::str::from_utf8(_o.stderr.as_slice()).unwrap()
