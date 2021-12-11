@@ -1,3 +1,4 @@
+/// XXX This file will probably be useless and removed
 use std::io::{Read, Write};
 
 use crate::data::{
