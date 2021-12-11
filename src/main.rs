@@ -79,10 +79,10 @@ fn test_cmake_parse() {
     let mut buf = String::new();
     file.read_to_string(&mut buf).unwrap();
 
-    let cmake_list = crate::data::c_make::CMakeList::from_str(&buf).unwrap();
+    // let cmake_list = crate::data::c_make::CMakeList::from_str(&buf).unwrap();
 
-    std::fs::File::create("CMakeLists.txt")
-        .unwrap()
-        .write_all(cmake_list.to_string().as_bytes())
-        .expect("Failed to write out file");
+    // std::fs::File::create("CMakeLists.txt")
+    //     .unwrap()
+    //     .write_all(cmake_list.to_string().as_bytes())
+    //     .expect("Failed to write out file");
 }

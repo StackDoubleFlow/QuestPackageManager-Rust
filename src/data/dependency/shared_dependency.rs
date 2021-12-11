@@ -242,18 +242,18 @@ impl SharedDependency {
         let local_path = dependencies_path.join(&self.dependency.id);
         let mut to_copy = Vec::new();
         if also_lib {
-            let so_name: String;
+            let so_name: String =
             if let Some(override_so_name) =
                 shared_package.config.info.additional_data.override_so_name
             {
-                so_name = override_so_name;
+             override_so_name
             } else {
-                so_name = format!(
+                format!(
                     "lib{}_{}.so",
                     self.dependency.id,
                     self.version.to_string().replace('.', "_")
-                );
-            }
+                )
+            };
 
             // if not headers only, copy over .so file
             if shared_package
@@ -312,7 +312,8 @@ impl SharedDependency {
                     options.overwrite = true;
                     options.copy_inside = true;
                     options.content_only = true;
-                    copy_directory(&from, &to, &options).expect("Failed to copy directory!");
+                    options.skip_exist = true;
+                    copy_directory(&from, &to, &options).expect(format!("Failed to copy directory! From {:#?} To {:#?}", &from, &to).as_str()); // ignore warning, let it raise the error for more details.
                 } else if from.is_file() {
                     // we can get the parent beccause this is a file path
                     std::fs::create_dir_all(&to.parent().unwrap())
