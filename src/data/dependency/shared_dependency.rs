@@ -254,7 +254,13 @@ impl SharedDependency {
         let local_path = dependencies_path.join(&self.dependency.id);
         let mut to_copy = Vec::new();
         if also_lib {
-            let so_name: String = if let Some(override_so_name) =
+            let prefix = if self.dependency.additional_data.use_release.unwrap_or(false) {
+                "debug_"
+            } else {
+                ""
+            };
+
+            let suffix = if let Some(override_so_name) =
                 shared_package.config.info.additional_data.override_so_name
             {
                 override_so_name
@@ -265,6 +271,8 @@ impl SharedDependency {
                     self.version.to_string().replace('.', "_")
                 )
             };
+
+            let so_name: String = format!("{}{}", prefix, suffix);
 
             // if not headers only, copy over .so file
             if shared_package
