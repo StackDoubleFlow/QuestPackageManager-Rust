@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// - cppFeatures - OPTIONAL (System.String[]): Additional C++ features to add.
 /// - cppFlags - OPTIONAL (System.String[]): Additional C++ flags to add.
 /// - cFlags - OPTIONAL (System.String[]): Additional C flags to add.
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CompileOptions {
     /// Additional include paths to add, relative to the extern directory.

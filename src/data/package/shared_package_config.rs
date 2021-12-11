@@ -87,7 +87,7 @@ impl SharedPackageConfig {
                 id: self.config.info.id.to_string(),
                 version_range: VersionReq::parse(&format!("={}", self.config.info.version))
                     .unwrap(),
-                additional_data: self.config.info.additional_data.clone().into(), //self.config.info.additional_data.to_dependency_data(),
+                additional_data: self.config.info.additional_data.clone(),
             },
             version: self.config.info.version.clone(),
         };

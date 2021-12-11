@@ -1,10 +1,8 @@
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
-use crate::data::{
-    package::{AdditionalPackageData, SharedPackageConfig},
-    qpackages,
-};
+use super::AdditionalDependencyData;
+use crate::data::{package::SharedPackageConfig, qpackages};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -15,6 +13,7 @@ pub struct Dependency {
     pub additional_data: AdditionalDependencyData,
 }
 
+/*
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AdditionalDependencyData {
@@ -30,7 +29,7 @@ pub struct AdditionalDependencyData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub static_linking: Option<bool>,
 
-    /// Whether to use the release .so for linking
+    /// Whether to use the release or debug .so for linking
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_release: Option<bool>,
 
@@ -65,6 +64,8 @@ pub struct AdditionalDependencyData {
     )]
     pub is_private: Option<bool>,
 }
+
+*/
 /*
 impl Default for AdditionalDependencyData {
     fn default() -> Self {
@@ -84,6 +85,7 @@ impl Default for AdditionalDependencyData {
     }
 }
 */
+/*
 impl AdditionalDependencyData {
     pub fn merge(&mut self, other: AdditionalDependencyData) {
         if self.branch_name.is_none() {
@@ -127,6 +129,7 @@ impl AdditionalDependencyData {
         }
     }
 }
+*/
 
 impl Dependency {
     pub fn get_shared_package(&self) -> Option<SharedPackageConfig> {
@@ -141,8 +144,10 @@ impl Dependency {
     }
 }
 
+/*
 impl From<AdditionalPackageData> for AdditionalDependencyData {
     fn from(package_data: AdditionalPackageData) -> Self {
         serde_json::from_str(&serde_json::to_string(&package_data).unwrap()).unwrap()
     }
 }
+*/
