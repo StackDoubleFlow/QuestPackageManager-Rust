@@ -98,6 +98,11 @@ impl PackageConfig {
         std::path::Path::new("qpm.json").exists()
     }
 
+    pub fn read_path(filepath: PathBuf) -> PackageConfig {
+        let file = std::fs::File::open(filepath).expect("Opening qpm.json failed");
+        serde_json::from_reader(file).expect("Deserializing package failed")
+    }
+
     pub fn read() -> PackageConfig {
         let file = std::fs::File::open("qpm.json").expect("Opening qpm.json failed");
         serde_json::from_reader(file).expect("Deserializing package failed")

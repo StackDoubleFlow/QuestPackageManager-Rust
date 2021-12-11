@@ -61,7 +61,7 @@ impl SharedDependency {
         s.finish()
     }
 
-    pub fn cache2electricboogaloo(&self) {
+    pub fn cache(&self) {
         // Check if already cached
         // if true, don't download repo / header files
         // else cache to tmp folder in package id folder @ cache path
@@ -150,7 +150,7 @@ impl SharedDependency {
                 //std::fs::create_dir_all(&src_path)
                 //    .expect("Failed to create destination src directory");
                 //let options = fs_extra::dir::CopyOptions::new();
-                std::fs::rename(&from_path, src_path).expect("Failed to move folder");
+                std::fs::rename(&from_path, &src_path).expect("Failed to move folder");
             } else {
                 panic!("Failed to restore folder for this dependency\nif you have a token configured check if it's still valid\nIf it is, check if you can manually reach the repo");
             }
@@ -158,6 +158,18 @@ impl SharedDependency {
             // clear up tmp folder
             if tmp_path.exists() {
                 std::fs::remove_dir_all(tmp_path).expect("Failed to remove tmp folder");
+            }
+            let package_path = src_path.join("qpm.json");
+            let downloaded_package = PackageConfig::read_path(package_path);
+
+            // check if downloaded config is the same version as expected, if not, panic
+            if downloaded_package.info.version != self.version {
+                panic!(
+                    "Downloaded package ({}) version ({}) does not match expected version ({})!",
+                    self.dependency.id.bright_red(),
+                    downloaded_package.info.version.to_string().bright_green(),
+                    self.version.to_string().bright_green(),
+                )
             }
         }
 
@@ -242,11 +254,10 @@ impl SharedDependency {
         let local_path = dependencies_path.join(&self.dependency.id);
         let mut to_copy = Vec::new();
         if also_lib {
-            let so_name: String =
-            if let Some(override_so_name) =
+            let so_name: String = if let Some(override_so_name) =
                 shared_package.config.info.additional_data.override_so_name
             {
-             override_so_name
+                override_so_name
             } else {
                 format!(
                     "lib{}_{}.so",
@@ -313,7 +324,10 @@ impl SharedDependency {
                     options.copy_inside = true;
                     options.content_only = true;
                     options.skip_exist = true;
-                    copy_directory(&from, &to, &options).expect(format!("Failed to copy directory! From {:#?} To {:#?}", &from, &to).as_str()); // ignore warning, let it raise the error for more details.
+                    copy_directory(&from, &to, &options).expect(
+                        format!("Failed to copy directory! From {:#?} To {:#?}", &from, &to)
+                            .as_str(),
+                    ); // ignore warning, let it raise the error for more details.
                 } else if from.is_file() {
                     // we can get the parent beccause this is a file path
                     std::fs::create_dir_all(&to.parent().unwrap())

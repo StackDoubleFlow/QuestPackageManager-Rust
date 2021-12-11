@@ -1,10 +1,7 @@
 #![feature(is_symlink, once_cell)]
 #![allow(dead_code)]
 
-use std::{
-    io::{Read, Write},
-    str::FromStr,
-};
+use std::io::Read;
 
 use clap::{AppSettings, Clap};
 use serde::{Deserialize, Serialize};

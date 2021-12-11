@@ -73,6 +73,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         Option::Some(s) => schema_version = s,
         Option::None => schema_version = "0.1.1".to_string(),
     }
+
     let json = ModJson {
         schema_version,
         name: create_parameters.name,
@@ -83,8 +84,11 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         version: create_parameters.version,
         package_id: create_parameters.package_id,
         package_version: create_parameters.package_version,
-        // TODO: use default: ${mod_id}, version ${version}! ¯\_(ツ)_/¯
-        description: create_parameters.description,
+        description: Some(
+            create_parameters
+                .description
+                .unwrap_or_else(|| "${mod_id}, version ${version}! ¯\\_(ツ)_/¯".to_string()),
+        ),
         cover_image: create_parameters.cover_image,
         dependencies: Default::default(),
         mod_files: Default::default(),

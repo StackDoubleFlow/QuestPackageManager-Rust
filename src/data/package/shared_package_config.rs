@@ -1,4 +1,7 @@
-use std::{io::{Read, Write}, vec};
+use std::{
+    io::{Read, Write},
+    vec,
+};
 
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
@@ -98,7 +101,7 @@ impl SharedPackageConfig {
     pub fn restore(&self) {
         for to_restore in self.restored_dependencies.iter() {
             // if the shared dep is contained within the direct dependencies, link against that, always copy headers!
-            to_restore.cache2electricboogaloo();
+            to_restore.cache();
             to_restore.restore_from_cache(
                 self.config
                     .dependencies
@@ -134,14 +137,14 @@ impl SharedPackageConfig {
                 if let Some(include_dirs) = compile_options.include_paths {
                     for dir in include_dirs.iter() {
                         any = true;
-                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{package_id}/{dir})\n"));
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
                     }
                 }
 
                 if let Some(system_include_dirs) = compile_options.system_includes {
                     for dir in system_include_dirs.iter() {
                         any = true;
-                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM ${{EXTERN_DIR}}/includes/{package_id}/{dir})\n"));
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
                     }
                 }
 
@@ -156,7 +159,10 @@ impl SharedPackageConfig {
                 }
 
                 for feature in features.iter() {
-                    result.push_str(&format!("target_compile_features(${{COMPILE_ID}} PRIVATE {feature})\n"));
+                    result.push_str(&format!(
+                        "target_compile_features(${{COMPILE_ID}} PRIVATE {})\n",
+                        feature
+                    ));
                 }
             }
         }
@@ -192,7 +198,9 @@ impl SharedPackageConfig {
         // TODO: use additional_data.compile_options here or in the extern cmake file ? include dirs are set there at least
         let mut result: String = concatln!(
             "# YOU SHOULD NOT MANUALLY EDIT THIS FILE, QPM WILL VOID ALL CHANGES",
-            "# Version defines, pretty useful").to_string();
+            "# Version defines, pretty useful"
+        )
+        .to_string();
 
         result.push_str(&format!(
             "\nset(MOD_VERSION \"{}\")\n",
@@ -248,11 +256,11 @@ impl SharedPackageConfig {
         result.push_str(concatln!(
             "\n# defines used in ninja / cmake ndk builds",
             "if (NOT DEFINED CMAKE_ANDROID_NDK)",
-                "\tif(DEFINED ENV{ANDROID_NDK_ROOT})",
-                    "\t\tset(CMAKE_ANDROID_NDK ENV{ANDROID_NDK_ROOT})",
-                "\telse()",
-                    "\t\tfile (STRINGS \"ndkpath.txt\" CMAKE_ANDROID_NDK)",
-                "\tendif()",
+            "\tif(DEFINED ENV{ANDROID_NDK_ROOT})",
+            "\t\tset(CMAKE_ANDROID_NDK ENV{ANDROID_NDK_ROOT})",
+            "\telse()",
+            "\t\tfile (STRINGS \"ndkpath.txt\" CMAKE_ANDROID_NDK)",
+            "\tendif()",
             "endif()",
             "string(REPLACE \"\\\\\" \"/\" CMAKE_ANDROID_NDK ${CMAKE_ANDROID_NDK})",
             "\nset(ANDROID_PLATFORM 24)",
@@ -268,13 +276,13 @@ impl SharedPackageConfig {
         result.push_str(concatln!(
             "\n# get files by filter recursively",
             "MACRO(RECURSE_FILES return_list filter)",
-                "\tFILE(GLOB_RECURSE new_list ${filter})",
-                "\tSET(file_list \"\")",
-                "\tFOREACH(file_path ${new_list})",
-                    "\t\tSET(file_list ${file_list} ${file_path})",
-                "\tENDFOREACH()",
-                "\tLIST(REMOVE_DUPLICATES file_list)",
-                "\tSET(${return_list} ${file_list})",
+            "\tFILE(GLOB_RECURSE new_list ${filter})",
+            "\tSET(file_list \"\")",
+            "\tFOREACH(file_path ${new_list})",
+            "\t\tSET(file_list ${file_list} ${file_path})",
+            "\tENDFOREACH()",
+            "\tLIST(REMOVE_DUPLICATES file_list)",
+            "\tSET(${return_list} ${file_list})",
             "ENDMACRO()"
         ));
 
