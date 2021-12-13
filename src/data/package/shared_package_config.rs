@@ -118,6 +118,7 @@ impl SharedPackageConfig {
         let mut extern_cmake_file =
             std::fs::File::create("extern.cmake").expect("Failed to create extern cmake file");
         let mut result = concatln!(
+            "# YOU SHOULD NOT MANUALLY EDIT THIS FILE, QPM WILL VOID ALL CHANGES",
             "# always added",
             "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)",
             "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)",
