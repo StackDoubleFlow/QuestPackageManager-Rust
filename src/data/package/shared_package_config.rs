@@ -48,7 +48,7 @@ impl SharedPackageConfig {
     }
 
     pub fn publish(&self) {
-        // TODO: implement publish, all the checks are done before the command is ran so here we just push the shared package to the url
+        // ggez
         qpackages::publish_package(self);
     }
 
@@ -112,8 +112,6 @@ impl SharedPackageConfig {
 
         self.write_extern_cmake();
         self.write_define_cmake();
-
-        // TODO: edit mod.json
     }
 
     pub fn write_extern_cmake(&self) {
@@ -156,6 +154,10 @@ impl SharedPackageConfig {
 
                 if let Some(c_features) = compile_options.c_flags {
                     features.append(&mut c_features.clone());
+                }
+
+                if let Some(cpp_flags) = compile_options.cpp_flags {
+                    features.append(&mut cpp_flags.clone());
                 }
 
                 for feature in features.iter() {
