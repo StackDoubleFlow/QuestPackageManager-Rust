@@ -83,10 +83,40 @@ fn legacy_fix() {
         for entry in WalkDir::new(shared_path) {
             let entry_path = entry.unwrap().into_path();
             if entry_path.is_file() {
-                let mut file = std::fs::File::open(&entry_path).expect("Opening qpm.json failed");
+                let mut file = match std::fs::File::open(&entry_path) {
+                    Ok(o) => o,
+                    Err(e) => panic!(
+                        "Opening file {} to read failed: {}",
+                        entry_path.display().bright_yellow(),
+                        e
+                    ),
+                };
+
                 let mut buf: String = "".to_string();
-                file.read_to_string(&mut buf).unwrap();
-                let mut file = std::fs::File::create(entry_path).expect("Opening qpm.json failed");
+                match file.read_to_string(&mut buf) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        #[cfg(debug_assertions)]
+                        println!(
+                            "reading file {} to string failed: {}",
+                            entry_path.display().bright_yellow(),
+                            e
+                        );
+                        continue;
+                    }
+                };
+                fs_extra::file::remove(&entry_path).unwrap_or_else(|_| {
+                    panic!(
+                        "removing file {} failed",
+                        entry_path.display().bright_yellow()
+                    )
+                });
+                let mut file = std::fs::File::create(&entry_path).unwrap_or_else(|_| {
+                    panic!(
+                        "opening file {} to write failed",
+                        entry_path.display().bright_yellow()
+                    )
+                });
                 file.write_all(
                     buf.replace(
                         "#include \"extern/beatsaber-hook/",
@@ -94,7 +124,12 @@ fn legacy_fix() {
                     )
                     .as_bytes(),
                 )
-                .unwrap();
+                .unwrap_or_else(|_| {
+                    panic!(
+                        "writing file {} failed",
+                        entry_path.display().bright_yellow()
+                    )
+                });
             }
         }
     }
