@@ -83,9 +83,10 @@ fn legacy_fix() {
         for entry in WalkDir::new(shared_path) {
             let entry_path = entry.unwrap().into_path();
             if entry_path.is_file() {
-                let mut file = std::fs::File::open(entry_path).expect("Opening qpm.json failed");
+                let mut file = std::fs::File::open(&entry_path).expect("Opening qpm.json failed");
                 let mut buf: String = "".to_string();
                 file.read_to_string(&mut buf).unwrap();
+                let mut file = std::fs::File::create(entry_path).expect("Opening qpm.json failed");
                 file.write_all(
                     buf.replace(
                         "#include \"extern/beatsaber-hook/",
