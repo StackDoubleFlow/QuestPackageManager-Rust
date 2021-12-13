@@ -11,6 +11,7 @@ use crate::data::{
     package::SharedPackageConfig,
 };
 
+// TODO: Idea for later, maybe some kind of config that stores defaults for the different fields, like description and author?
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ModJson {

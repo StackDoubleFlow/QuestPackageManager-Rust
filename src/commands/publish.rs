@@ -8,6 +8,7 @@ pub fn execute_publish_operation() {
         return;
     }
 
+    // check if all dependencies are available off of qpackages
     for dependency in package.config.dependencies.iter() {
         match dependency.get_shared_package() {
             Option::Some(_s) => {}
