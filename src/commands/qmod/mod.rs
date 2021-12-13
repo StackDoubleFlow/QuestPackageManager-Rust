@@ -113,7 +113,7 @@ fn execute_qmod_build_operation() {
     assert!(std::path::Path::new("mod.template.json").exists(),
         "No mod.template.json found in the current directory, set it up please :) Hint: use \"qmod create\"");
 
-    println!("package should be restoring");
+    println!("Generating mod.json file from template...");
     let package = PackageConfig::read();
     let shared_package = SharedPackageConfig::from_package(&package);
 
