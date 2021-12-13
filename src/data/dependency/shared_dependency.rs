@@ -315,7 +315,8 @@ impl SharedDependency {
             }
         }
 
-        if let Some(dep) = shared_package
+        let local_shared_package = SharedPackageConfig::read();
+        if let Some(dep) = local_shared_package
             .config
             .dependencies
             .iter()

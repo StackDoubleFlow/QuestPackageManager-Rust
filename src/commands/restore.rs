@@ -23,6 +23,6 @@ pub fn execute_restore_operation() {
             .expect("Failed to write out ndkpath.txt");
     }
 
-    shared_package.restore();
     shared_package.write();
+    shared_package.restore();
 }
