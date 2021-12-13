@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use fs_extra::dir::copy as copy_directory;
+use fs_extra::{dir::copy as copy_directory, file::copy as copy_file};
 use owo_colors::OwoColorize;
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -239,7 +239,7 @@ impl SharedDependency {
             .join(&self.dependency.id)
             .join(self.version.to_string());
         let src_path = base_path.join("src");
-        let libs_path = base_path.join("libs");
+        let libs_path = base_path.join("lib");
         let dependencies_path = Path::new(&package.dependencies_dir);
         std::fs::create_dir_all(dependencies_path).unwrap();
         let dependencies_path = dependencies_path.canonicalize().unwrap().join("includes");
@@ -310,8 +310,15 @@ impl SharedDependency {
         let to_copy = self.collect_to_copy(also_lib);
         // sort out issues with the symlinking, stuff is being symlinked weirdly
         for (from, to) in to_copy.iter() {
+            #[cfg(debug_assertions)]
+            println!(
+                "symlinking\nfrom {}\nto {}",
+                from.display().bright_yellow(),
+                to.display().bright_yellow()
+            );
+
             // make sure to parent dir exists!
-            std::fs::create_dir_all(to.parent().unwrap()).ok();
+            std::fs::create_dir_all(to.parent().unwrap()).expect("Failed to create parent folder");
             if let Err(e) = symlink::symlink_auto(&from, &to) {
                 #[cfg(windows)]
                 println!("Failed to create symlink: {}\nfalling back to copy, did the link already exist, or did you not enable windows dev mode?\nTo disable this warning (and default to copy), use the command {}", e.bright_red(), "qpm config symlink disable".bright_yellow());
@@ -343,8 +350,22 @@ impl SharedDependency {
         for (from_str, to_str) in to_copy.iter() {
             let from = Path::new(&from_str);
             let to = Path::new(&to_str);
+
+            #[cfg(debug_assertions)]
+            println!(
+                "copying\nfrom {}\nto {}",
+                from.display().bright_yellow(),
+                to.display().bright_yellow()
+            );
+
+            // make sure to parent dir exists!
+            std::fs::create_dir_all(to.parent().unwrap()).expect("Failed to create parent folder");
             // if dir, make sure it exists
-            if from.is_dir() {
+            if !from.exists() {
+                println!("The file or folder\n\t'{}'\ndid not exist! what happened to the cache? you should probably run {} to make sure everything is in order...", from.display().bright_yellow(), "qpm cache clear".bright_yellow());
+            } else if from.is_dir() {
+                #[cfg(debug_assertions)]
+                println!("This was a dir");
                 std::fs::create_dir_all(&to).expect("Failed to create destination folder");
                 let mut options = fs_extra::dir::CopyOptions::new();
                 options.overwrite = true;
@@ -353,8 +374,12 @@ impl SharedDependency {
                 // copy it over
                 copy_directory(&from, &to, &options).expect("Failed to copy directory!");
             } else if from.is_file() {
+                #[cfg(debug_assertions)]
+                println!("This was a file");
                 // if it's a file, copy that over instead
-                std::fs::copy(&from, &to).expect("Failed to copy file!");
+                let mut options = fs_extra::file::CopyOptions::new();
+                options.overwrite = true;
+                copy_file(&from, &to, &options).expect("Failed to copy file!");
             }
         }
     }
