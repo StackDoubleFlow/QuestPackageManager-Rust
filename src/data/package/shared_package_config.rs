@@ -92,29 +92,29 @@ impl SharedPackageConfig {
             "# always added",
             "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)",
             "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)",
-            "\n# includes added by other libraries\n"
+            "\n# includes and compile options added by other libraries\n"
         ).to_string();
 
         let mut any = false;
+        let mut sublibs = vec![];
         for shared_dep in self.restored_dependencies.iter() {
             let shared_package = shared_dep.get_shared_package();
             let package_id = shared_package.config.info.id;
+
             if let Some(compile_options) =
                 shared_package.config.info.additional_data.compile_options
             {
+                any = true;
                 // TODO: Must ${{COMPILE_ID}} be changed to {package_id}?
-                // TODO: Add extra_files source files
 
                 if let Some(include_dirs) = compile_options.include_paths {
                     for dir in include_dirs.iter() {
-                        any = true;
                         result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
                     }
                 }
 
                 if let Some(system_include_dirs) = compile_options.system_includes {
                     for dir in system_include_dirs.iter() {
-                        any = true;
                         result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
                     }
                 }
@@ -140,6 +140,98 @@ impl SharedPackageConfig {
                     ));
                 }
             }
+            if let Some(extra_files) = &shared_dep.dependency.additional_data.extra_files {
+                for path_str in extra_files.iter() {
+                    let path = std::path::PathBuf::new().join(&format!(
+                        "extern/includes/{}/{}",
+                        &shared_dep.dependency.id, path_str
+                    ));
+                    let extern_path = std::path::PathBuf::new().join(&format!(
+                        "includes/{}/{}",
+                        &shared_dep.dependency.id, path_str
+                    ));
+                    if path.is_file() {
+                        result.push_str(&format!(
+                            "add_library(${{COMPILE_ID}} SHARED ${{EXTERN_DIR}}/{})",
+                            extern_path.display()
+                        ));
+                    } else {
+                        let listname = format!(
+                            "{}_{}_extra",
+                            path_str.replace('/', "_").replace('\\', "_"),
+                            shared_dep.dependency.id.replace('-', "_")
+                        );
+
+                        result.push_str(&format!(
+                            "RECURSE_FILES({}_c ${{EXTERN_DIR}}/{}/*.c)\n",
+                            listname,
+                            extern_path.display()
+                        ));
+
+                        result.push_str(&format!(
+                            "RECURSE_FILES({}_cpp ${{EXTERN_DIR}}/{}/*.cpp)\n",
+                            listname,
+                            path.display()
+                        ));
+
+                        result.push_str(&format!(
+                            "add_library({} STATIC ${{{}_c}} ${{{}_cpp}})\n",
+                            listname, listname, listname
+                        ));
+
+                        sublibs.push(listname);
+                    }
+                }
+            }
+
+            if let Some(dep) = self
+                .config
+                .dependencies
+                .iter()
+                .find(|el| el.id == shared_dep.dependency.id)
+            {
+                if let Some(extra_files) = &dep.additional_data.extra_files {
+                    for path_str in extra_files.iter() {
+                        let path = std::path::PathBuf::new()
+                            .join(&format!("extern/includes/{}/{}", &dep.id, path_str));
+                        let extern_path = std::path::PathBuf::new().join(&format!(
+                            "includes/{}/{}",
+                            &shared_dep.dependency.id, path_str
+                        ));
+                        if path.is_file() {
+                            result.push_str(&format!(
+                                "add_library(${{COMPILE_ID}} SHARED ${{EXTERN_DIR}}/{})",
+                                extern_path.display()
+                            ));
+                        } else {
+                            let listname = format!(
+                                "{}_{}_local_extra",
+                                path_str.replace('/', "_").replace('\\', "_"),
+                                shared_dep.dependency.id.replace('-', "_")
+                            );
+
+                            result.push_str(&format!(
+                                "RECURSE_FILES({}_c ${{EXTERN_DIR}}/{}/*.c)\n",
+                                listname,
+                                extern_path.display()
+                            ));
+
+                            result.push_str(&format!(
+                                "RECURSE_FILES({}_cpp ${{EXTERN_DIR}}/{}/*.cpp)\n",
+                                listname,
+                                extern_path.display()
+                            ));
+
+                            result.push_str(&format!(
+                                "add_library({} STATIC ${{{}_c}} ${{{}_cpp}})\n",
+                                listname, listname, listname
+                            ));
+
+                            sublibs.push(listname);
+                        }
+                    }
+                }
+            }
         }
 
         if !any {
@@ -152,9 +244,14 @@ impl SharedPackageConfig {
             "RECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)",
             "RECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n",
             "# every .so or .a that needs to be linked, put here!",
-            "# I don't believe you need to specify if a lib is static or not, poggers!",
-            "target_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)"
+            "# I don't believe you need to specify if a lib is static or not, poggers!\n"
         ));
+
+        result.push_str("target_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n");
+        for sub in sublibs.iter() {
+            result.push_str(&format!("\t{}\n", sub));
+        }
+        result.push(')');
         extern_cmake_file
             .write_all(result.as_bytes())
             .expect("Failed to write out extern cmake file");
