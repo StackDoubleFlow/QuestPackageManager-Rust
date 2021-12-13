@@ -21,26 +21,26 @@ pub struct Qmod {
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct CreateQmodJsonOperationArgs {
-    /// The schema version this mod was made for
+    /// The schema version this mod was made for, ex. '0.1.1'
     #[clap(long = "qpversion")]
     pub schema_version: Option<Version>,
-    /// Author of the mod
+    /// Author of the mod, ex. 'RedBrumbler'
     #[clap(long)]
     pub author: Option<String>,
-    /// Optional slot for if you ported a mod
+    /// Optional slot for if you ported a mod, ex. 'Fern'
     #[clap(long)]
     pub porter: Option<String>,
-    /// id of the package the mod is for, ex. com.beatgaems.beatsaber
+    /// id of the package the mod is for, ex. 'com.beatgames.beatsaber'
     #[clap(long = "packageID")]
     pub package_id: Option<String>,
-    /// Version of the package, ex. 1.1.0
+    /// Version of the package, ex. '1.1.0'
     #[clap(long = "packageVersion")]
     pub package_version: Option<String>,
-    /// description for the mod
+    /// description for the mod, ex. 'The best mod to exist ever!'
     #[clap(long)]
     pub description: Option<String>,
-    /// optional cover image filename
-    #[clap(long = "coverimage")]
+    /// optional cover image filename, ex. 'cover.png'
+    #[clap(long = "coverImage")]
     pub cover_image: Option<String>,
 }
 
@@ -49,10 +49,14 @@ pub struct CreateQmodJsonOperationArgs {
 #[allow(clippy::large_enum_variant)]
 pub enum QmodOperation {
     /// Create a "mod.template.json" that you can pre-fill with certain values that will be used to then generate your final mod.json when you run 'qpm qmod build'
+    ///
+    /// Some properties are not settable through the qmod create command, these properties are either editable through the package, or not at all
     Create(CreateQmodJsonOperationArgs),
     /// This will parse the `mod.template.json` and process it, then finally export a `mod.json` for packaging and deploying.
     Build,
     /// Edit your mod.template.json from the command line, mostly intended for edits on github actions
+    ///
+    /// Some properties are not editable through the qmod edit command, these properties are either editable through the package, or not at all
     Edit(edit::EditQmodJsonOperationArgs),
 }
 

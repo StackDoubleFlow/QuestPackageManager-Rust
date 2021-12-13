@@ -7,26 +7,26 @@ use crate::data::mod_json::ModJson;
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct EditQmodJsonOperationArgs {
-    /// The schema version this mod was made for
+    /// The schema version this mod was made for, ex. '0.1.1'
     #[clap(long = "qpversion")]
     pub schema_version: Option<Version>,
-    /// Author of the mod
+    /// Author of the mod, ex. 'RedBrumbler'
     #[clap(long)]
     pub author: Option<String>,
-    /// Optional slot for if you ported a mod
+    /// Optional slot for if you ported a mod, ex. 'Fern'
     #[clap(long)]
     pub porter: Option<String>,
-    /// id of the package the mod is for, ex. com.beatgaems.beatsaber
+    /// id of the package the mod is for, ex. 'com.beatgames.beatsaber'
     #[clap(long = "packageID")]
     pub package_id: Option<String>,
-    /// Version of the package, ex. 1.1.0
+    /// Version of the package, ex. '1.1.0'
     #[clap(long = "packageVersion")]
     pub package_version: Option<String>,
-    /// description for the mod
+    /// description for the mod, ex. 'The best mod to exist ever!'
     #[clap(long)]
     pub description: Option<String>,
-    /// optional cover image filename
-    #[clap(long = "coverimage")]
+    /// optional cover image filename, ex. 'cover.png'
+    #[clap(long = "coverImage")]
     pub cover_image: Option<String>,
 }
 
