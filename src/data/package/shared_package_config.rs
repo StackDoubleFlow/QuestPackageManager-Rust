@@ -3,7 +3,6 @@ use std::{
     vec,
 };
 
-use semver::VersionReq;
 use serde::{Deserialize, Serialize};
 
 use crate::data::qpackages;
@@ -16,7 +15,7 @@ macro_rules! concatln {
 }
 
 use super::PackageConfig;
-use crate::data::dependency::{Dependency, SharedDependency};
+use crate::data::dependency::SharedDependency;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SharedPackageConfig {
@@ -62,40 +61,11 @@ impl SharedPackageConfig {
                 // this is not needed right?
                 //.collect::<Vec<SharedPackageConfig>>()
                 //.iter()
-                .map(|cfg| cfg.to_shared_dependency())
+                .map(|cfg| cfg.into())
                 .collect::<Vec<SharedDependency>>(),
         };
 
-        /*
-        for dep in shared_package.config.dependencies.iter() {
-            let restored_dep = shared_package
-                .restored_dependencies
-                .iter_mut()
-                .find(|el| el.dependency.id == dep.id)
-                .unwrap();
-
-            restored_dep
-                .dependency
-                .additional_data
-                .merge(dep.additional_data.clone());
-        }
-        */
-
         shared_package
-    }
-
-    pub fn to_shared_dependency(&self) -> SharedDependency {
-        let result = SharedDependency {
-            dependency: Dependency {
-                id: self.config.info.id.to_string(),
-                version_range: VersionReq::parse(&format!("={}", self.config.info.version))
-                    .unwrap(),
-                additional_data: self.config.info.additional_data.clone(),
-            },
-            version: self.config.info.version.clone(),
-        };
-
-        result
     }
 
     pub fn restore(&self) {
@@ -133,6 +103,8 @@ impl SharedPackageConfig {
                 shared_package.config.info.additional_data.compile_options
             {
                 // TODO: Must ${{COMPILE_ID}} be changed to {package_id}?
+                // TODO: Add extra_files source files
+
                 if let Some(include_dirs) = compile_options.include_paths {
                     for dir in include_dirs.iter() {
                         any = true;

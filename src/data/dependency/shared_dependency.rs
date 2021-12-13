@@ -7,7 +7,7 @@ use std::{
 
 use fs_extra::{dir::copy as copy_directory, file::copy as copy_file};
 use owo_colors::OwoColorize;
-use semver::Version;
+use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use zip::ZipArchive;
 
@@ -315,6 +315,21 @@ impl SharedDependency {
             }
         }
 
+        if let Some(dep) = shared_package
+            .config
+            .dependencies
+            .iter()
+            .find(|el| el.id == self.dependency.id)
+        {
+            if let Some(extra_files) = &dep.additional_data.extra_files {
+                for entry in extra_files.iter() {
+                    let cache_entry_path = src_path.join(entry);
+                    let entry_path = local_path.join(entry);
+                    to_copy.push((cache_entry_path, entry_path));
+                }
+            }
+        }
+
         to_copy
     }
 
@@ -389,6 +404,23 @@ impl SharedDependency {
                 options.overwrite = true;
                 copy_file(&from, &to, &options).expect("Failed to copy file!");
             }
+        }
+    }
+}
+
+impl From<SharedPackageConfig> for SharedDependency {
+    fn from(shared_package: SharedPackageConfig) -> Self {
+        SharedDependency {
+            dependency: Dependency {
+                id: shared_package.config.info.id.to_string(),
+                version_range: VersionReq::parse(&format!(
+                    "={}",
+                    shared_package.config.info.version
+                ))
+                .unwrap(),
+                additional_data: shared_package.config.info.additional_data,
+            },
+            version: shared_package.config.info.version,
         }
     }
 }
