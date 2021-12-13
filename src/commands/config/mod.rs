@@ -39,12 +39,11 @@ pub enum ConfigOperation {
 }
 
 pub fn execute_config_operation(operation: Config) {
-    let mut config: AppConfig;
-    if operation.local {
-        config = AppConfig::read_local();
+    let mut config = if operation.local {
+        AppConfig::read_local()
     } else {
-        config = AppConfig::read();
-    }
+        AppConfig::read()
+    };
 
     let mut changed_any = false;
     match operation.op {

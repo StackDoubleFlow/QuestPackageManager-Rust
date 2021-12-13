@@ -118,7 +118,9 @@ pub fn package_edit_extra_operation(edit_parameters: EditExtraArgs) {
         shared_package.config = package;
         shared_package.write();
 
-        // TODO: Edit qpm defines.cmake
+        // HACK: Not sure if this is a proper way of doing this but it seems logical
+        shared_package.write_define_cmake();
+        shared_package.write_extern_cmake();
     }
 }
 
@@ -175,9 +177,7 @@ pub fn package_edit_extra_add_extra_files(package: &mut PackageConfig, extra_fil
             extra_files.push(extra_file);
         }
     } else {
-        let mut extra_files = Vec::default();
-        extra_files.push(extra_file);
-        package.info.additional_data.extra_files = Some(extra_files);
+        package.info.additional_data.extra_files = Some(vec![extra_file]);
     }
 }
 

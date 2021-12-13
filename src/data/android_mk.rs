@@ -419,7 +419,7 @@ impl AndroidMk {
             module.prefix_lines.push(format!(
                 "# Creating prebuilt for dependency: {} - version: {}",
                 shared_dependency.dependency.id.clone(),
-                shared_dependency.version.to_string()
+                shared_dependency.version
             ));
 
             module

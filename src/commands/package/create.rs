@@ -59,11 +59,10 @@ pub fn package_create_operation(create_parameters: PackageOperationCreateArgs) {
     };
 
     // id is optional so we need to check if it's defined, else use the name to lowercase
-    let id: String;
-    match create_parameters.id {
-        Option::Some(s) => id = s,
-        Option::None => id = create_parameters.name.to_lowercase(),
-    }
+    let id = match create_parameters.id {
+        Option::Some(s) => s,
+        Option::None => create_parameters.name.to_lowercase(),
+    };
 
     let package_info = PackageInfo {
         id,

@@ -46,7 +46,9 @@ pub fn package_edit_operation(edit_parameters: EditArgs) {
         shared_package.config = package;
         shared_package.write();
 
-        // TODO: Edit qpm defines.cmake
+        // HACK: Not sure if this is a proper way of doing this but it seems logical
+        shared_package.write_define_cmake();
+        shared_package.write_extern_cmake();
     }
 }
 

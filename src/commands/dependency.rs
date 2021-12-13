@@ -55,8 +55,6 @@ fn add_dependency(dependency_args: DependencyOperationAddArgs) {
         return;
     }
 
-    let version: VersionReq;
-    let additional_data: dependency::AdditionalDependencyData;
     let versions = crate::data::qpackages::get_versions(&dependency_args.id);
 
     if versions.is_empty() {
@@ -67,22 +65,18 @@ fn add_dependency(dependency_args: DependencyOperationAddArgs) {
         return;
     }
 
-    version = match dependency_args.version {
+    let version = match dependency_args.version {
         Option::Some(v) => v,
         // if no version given, use ^latest instead, should've specified a version idiot
-        Option::None => semver::VersionReq::parse(&format!(
-            "^{}",
-            versions.last().unwrap().version.to_string()
-        ))
-        .unwrap(),
+        Option::None => {
+            semver::VersionReq::parse(&format!("^{}", versions.last().unwrap().version)).unwrap()
+        }
     };
 
-    match &dependency_args.additional_data {
-        Option::Some(d) => {
-            additional_data = serde_json::from_str(d).expect("Deserializing additional data failed")
-        }
-        Option::None => additional_data = dependency::AdditionalDependencyData::default(),
-    }
+    let additional_data = match &dependency_args.additional_data {
+        Option::Some(d) => serde_json::from_str(d).expect("Deserializing additional data failed"),
+        Option::None => dependency::AdditionalDependencyData::default(),
+    };
 
     put_dependency(&dependency_args.id, version, &additional_data);
 }

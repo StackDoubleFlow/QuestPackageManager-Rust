@@ -151,6 +151,10 @@ impl From<SharedPackageConfig> for ModJson {
             .restored_dependencies
             .iter()
             // TODO: How to blacklist dependencies such as coremods?
+            // We could just query the bmbf core mods list on GH?
+            // https://github.com/BMBF/resources/blob/master/com.beatgames.beatsaber/core-mods.json
+            // but really the only lib that never is copied over is the modloader, the rest is either a downloaded qmod or just a copied lib
+            // even core mods should technically be added via download
             .filter(|lib|
 
                 // Modloader should never be included

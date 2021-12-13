@@ -1,4 +1,4 @@
-use std::{collections::HashMap, lazy::SyncLazy as Lazy, time::Duration};
+use std::{collections::HashMap, io::Cursor, lazy::SyncLazy as Lazy, time::Duration};
 
 use atomic_refcell::AtomicRefCell;
 use semver::Version;
@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::data::{config::Config, package::SharedPackageConfig};
 static API_URL: &str = "https://qpackages.com";
+static AUTH_HEADER: &str = "not that i can come up with";
 
 static VERSIONS_CACHE: Lazy<AtomicRefCell<HashMap<String, Vec<PackageVersion>>>> =
     Lazy::new(Default::default);
@@ -87,4 +88,20 @@ pub fn get_packages() -> Vec<String> {
         .expect("Request to qpackages.com failed")
         .into_json::<Vec<String>>()
         .expect("Into json failed")
+}
+
+pub fn publish_package(package: SharedPackageConfig) {
+    let url = format!(
+        "{}/{}/{}",
+        API_URL, &package.config.info.id, &package.config.info.version
+    );
+
+    let s = serde_json::to_string_pretty(&package).expect("json failed");
+    let read = Cursor::new(s.into_bytes());
+    AGENT
+        .borrow_mut()
+        .post(&url)
+        .set("Authorization", AUTH_HEADER)
+        .send(read)
+        .expect("Request to qpackages.com failed");
 }

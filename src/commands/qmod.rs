@@ -68,11 +68,10 @@ pub fn execute_qmod_operation(operation: Qmod) {
 }
 
 fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs) {
-    let schema_version: String;
-    match create_parameters.schema_version {
-        Option::Some(s) => schema_version = s,
-        Option::None => schema_version = "0.1.1".to_string(),
-    }
+    let schema_version = match create_parameters.schema_version {
+        Option::Some(s) => s,
+        Option::None => "0.1.1".to_string(),
+    };
 
     let json = ModJson {
         schema_version,

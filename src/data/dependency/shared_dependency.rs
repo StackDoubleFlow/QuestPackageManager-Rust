@@ -130,32 +130,23 @@ impl SharedDependency {
                     // the downloaded thing IS the package, just rename the folder to src
                     tmp_path.clone()
                 };
+
             if from_path.exists() {
+                // only log this on debug builds
+                #[cfg(debug_assertions)]
                 println!(
                     "from: {}\nto: {}",
                     from_path.display().bright_yellow(),
                     src_path.display().bright_yellow()
                 );
 
-                //if from_path == tmp_path {
-                //    std::fs::rename(from_path, src_path);
-                //} else {
-                //    let mut options = fs_extra::dir::CopyOptions::new();
-                //    options.overwrite = true;
-                //    options.copy_inside = true;
-                //    options.content_only = true;
-                //    copy_directory(&from, &to, &options).expect("Failed to copy directory!");
-                //}
-
-                //std::fs::create_dir_all(&src_path)
-                //    .expect("Failed to create destination src directory");
-                //let options = fs_extra::dir::CopyOptions::new();
+                // HACK: renaming seems to work, idk if it works for actual subfolders?
                 std::fs::rename(&from_path, &src_path).expect("Failed to move folder");
             } else {
                 panic!("Failed to restore folder for this dependency\nif you have a token configured check if it's still valid\nIf it is, check if you can manually reach the repo");
             }
 
-            // clear up tmp folder
+            // clear up tmp folder if it still exists
             if tmp_path.exists() {
                 std::fs::remove_dir_all(tmp_path).expect("Failed to remove tmp folder");
             }
@@ -237,6 +228,7 @@ impl SharedDependency {
 
     pub fn collect_to_copy(&self, also_lib: bool) -> Vec<(PathBuf, PathBuf)> {
         // TODO: Look into improving the way it gets all the things to copy
+        // low priority since this also works
         let config = Config::read_combine();
         let package = PackageConfig::read();
         let shared_package = self.get_shared_package();
@@ -332,10 +324,9 @@ impl SharedDependency {
                     options.copy_inside = true;
                     options.content_only = true;
                     options.skip_exist = true;
-                    copy_directory(&from, &to, &options).expect(
-                        format!("Failed to copy directory! From {:#?} To {:#?}", &from, &to)
-                            .as_str(),
-                    ); // ignore warning, let it raise the error for more details.
+                    copy_directory(&from, &to, &options).unwrap_or_else(|_| {
+                        panic!("Failed to copy directory! From {:#?} To {:#?}", &from, &to)
+                    }); // ignore warning, let it raise the error for more details.
                 } else if from.is_file() {
                     // we can get the parent beccause this is a file path
                     std::fs::create_dir_all(&to.parent().unwrap())

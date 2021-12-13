@@ -30,10 +30,10 @@ pub fn execute_token_config_operation(operation: Token) {
             .expect("Storing token failed!");
         println!("Configured a github token! This will now be used in qpm restore");
     } else {
-        // read token
-        if let Ok(token) = get_keyring().get_password() {
+        // read token, possibly unused so prepend with _ to prevent warnings
+        if let Ok(_token) = get_keyring().get_password() {
             #[cfg(debug_assertions)]
-            println!("Configured github token: {}", token.bright_yellow());
+            println!("Configured github token: {}", _token.bright_yellow());
             #[cfg(not(debug_assertions))]
             println!(
                 "In release builds you {} view the configured github token, a token was configured though!",

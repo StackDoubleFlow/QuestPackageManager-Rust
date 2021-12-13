@@ -47,14 +47,13 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
         &token, &user, &repo, &tag
     );
 
-    let data;
-    match ureq::get(&asset_data_link).call() {
-        Ok(o) => data = o.into_json::<GithubReleaseData>().unwrap(),
+    let data = match ureq::get(&asset_data_link).call() {
+        Ok(o) => o.into_json::<GithubReleaseData>().unwrap(),
         Err(e) => {
             let error_string = e.to_string().replace(&token, "***");
             panic!("{}", error_string);
         }
-    }
+    };
 
     for asset in data.assets.iter() {
         if asset.name.eq(filename) {

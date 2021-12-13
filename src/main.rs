@@ -1,4 +1,4 @@
-#![feature(is_symlink, once_cell)]
+#![feature(once_cell)]
 #![allow(dead_code)]
 
 use std::io::Read;
