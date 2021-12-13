@@ -23,25 +23,22 @@ pub struct CreateQmodJsonOperationArgs {
     pub schema_version: Option<String>,
     /// Name of the mod
     #[clap(long)]
-    pub name: String,
-    /// ID of the mod
-    #[clap(long)]
-    pub id: String,
+    pub name: Option<String>,
     /// Author of the mod
     #[clap(long)]
-    pub author: String,
+    pub author: Option<String>,
     /// Optional slot for if you ported a mod
     #[clap(long)]
     pub porter: Option<String>,
     /// Mod version
     #[clap(long)]
-    pub version: Version,
+    pub version: Option<Version>,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     #[clap(long = "packageID")]
-    pub package_id: String,
+    pub package_id: Option<String>,
     /// Version of the package, ex. 1.1.0
-    #[clap(long = "packageversion")]
-    pub package_version: String,
+    #[clap(long = "packageVersion")]
+    pub package_version: Option<String>,
     /// description for the mod
     #[clap(long)]
     pub description: Option<String>,
@@ -68,6 +65,8 @@ pub fn execute_qmod_operation(operation: Qmod) {
 }
 
 fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs) {
+    let shared_package = SharedPackageConfig::read();
+
     let schema_version = match create_parameters.schema_version {
         Option::Some(s) => s,
         Option::None => "0.1.1".to_string(),
@@ -75,18 +74,28 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
 
     let json = ModJson {
         schema_version,
-        name: create_parameters.name,
-        id: "{mod_id}".to_string(),
-        author: create_parameters.author,
+        name: create_parameters
+            .name
+            .unwrap_or(shared_package.config.info.name),
+        id: "${mod_id}".to_string(),
+        author: create_parameters
+            .author
+            .unwrap_or_else(|| "---".to_string()),
         porter: create_parameters.porter,
         // TODO: make this ${version} VVV
-        version: create_parameters.version,
-        package_id: create_parameters.package_id,
-        package_version: create_parameters.package_version,
+        version: create_parameters
+            .version
+            .unwrap_or(shared_package.config.info.version),
+        package_id: create_parameters
+            .package_id
+            .unwrap_or_else(|| "com.beatgames.beatsaber".to_string()),
+        package_version: create_parameters
+            .package_version
+            .unwrap_or_else(|| "1.0.0".to_string()),
         description: Some(
             create_parameters
                 .description
-                .unwrap_or_else(|| "${mod_id}, version ${version}! ¯\\_(ツ)_/¯".to_string()),
+                .unwrap_or_else(|| "${mod_id}, version ${version}! 🤷‍♂️".to_string()),
         ),
         cover_image: create_parameters.cover_image,
         dependencies: Default::default(),
