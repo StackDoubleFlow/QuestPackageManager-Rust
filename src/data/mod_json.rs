@@ -1,5 +1,4 @@
 use std::{
-    collections::HashMap,
     io::{BufReader, Read},
     path::PathBuf,
 };
@@ -7,12 +6,9 @@ use std::{
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    data::{
-        dependency::{Dependency, SharedDependency},
-        package::SharedPackageConfig,
-    },
-    utils::tokenstream::replace_fast,
+use crate::data::{
+    dependency::{Dependency, SharedDependency},
+    package::SharedPackageConfig,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -103,6 +99,7 @@ impl ModJson {
     }
 
     fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
+        /*
         replace_fast(
             &s,
             &HashMap::from([
@@ -110,6 +107,11 @@ impl ModJson {
                 ("${mod_id}", preprocess_data.mod_id.as_str()),
             ]),
         )
+        */
+
+        // HACK: temp measure because above code didn't work properly
+        s.replace("${version}", preprocess_data.version.as_str())
+            .replace("${mod_id}", preprocess_data.mod_id.as_str())
     }
 
     pub fn read(path: PathBuf) -> ModJson {
