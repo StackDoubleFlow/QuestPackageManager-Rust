@@ -31,7 +31,6 @@ pub struct EditQmodJsonOperationArgs {
 }
 
 pub fn execute_qmod_edit_operation(edit_parameters: EditQmodJsonOperationArgs) {
-    // TODO: Make it actually edit qmod stuff like mod files and other things
     let mut json = ModJson::read(ModJson::get_template_path());
 
     if let Some(schema_version) = edit_parameters.schema_version {

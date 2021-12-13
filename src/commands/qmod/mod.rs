@@ -17,6 +17,7 @@ pub struct Qmod {
     pub op: QmodOperation,
 }
 
+/// Some properties are not editable through the qmod create command, these properties are either editable through the package, or not at all
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct CreateQmodJsonOperationArgs {
@@ -47,8 +48,11 @@ pub struct CreateQmodJsonOperationArgs {
 #[clap(setting = AppSettings::ColoredHelp)]
 #[allow(clippy::large_enum_variant)]
 pub enum QmodOperation {
+    /// Create a "mod.template.json" that you can pre-fill with certain values that will be used to then generate your final mod.json when you run 'qpm qmod build'
     Create(CreateQmodJsonOperationArgs),
+    /// This will parse the `mod.template.json` and process it, then finally export a `mod.json` for packaging and deploying.
     Build,
+    /// Edit your mod.template.json from the command line, mostly intended for edits on github actions
     Edit(edit::EditQmodJsonOperationArgs),
 }
 
