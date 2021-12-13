@@ -37,6 +37,7 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
 
     // Obviously this is a bad way of parsing the GH url but like I see no better way, people better not use direct lib uploads lol
     // (I know mentioning it here will make people do that, so fuck y'all actually thinking of doing that)
+    // HACK: Not ideal way of getting these values
     let user = split.get(3).unwrap();
     let repo = split.get(4).unwrap();
     let tag = split.get(7).unwrap();

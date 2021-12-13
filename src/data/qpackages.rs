@@ -90,7 +90,7 @@ pub fn get_packages() -> Vec<String> {
         .expect("Into json failed")
 }
 
-pub fn publish_package(package: SharedPackageConfig) {
+pub fn publish_package(package: &SharedPackageConfig) {
     let url = format!(
         "{}/{}/{}",
         API_URL, &package.config.info.id, &package.config.info.version

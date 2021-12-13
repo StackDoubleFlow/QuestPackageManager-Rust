@@ -5,6 +5,8 @@ use std::{
 
 use semver::VersionReq;
 use serde::{Deserialize, Serialize};
+
+use crate::data::qpackages;
 /// Fern: Adds line ending after each element
 /// thanks raft
 macro_rules! concatln {
@@ -47,6 +49,7 @@ impl SharedPackageConfig {
 
     pub fn publish(&self) {
         // TODO: implement publish, all the checks are done before the command is ran so here we just push the shared package to the url
+        qpackages::publish_package(self);
     }
 
     pub fn from_package(package: &PackageConfig) -> SharedPackageConfig {
