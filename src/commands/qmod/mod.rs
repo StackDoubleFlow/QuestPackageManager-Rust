@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use clap::{AppSettings, Clap};
 use semver::Version;
 
+mod edit;
+
 use crate::data::{
     mod_json::{ModJson, PreProcessingData},
     package::{PackageConfig, SharedPackageConfig},
@@ -20,19 +22,13 @@ pub struct Qmod {
 pub struct CreateQmodJsonOperationArgs {
     /// The schema version this mod was made for
     #[clap(long = "qpversion")]
-    pub schema_version: Option<String>,
-    /// Name of the mod
-    #[clap(long)]
-    pub name: Option<String>,
+    pub schema_version: Option<Version>,
     /// Author of the mod
     #[clap(long)]
     pub author: Option<String>,
     /// Optional slot for if you ported a mod
     #[clap(long)]
     pub porter: Option<String>,
-    /// Mod version
-    #[clap(long)]
-    pub version: Option<Version>,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     #[clap(long = "packageID")]
     pub package_id: Option<String>,
@@ -53,14 +49,14 @@ pub struct CreateQmodJsonOperationArgs {
 pub enum QmodOperation {
     Create(CreateQmodJsonOperationArgs),
     Build,
-    Edit,
+    Edit(edit::EditQmodJsonOperationArgs),
 }
 
 pub fn execute_qmod_operation(operation: Qmod) {
     match operation.op {
         QmodOperation::Create(q) => execute_qmod_create_operation(q),
         QmodOperation::Build => execute_qmod_build_operation(),
-        QmodOperation::Edit => execute_qmod_edit_operation(),
+        QmodOperation::Edit(e) => edit::execute_qmod_edit_operation(e),
     }
 }
 
@@ -69,23 +65,19 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
 
     let schema_version = match create_parameters.schema_version {
         Option::Some(s) => s,
-        Option::None => "0.1.1".to_string(),
+        Option::None => Version::new(0, 1, 1),
     };
 
     let json = ModJson {
         schema_version,
-        name: create_parameters
-            .name
-            .unwrap_or(shared_package.config.info.name),
+        name: shared_package.config.info.name,
         id: "${mod_id}".to_string(),
         author: create_parameters
             .author
             .unwrap_or_else(|| "---".to_string()),
         porter: create_parameters.porter,
         // TODO: make this ${version} VVV
-        version: create_parameters
-            .version
-            .unwrap_or(shared_package.config.info.version),
+        version: "${version}".to_string(),
         package_id: create_parameters
             .package_id
             .unwrap_or_else(|| "com.beatgames.beatsaber".to_string()),
@@ -95,13 +87,14 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
         description: Some(
             create_parameters
                 .description
-                .unwrap_or_else(|| "${mod_id}, version ${version}! 🤷‍♂️".to_string()),
+                .unwrap_or_else(|| "${mod_id}, version ${version}!".to_string()),
         ),
         cover_image: create_parameters.cover_image,
         dependencies: Default::default(),
         mod_files: Default::default(),
         library_files: Default::default(),
         file_copies: Default::default(),
+        copy_extensions: Default::default(),
     };
 
     json.write(PathBuf::from(ModJson::get_template_name()));
@@ -138,8 +131,4 @@ fn execute_qmod_build_operation() {
 
     // Write mod.json
     existing_json.write(PathBuf::from(ModJson::get_result_name()));
-}
-
-fn execute_qmod_edit_operation() {
-    // TODO: Make it actually edit qmod stuff like mod files and other things
 }

@@ -16,7 +16,7 @@ use crate::data::{
 pub struct ModJson {
     /// The Questpatcher version this mod.json was made for
     #[serde(rename(serialize = "_QPVersion", deserialize = "_QPVersion"))]
-    pub schema_version: String,
+    pub schema_version: Version,
     /// Name of the mod
     pub name: String,
     /// ID of the mod
@@ -27,7 +27,7 @@ pub struct ModJson {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub porter: Option<String>,
     /// Mod version
-    pub version: Version,
+    pub version: String,
     /// id of the package the mod is for, ex. com.beatgaems.beatsaber
     pub package_id: String,
     /// Version of the package, ex. 1.1.0
@@ -44,8 +44,10 @@ pub struct ModJson {
     pub mod_files: Vec<String>,
     /// list of files that go in the package's libs folder
     pub library_files: Vec<String>,
-    /// list of
-    pub file_copies: Vec<String>,
+    /// list of files that will be copied on the quest
+    pub file_copies: Vec<FileCopy>,
+    /// list of copy extensions registered for this specific mod
+    pub copy_extensions: Vec<CopyExtension>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -70,6 +72,15 @@ pub struct FileCopy {
     pub destination: String,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CopyExtension {
+    /// the extension to register for
+    pub extension: String,
+    /// the destination folder these files should be going to
+    pub destination: String,
+}
+
 pub struct PreProcessingData {
     pub version: String,
     pub mod_id: String,
@@ -82,6 +93,20 @@ impl ModJson {
 
     pub fn get_result_name() -> &'static str {
         "mod.json"
+    }
+
+    pub fn get_template_path() -> std::path::PathBuf {
+        std::path::PathBuf::new()
+            .join(&Self::get_template_name())
+            .canonicalize()
+            .unwrap()
+    }
+
+    pub fn get_result_path() -> std::path::PathBuf {
+        std::path::PathBuf::new()
+            .join(&Self::get_result_name())
+            .canonicalize()
+            .unwrap()
     }
 
     pub fn read_and_preprocess(preprocess_data: &PreProcessingData) -> Self {
@@ -168,12 +193,12 @@ impl From<SharedPackageConfig> for ModJson {
             .collect::<Vec<String>>();
 
         Self {
-            schema_version: "0.1.2".to_string(),
+            schema_version: Version::new(0, 1, 2),
             name: shared_package.config.info.name.clone(),
             id: shared_package.config.info.id.clone(),
             author: Default::default(),
             porter: None,
-            version: shared_package.config.info.version.clone(),
+            version: shared_package.config.info.version.to_string(),
             package_id: "com.beatgames.beatsaber".to_string(),
             package_version: "*".to_string(),
             description: None,
@@ -182,6 +207,7 @@ impl From<SharedPackageConfig> for ModJson {
             mod_files: vec![shared_package.config.get_so_name()],
             library_files: libs,
             file_copies: Default::default(),
+            copy_extensions: Default::default(),
         }
     }
 }
