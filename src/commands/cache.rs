@@ -95,7 +95,7 @@ fn legacy_fix() {
                 let mut buf: String = "".to_string();
                 match file.read_to_string(&mut buf) {
                     Ok(_) => {}
-                    Err(e) => {
+                    Err(_e) => {
                         #[cfg(debug_assertions)]
                         println!(
                             "reading file {} to string failed: {}",
