@@ -61,6 +61,8 @@ pub fn execute_publish_operation() {
         panic!("soLink is not set in the package config, but this package is not header only, please make sure to either add the soLink or to make the package header only.");
     }
 
+    // TODO: Implement a check that gets the repo and checks if the shared folder and subfolder exists, if not it throws an error and won't let you publish
+
     package.publish();
 
     println!(
