@@ -246,7 +246,7 @@ impl SharedDependency {
         let local_path = dependencies_path.join(&self.dependency.id);
         let mut to_copy = Vec::new();
         if also_lib {
-            let prefix = if self.dependency.additional_data.use_release.unwrap_or(false) {
+            let prefix = if !self.dependency.additional_data.use_release.unwrap_or(false) {
                 "debug_"
             } else {
                 ""
