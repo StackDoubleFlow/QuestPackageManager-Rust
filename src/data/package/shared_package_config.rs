@@ -259,8 +259,8 @@ impl SharedPackageConfig {
         result.push_str(concatln!(
             "\n# defines used in ninja / cmake ndk builds",
             "if (NOT DEFINED CMAKE_ANDROID_NDK)",
-            "\tif(DEFINED ENV{ANDROID_NDK_ROOT})",
-            "\t\tset(CMAKE_ANDROID_NDK ENV{ANDROID_NDK_ROOT})",
+            "\tif(DEFINED $ENV{ANDROID_NDK_LATEST_HOME})",
+            "\t\tset(CMAKE_ANDROID_NDK $ENV{ANDROID_NDK_LATEST_HOME})",
             "\telse()",
             "\t\tfile (STRINGS \"ndkpath.txt\" CMAKE_ANDROID_NDK)",
             "\tendif()",

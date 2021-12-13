@@ -14,3 +14,7 @@
 
 # this is the schema file, this can be pushed!
 !qpm.schema.json
+
+*.txt
+*.mk
+*.ps1
