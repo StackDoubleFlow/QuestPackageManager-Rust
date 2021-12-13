@@ -264,7 +264,7 @@ impl SharedDependency {
                 )
             };
 
-            let so_name: String = format!("{}{}", prefix, suffix);
+            let mut so_name: String = format!("{}{}", prefix, suffix);
 
             // if not headers only, copy over .so file
             if shared_package
@@ -280,7 +280,19 @@ impl SharedDependency {
                     .headers_only
                     .unwrap()
             {
-                let lib_so_path = libs_path.join(&so_name);
+                let mut lib_so_path = libs_path.join(&so_name);
+                // if it doesn't exist, use it without debug
+                if !lib_so_path.exists() {
+                    #[cfg(debug_assertions)]
+                    println!(
+                        "Path {} did not exist, editing to remove debug_",
+                        lib_so_path.display().bright_yellow()
+                    );
+
+                    so_name = so_name.replace("debug_", "");
+                    lib_so_path = libs_path.join(&so_name);
+                }
+
                 let local_so_path = Path::new(&package.dependencies_dir)
                     .canonicalize()
                     .unwrap()
@@ -364,8 +376,6 @@ impl SharedDependency {
             if !from.exists() {
                 println!("The file or folder\n\t'{}'\ndid not exist! what happened to the cache? you should probably run {} to make sure everything is in order...", from.display().bright_yellow(), "qpm cache clear".bright_yellow());
             } else if from.is_dir() {
-                #[cfg(debug_assertions)]
-                println!("This was a dir");
                 std::fs::create_dir_all(&to).expect("Failed to create destination folder");
                 let mut options = fs_extra::dir::CopyOptions::new();
                 options.overwrite = true;
@@ -374,8 +384,6 @@ impl SharedDependency {
                 // copy it over
                 copy_directory(&from, &to, &options).expect("Failed to copy directory!");
             } else if from.is_file() {
-                #[cfg(debug_assertions)]
-                println!("This was a file");
                 // if it's a file, copy that over instead
                 let mut options = fs_extra::file::CopyOptions::new();
                 options.overwrite = true;
