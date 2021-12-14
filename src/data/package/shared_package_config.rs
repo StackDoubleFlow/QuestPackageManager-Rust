@@ -96,7 +96,6 @@ impl SharedPackageConfig {
         ).to_string();
 
         let mut any = false;
-        let mut sublibs = vec![];
         for shared_dep in self.restored_dependencies.iter() {
             let shared_package = shared_dep.get_shared_package();
             let package_id = shared_package.config.info.id;
@@ -140,6 +139,7 @@ impl SharedPackageConfig {
                     ));
                 }
             }
+
             if let Some(extra_files) = &shared_dep.dependency.additional_data.extra_files {
                 for path_str in extra_files.iter() {
                     let path = std::path::PathBuf::new().join(&format!(
@@ -158,7 +158,10 @@ impl SharedPackageConfig {
                     } else {
                         let listname = format!(
                             "{}_{}_extra",
-                            path_str.replace('/', "_").replace('\\', "_"),
+                            path_str
+                                .replace('/', "_")
+                                .replace('\\', "_")
+                                .replace('-', "_"),
                             shared_dep.dependency.id.replace('-', "_")
                         );
 
@@ -171,15 +174,18 @@ impl SharedPackageConfig {
                         result.push_str(&format!(
                             "RECURSE_FILES({}_cpp ${{EXTERN_DIR}}/{}/*.cpp)\n",
                             listname,
-                            path.display()
+                            extern_path.display()
                         ));
 
                         result.push_str(&format!(
-                            "add_library({} STATIC ${{{}_c}} ${{{}_cpp}})\n",
-                            listname, listname, listname
+                            "target_sources(${{COMPILE_ID}} PRIVATE ${{{}_c}})\n",
+                            listname
                         ));
 
-                        sublibs.push(listname);
+                        result.push_str(&format!(
+                            "target_sources(${{COMPILE_ID}} PRIVATE ${{{}_cpp}})\n",
+                            listname
+                        ));
                     }
                 }
             }
@@ -206,7 +212,10 @@ impl SharedPackageConfig {
                         } else {
                             let listname = format!(
                                 "{}_{}_local_extra",
-                                path_str.replace('/', "_").replace('\\', "_"),
+                                path_str
+                                    .replace('/', "_")
+                                    .replace('\\', "_")
+                                    .replace('-', "_"),
                                 shared_dep.dependency.id.replace('-', "_")
                             );
 
@@ -223,11 +232,14 @@ impl SharedPackageConfig {
                             ));
 
                             result.push_str(&format!(
-                                "add_library({} STATIC ${{{}_c}} ${{{}_cpp}})\n",
-                                listname, listname, listname
+                                "target_sources(${{COMPILE_ID}} PRIVATE ${{{}_c}})\n",
+                                listname
                             ));
 
-                            sublibs.push(listname);
+                            result.push_str(&format!(
+                                "target_sources(${{COMPILE_ID}} PRIVATE ${{{}_cpp}})\n",
+                                listname
+                            ));
                         }
                     }
                 }
@@ -244,14 +256,10 @@ impl SharedPackageConfig {
             "RECURSE_FILES(so_list ${EXTERN_DIR}/libs/*.so)",
             "RECURSE_FILES(a_list ${EXTERN_DIR}/libs/*.a)\n",
             "# every .so or .a that needs to be linked, put here!",
-            "# I don't believe you need to specify if a lib is static or not, poggers!\n"
+            "# I don't believe you need to specify if a lib is static or not, poggers!",
+            "target_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n)\n"
         ));
 
-        result.push_str("target_link_libraries(${COMPILE_ID} PRIVATE\n\t${so_list}\n\t${a_list}\n");
-        for sub in sublibs.iter() {
-            result.push_str(&format!("\t{}\n", sub));
-        }
-        result.push(')');
         extern_cmake_file
             .write_all(result.as_bytes())
             .expect("Failed to write out extern cmake file");

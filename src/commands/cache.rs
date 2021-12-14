@@ -100,7 +100,7 @@ fn legacy_fix() {
                         println!(
                             "reading file {} to string failed: {}",
                             entry_path.display().bright_yellow(),
-                            e
+                            _e
                         );
                         continue;
                     }
