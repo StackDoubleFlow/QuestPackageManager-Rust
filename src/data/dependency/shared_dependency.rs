@@ -305,7 +305,7 @@ impl SharedDependency {
                     .canonicalize()
                     .unwrap()
                     .join("libs")
-                    .join(&so_name);
+                    .join(&so_name.replace("debug_", ""));
                 // from to
                 to_copy.push((lib_so_path, local_so_path));
             }
