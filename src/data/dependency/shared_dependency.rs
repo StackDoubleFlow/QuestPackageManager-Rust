@@ -246,11 +246,19 @@ impl SharedDependency {
         let local_path = dependencies_path.join(&self.dependency.id);
         let mut to_copy = Vec::new();
         if also_lib {
-            let prefix = if !self.dependency.additional_data.use_release.unwrap_or(false) {
-                "debug_"
+            let use_release = if self.dependency.additional_data.use_release.is_some() {
+                self.dependency.additional_data.use_release.unwrap()
+            } else if let Some(local_dep) = package
+                .dependencies
+                .iter()
+                .find(|el| el.id == self.dependency.id)
+            {
+                local_dep.additional_data.use_release.unwrap_or(false)
             } else {
-                ""
+                false
             };
+
+            let prefix = if !use_release { "debug_" } else { "" };
 
             let suffix = if let Some(override_so_name) =
                 shared_package.config.info.additional_data.override_so_name
