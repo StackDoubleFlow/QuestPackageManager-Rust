@@ -91,7 +91,7 @@ impl SharedPackageConfig {
             "# YOU SHOULD NOT MANUALLY EDIT THIS FILE, QPM WILL VOID ALL CHANGES",
             "# always added",
             "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes)",
-            "target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)",
+            "target_include_directories(${COMPILE_ID} SYSTEM PRIVATE ${EXTERN_DIR}/includes/libil2cpp/il2cpp/libil2cpp)",
             "\n# includes and compile options added by other libraries\n"
         ).to_string();
 
