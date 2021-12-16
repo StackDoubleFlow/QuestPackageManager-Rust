@@ -49,7 +49,7 @@ pub struct CreateQmodJsonOperationArgs {
 #[derive(Clap, Debug, Clone)]
 #[clap(setting = AppSettings::ColoredHelp)]
 pub struct BuildQmodOperationArgs {
-    #[clap(long)]
+    #[clap(long = "isLibrary")]
     pub is_library: Option<bool>,
 }
 
