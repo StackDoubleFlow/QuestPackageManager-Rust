@@ -44,10 +44,6 @@ pub struct EditExtraArgs {
     #[clap(long = "subFolder")]
     pub sub_folder: Option<String>,
 
-    /// Is this package a library or not? really just used locally
-    #[clap(long = "isLibrary")]
-    pub is_library: Option<bool>,
-
     /// Additional options for compilation and edits to compilation related files.
     #[clap(subcommand)]
     pub compile_options: Option<EditExtraOptions>,
@@ -117,10 +113,6 @@ pub fn package_edit_extra_operation(edit_parameters: EditExtraArgs) {
     }
     if let Some(sub_folder) = edit_parameters.sub_folder {
         package_edit_extra_sub_folder(&mut package, sub_folder);
-        any_changed = true;
-    }
-    if let Some(is_library) = edit_parameters.is_library {
-        package_edit_extra_is_library(&mut package, is_library);
         any_changed = true;
     }
 
@@ -206,9 +198,4 @@ pub fn package_edit_extra_override_so_name(package: &mut PackageConfig, override
 pub fn package_edit_extra_sub_folder(package: &mut PackageConfig, sub_folder: String) {
     println!("Setting sub_folder: {:#?}", sub_folder);
     package.info.additional_data.sub_folder = Some(sub_folder);
-}
-
-pub fn package_edit_extra_is_library(package: &mut PackageConfig, is_library: bool) {
-    println!("Setting is_library: {:#?}", is_library);
-    package.info.additional_data.is_library = Some(is_library);
 }

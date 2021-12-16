@@ -180,7 +180,7 @@ impl From<SharedPackageConfig> for ModJson {
             .collect();
 
         // actual direct lib deps
-        let mut libs = shared_package
+        let libs = shared_package
             .restored_dependencies
             .iter()
             // TODO: How to blacklist dependencies such as coremods?
@@ -197,22 +197,6 @@ impl From<SharedPackageConfig> for ModJson {
                 !mods.iter().any(|dep| lib.dependency.id == dep.id))
             .map(|dep| dep.get_so_name())
             .collect::<Vec<String>>();
-        let is_library = shared_package
-            .config
-            .info
-            .additional_data
-            .is_library
-            .unwrap_or(false);
-
-        if is_library {
-            libs.push(shared_package.config.get_so_name());
-        }
-
-        let mod_files = if is_library {
-            vec![]
-        } else {
-            vec![shared_package.config.get_so_name()]
-        };
 
         Self {
             schema_version: Version::new(0, 1, 2),
@@ -225,9 +209,9 @@ impl From<SharedPackageConfig> for ModJson {
             package_version: "*".to_string(),
             description: None,
             cover_image: None,
-            is_library: shared_package.config.info.additional_data.is_library,
+            is_library: None,
             dependencies: mods,
-            mod_files,
+            mod_files: vec![shared_package.config.get_so_name()],
             library_files: libs,
             file_copies: Default::default(),
             copy_extensions: Default::default(),

@@ -36,9 +36,6 @@ pub struct PackageOperationCreateArgs {
     /// Override the downloaded .so or .a filename with this name instead.
     #[clap(long = "overrideSoName")]
     pub override_so_name: Option<String>,
-    /// Is this package a library or not? really just used locally
-    #[clap(long = "isLibrary")]
-    pub is_library: Option<bool>,
 }
 
 pub fn package_create_operation(create_parameters: PackageOperationCreateArgs) {
@@ -58,7 +55,6 @@ pub fn package_create_operation(create_parameters: PackageOperationCreateArgs) {
         so_link: create_parameters.so_link,
         debug_so_link: create_parameters.debug_so_link,
         override_so_name: create_parameters.override_so_name,
-        is_library: create_parameters.is_library,
         ..Default::default()
     };
 

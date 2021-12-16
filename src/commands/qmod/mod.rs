@@ -42,6 +42,15 @@ pub struct CreateQmodJsonOperationArgs {
     /// optional cover image filename, ex. 'cover.png'
     #[clap(long = "coverImage")]
     pub cover_image: Option<String>,
+    #[clap(long)]
+    pub is_library: Option<bool>,
+}
+
+#[derive(Clap, Debug, Clone)]
+#[clap(setting = AppSettings::ColoredHelp)]
+pub struct BuildQmodOperationArgs {
+    #[clap(long)]
+    pub is_library: Option<bool>,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -53,7 +62,7 @@ pub enum QmodOperation {
     /// Some properties are not settable through the qmod create command, these properties are either editable through the package, or not at all
     Create(CreateQmodJsonOperationArgs),
     /// This will parse the `mod.template.json` and process it, then finally export a `mod.json` for packaging and deploying.
-    Build,
+    Build(BuildQmodOperationArgs),
     /// Edit your mod.template.json from the command line, mostly intended for edits on github actions
     ///
     /// Some properties are not editable through the qmod edit command, these properties are either editable through the package, or not at all
@@ -63,7 +72,7 @@ pub enum QmodOperation {
 pub fn execute_qmod_operation(operation: Qmod) {
     match operation.op {
         QmodOperation::Create(q) => execute_qmod_create_operation(q),
-        QmodOperation::Build => execute_qmod_build_operation(),
+        QmodOperation::Build(b) => execute_qmod_build_operation(b),
         QmodOperation::Edit(e) => edit::execute_qmod_edit_operation(e),
     }
 }
@@ -98,7 +107,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
                 .unwrap_or_else(|| "${mod_id}, version ${version}!".to_string()),
         ),
         cover_image: create_parameters.cover_image,
-        is_library: shared_package.config.info.additional_data.is_library,
+        is_library: create_parameters.is_library,
         dependencies: Default::default(),
         mod_files: Default::default(),
         library_files: Default::default(),
@@ -110,7 +119,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
 }
 
 // This will parse the `qmod.template.json` and process it, then finally export a `qmod.json` for packaging and deploying.
-fn execute_qmod_build_operation() {
+fn execute_qmod_build_operation(build_parameters: BuildQmodOperationArgs) {
     assert!(std::path::Path::new("mod.template.json").exists(),
         "No mod.template.json found in the current directory, set it up please :) Hint: use \"qmod create\"");
 
@@ -126,8 +135,12 @@ fn execute_qmod_build_operation() {
         mod_id: package.info.id,
         mod_name: package.info.name,
     };
+
     let mut existing_json = ModJson::read_and_preprocess(&preprocess_data);
-    existing_json.is_library = package.info.additional_data.is_library;
+    if let Some(is_library) = build_parameters.is_library {
+        existing_json.is_library = Some(is_library);
+    }
+
     // if it's a library, append to libraryFiles, else to modFiles
     if existing_json.is_library.unwrap_or(false) {
         existing_json.library_files.append(&mut mod_json.mod_files);
