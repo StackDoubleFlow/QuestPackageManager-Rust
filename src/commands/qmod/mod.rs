@@ -42,9 +42,6 @@ pub struct CreateQmodJsonOperationArgs {
     /// optional cover image filename, ex. 'cover.png'
     #[clap(long = "coverImage")]
     pub cover_image: Option<String>,
-    /// whether or not this qmod is a library or not
-    #[clap(long = "isLibrary")]
-    pub is_library: Option<bool>,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -101,7 +98,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
                 .unwrap_or_else(|| "${mod_id}, version ${version}!".to_string()),
         ),
         cover_image: create_parameters.cover_image,
-        is_library: create_parameters.is_library,
+        is_library: shared_package.config.info.additional_data.is_library,
         dependencies: Default::default(),
         mod_files: Default::default(),
         library_files: Default::default(),
@@ -129,19 +126,20 @@ fn execute_qmod_build_operation() {
         mod_id: package.info.id,
     };
     let mut existing_json = ModJson::read_and_preprocess(&preprocess_data);
+    existing_json.is_library = package.info.additional_data.is_library;
+    // if it's a library, append to libraryFiles, else to modFiles
+    if existing_json.is_library.unwrap_or(false) {
+        existing_json.library_files.append(&mut mod_json.mod_files);
+    } else {
+        existing_json.mod_files.append(&mut mod_json.mod_files);
+    }
 
-    existing_json.mod_files.append(&mut mod_json.mod_files);
     existing_json
         .dependencies
         .append(&mut mod_json.dependencies);
     existing_json
         .library_files
         .append(&mut mod_json.library_files);
-
-    if package.info.additional_data.is_library.unwrap_or(true) {
-        // package is a library
-        existing_json.is_library = Some(true);
-    }
 
     // handled by preprocessing
     // existing_json.id = mod_json.id;
