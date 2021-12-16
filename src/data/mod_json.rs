@@ -207,9 +207,9 @@ impl From<SharedPackageConfig> for ModJson {
         }
 
         let mod_files = if is_library {
-            vec![shared_package.config.get_so_name()]
-        } else {
             vec![]
+        } else {
+            vec![shared_package.config.get_so_name()]
         };
 
         Self {
