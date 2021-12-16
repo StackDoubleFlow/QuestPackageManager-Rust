@@ -40,6 +40,7 @@ pub struct ModJson {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cover_image: Option<String>,
     /// whether or not this qmod is a library or not
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_library: Option<bool>,
     /// list of downloadable dependencies
     pub dependencies: Vec<ModDependency>,
