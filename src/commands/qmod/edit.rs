@@ -28,6 +28,9 @@ pub struct EditQmodJsonOperationArgs {
     /// optional cover image filename, ex. 'cover.png'
     #[clap(long = "coverImage")]
     pub cover_image: Option<String>,
+    /// whether or not this qmod is a library or not
+    #[clap(long = "isLibrary")]
+    pub is_library: Option<bool>,
 }
 
 pub fn execute_qmod_edit_operation(edit_parameters: EditQmodJsonOperationArgs) {
@@ -65,6 +68,10 @@ pub fn execute_qmod_edit_operation(edit_parameters: EditQmodJsonOperationArgs) {
         } else {
             json.cover_image = Some(cover_image);
         }
+    }
+
+    if let Some(is_library) = edit_parameters.is_library {
+        json.is_library = Some(is_library);
     }
 
     json.write(ModJson::get_template_path());

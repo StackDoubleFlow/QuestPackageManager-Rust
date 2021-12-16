@@ -85,6 +85,10 @@ pub struct AdditionalPackageData {
     /// Sub folder to use from the downloaded repo / zip, so one repo can contain multiple packages
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sub_folder: Option<String>,
+
+    /// Is this package a library or not? really just used locally
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_library: Option<bool>,
 }
 
 impl PackageConfig {
