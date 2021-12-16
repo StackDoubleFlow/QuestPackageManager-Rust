@@ -73,7 +73,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
 
     let schema_version = match create_parameters.schema_version {
         Option::Some(s) => s,
-        Option::None => Version::new(0, 1, 1),
+        Option::None => Version::new(0, 1, 2),
     };
 
     let json = ModJson {
