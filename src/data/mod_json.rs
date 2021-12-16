@@ -88,6 +88,7 @@ pub struct CopyExtension {
 pub struct PreProcessingData {
     pub version: String,
     pub mod_id: String,
+    pub mod_name: String,
 }
 
 impl ModJson {
@@ -141,6 +142,7 @@ impl ModJson {
         // HACK: temp measure because above code didn't work properly
         s.replace("${version}", preprocess_data.version.as_str())
             .replace("${mod_id}", preprocess_data.mod_id.as_str())
+            .replace("${mod_name}", preprocess_data.mod_name.as_str())
     }
 
     pub fn read(path: PathBuf) -> ModJson {

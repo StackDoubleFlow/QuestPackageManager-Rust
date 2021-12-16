@@ -124,6 +124,7 @@ fn execute_qmod_build_operation() {
     let preprocess_data = PreProcessingData {
         version: package.info.version.to_string(),
         mod_id: package.info.id,
+        mod_name: package.info.name,
     };
     let mut existing_json = ModJson::read_and_preprocess(&preprocess_data);
     existing_json.is_library = package.info.additional_data.is_library;
