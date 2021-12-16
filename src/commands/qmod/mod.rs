@@ -42,7 +42,7 @@ pub struct CreateQmodJsonOperationArgs {
     /// optional cover image filename, ex. 'cover.png'
     #[clap(long = "coverImage")]
     pub cover_image: Option<String>,
-    #[clap(long)]
+    #[clap(long = "isLibrary")]
     pub is_library: Option<bool>,
 }
 
