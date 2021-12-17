@@ -108,13 +108,13 @@ impl SharedPackageConfig {
 
                 if let Some(include_dirs) = compile_options.include_paths {
                     for dir in include_dirs.iter() {
-                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
                     }
                 }
 
                 if let Some(system_include_dirs) = compile_options.system_includes {
                     for dir in system_include_dirs.iter() {
-                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
+                        result.push_str(&format!("target_include_directories(${{COMPILE_ID}} SYSTEM PRIVATE ${{EXTERN_DIR}}/includes/{}/{})\n", package_id, dir));
                     }
                 }
 
