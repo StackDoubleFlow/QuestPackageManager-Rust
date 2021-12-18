@@ -51,6 +51,19 @@ pub struct CreateQmodJsonOperationArgs {
 pub struct BuildQmodOperationArgs {
     #[clap(long = "isLibrary")]
     pub is_library: Option<bool>,
+
+    ///
+    /// Tells QPM to exclude mods from being listed as copied mod or libs dependencies
+    ///
+    #[clap(long = "exclude_libs")]
+    pub exclude_libs: Option<Vec<String>>,
+
+    ///
+    /// Tells QPM to include mods from being listed as copied mod or libs dependencies
+    /// Does not work with `exclude_libs` combined
+    ///
+    #[clap(long = "include_libs")]
+    pub include_libs: Option<Vec<String>>,
 }
 
 #[derive(Clap, Debug, Clone)]
@@ -153,6 +166,35 @@ fn execute_qmod_build_operation(build_parameters: BuildQmodOperationArgs) {
     existing_json
         .library_files
         .append(&mut mod_json.library_files);
+
+    if let Some(excluded) = build_parameters.exclude_libs {
+        let exclude_filter = |lib_name: &String| -> bool {
+            // returning false means don't include
+            // don't include anything that is excluded
+            if excluded.iter().any(|s| lib_name == s) {
+                return false;
+            }
+
+            true
+        };
+
+        existing_json.mod_files.retain(exclude_filter);
+        existing_json.library_files.retain(exclude_filter);
+    }
+    else if let Some(included) = build_parameters.include_libs {
+        let include_filter = |lib_name: &String| -> bool {
+            // returning false means don't include
+            // only include anything that is specified included
+            if included.iter().any(|s| lib_name == s) {
+                return true;
+            }
+
+            false
+        };
+
+        existing_json.mod_files.retain(include_filter);
+        existing_json.library_files.retain(include_filter);
+    }
 
     // handled by preprocessing
     // existing_json.id = mod_json.id;
