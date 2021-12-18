@@ -93,7 +93,6 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
             .author
             .unwrap_or_else(|| "---".to_string()),
         porter: create_parameters.porter,
-        // TODO: make this ${version} VVV
         version: "${version}".to_string(),
         package_id: create_parameters
             .package_id

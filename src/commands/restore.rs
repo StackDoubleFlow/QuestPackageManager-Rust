@@ -25,7 +25,7 @@ pub fn execute_restore_operation() {
 
     shared_package.write();
     if std::path::Path::new(&shared_package.config.dependencies_dir).exists() {
-        // qpm rust is fast enough to where removing the folder and then remaking it is doable
+        // HACK: qpm rust is fast enough to where removing the folder and then remaking it is doable
         super::clear::remove_dependencies_dir();
     }
     shared_package.restore();
