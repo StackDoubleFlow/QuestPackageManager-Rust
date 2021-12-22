@@ -59,6 +59,7 @@ pub struct ModJson {
 pub struct ModDependency {
     /// the version requirement for this dependency
     #[serde(deserialize_with = "cursed_semver_parser::deserialize")]
+    #[serde(rename="version")]
     pub version_range: VersionReq,
     /// the id of this dependency
     pub id: String,
