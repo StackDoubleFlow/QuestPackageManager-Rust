@@ -87,6 +87,10 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         }
     }
 
+    if url.ends_with("/") {
+        url = url[..url.len() - 1].to_string();
+    }
+
     let mut git = std::process::Command::new("git");
     git.arg("clone")
         .arg(format!("{}.git", url))

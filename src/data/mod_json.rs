@@ -14,6 +14,7 @@ use crate::data::{
 // TODO: Idea for later, maybe some kind of config that stores defaults for the different fields, like description and author?
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+#[serde(default)] // skip missing fields
 pub struct ModJson {
     /// The Questpatcher version this mod.json was made for
     #[serde(rename(serialize = "_QPVersion", deserialize = "_QPVersion"))]
@@ -52,6 +53,29 @@ pub struct ModJson {
     pub file_copies: Vec<FileCopy>,
     /// list of copy extensions registered for this specific mod
     pub copy_extensions: Vec<CopyExtension>,
+}
+
+impl Default for ModJson {
+    fn default() -> Self {
+        Self {
+            schema_version: Version::new(0, 1, 2),
+            name: Default::default(),
+            id: Default::default(),
+            author: Default::default(),
+            porter: Default::default(),
+            version: Default::default(),
+            package_id: Default::default(),
+            package_version: Default::default(),
+            description: Default::default(),
+            cover_image: Default::default(),
+            is_library: Default::default(),
+            dependencies: Default::default(),
+            mod_files: Default::default(),
+            library_files: Default::default(),
+            file_copies: Default::default(),
+            copy_extensions: Default::default(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -193,6 +217,7 @@ impl From<SharedPackageConfig> for ModJson {
 
                 // Modloader should never be included
                 lib.dependency.id != "modloader" && 
+                !lib.dependency.additional_data.static_linking.unwrap_or(false) &&
 
                 // Only keep libs that aren't downloadable
                 !mods.iter().any(|dep| lib.dependency.id == dep.id))
