@@ -91,8 +91,6 @@ pub fn execute_qmod_operation(operation: Qmod) {
 }
 
 fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs) {
-    let shared_package = SharedPackageConfig::read();
-
     let schema_version = match create_parameters.schema_version {
         Option::Some(s) => s,
         Option::None => Version::new(0, 1, 2),
@@ -100,7 +98,7 @@ fn execute_qmod_create_operation(create_parameters: CreateQmodJsonOperationArgs)
 
     let json = ModJson {
         schema_version,
-        name: shared_package.config.info.name,
+        name: "${mod_name}".to_string(),
         id: "${mod_id}".to_string(),
         author: create_parameters
             .author
@@ -180,8 +178,7 @@ fn execute_qmod_build_operation(build_parameters: BuildQmodOperationArgs) {
 
         existing_json.mod_files.retain(exclude_filter);
         existing_json.library_files.retain(exclude_filter);
-    }
-    else if let Some(included) = build_parameters.include_libs {
+    } else if let Some(included) = build_parameters.include_libs {
         let include_filter = |lib_name: &String| -> bool {
             // returning false means don't include
             // only include anything that is specified included
