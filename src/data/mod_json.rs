@@ -89,6 +89,7 @@ pub struct ModDependency {
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename="downloadIfMissing")]
     pub mod_link: Option<String>,
 }
 
