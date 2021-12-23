@@ -1,6 +1,4 @@
 use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
     io::{Cursor, Read, Write},
     path::{Path, PathBuf},
 };
@@ -55,11 +53,6 @@ impl SharedDependency {
             ))
     }
 
-    pub fn get_hash(&self) -> u64 {
-        let mut s = DefaultHasher::new();
-        self.hash(&mut s);
-        s.finish()
-    }
 
     pub fn cache(&self) {
         // Check if already cached
