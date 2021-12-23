@@ -83,11 +83,13 @@ impl Default for ModJson {
 pub struct ModDependency {
     /// the version requirement for this dependency
     #[serde(deserialize_with = "cursed_semver_parser::deserialize")]
+    #[serde(rename="version")]
     pub version_range: VersionReq,
     /// the id of this dependency
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename="downloadIfMissing")]
     pub mod_link: Option<String>,
 }
 
