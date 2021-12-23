@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use semver::{Version, VersionReq};
+use semver::{Version};
 use serde::{Deserialize, Serialize};
 
 use super::{CompileOptions, SharedPackageConfig};
@@ -175,16 +175,3 @@ impl PackageConfig {
             ))
     }
 }
-
-fn intersect(mut lhs: VersionReq, mut rhs: VersionReq) -> VersionReq {
-    lhs.comparators.append(&mut rhs.comparators);
-    lhs
-}
-
-/*
-impl From<AdditionalDependencyData> for AdditionalPackageData {
-    fn from(dependency_data: AdditionalDependencyData) -> Self {
-        serde_json::from_str(&serde_json::to_string(&dependency_data).unwrap()).unwrap()
-    }
-}
-*/
