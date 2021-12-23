@@ -168,11 +168,16 @@ impl ModJson {
 
 impl From<SharedPackageConfig> for ModJson {
     fn from(mut shared_package: SharedPackageConfig) -> Self {
-        // Only bundle mods that are not specifically excluded in qpm.json
-        shared_package
-            .restored_dependencies
-            // keep if include_qmod is not defined or true
-            .retain(|dep| dep.dependency.additional_data.include_qmod.unwrap_or(true));
+        // Only bundle mods that are not specifically excluded in qpm.json or if they're not header-only
+        shared_package.restored_dependencies.retain(|dep| {
+            // if force included/excluded, return early
+            if let Some(force_included) = dep.dependency.additional_data.include_qmod {
+                return force_included;
+            }
+
+            // or if header only is false
+            !dep.dependency.additional_data.headers_only.unwrap_or(false)
+        });
 
         // downloadable mods links n stuff
         // mods that are header-only but provide qmods can be added as deps
@@ -185,13 +190,6 @@ impl From<SharedPackageConfig> for ModJson {
             .collect();
 
         // The rest of the mods to handle are not qmods, they are .so or .a mods
-        // We will not include them
-        // this could be moved to filter but eh effort
-        shared_package
-            .restored_dependencies
-            // keep if header only is false, or if not defined
-            .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
-
         // actual direct lib deps
         let libs = shared_package
             .restored_dependencies
@@ -202,8 +200,13 @@ impl From<SharedPackageConfig> for ModJson {
             // even core mods should technically be added via download
             .filter(|lib|
 
+                // keep if header only is false, or if not defined
+                !lib.dependency.additional_data.headers_only.unwrap_or(false) &&
+
                 // Modloader should never be included
                 lib.dependency.id != "modloader" && 
+                
+                // don't include static deps
                 !lib.dependency.additional_data.static_linking.unwrap_or(false) &&
 
                 // Only keep libs that aren't downloadable
