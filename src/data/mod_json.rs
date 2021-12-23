@@ -133,13 +133,6 @@ impl ModJson {
             .unwrap()
     }
 
-    pub fn get_result_path() -> std::path::PathBuf {
-        std::path::PathBuf::new()
-            .join(&Self::get_result_name())
-            .canonicalize()
-            .unwrap()
-    }
-
     pub fn read_and_preprocess(preprocess_data: &PreProcessingData) -> Self {
         let mut file =
             std::fs::File::open(Self::get_template_name()).expect("Opening mod.json failed");
@@ -155,17 +148,6 @@ impl ModJson {
     }
 
     fn preprocess(s: String, preprocess_data: &PreProcessingData) -> String {
-        /*
-        replace_fast(
-            &s,
-            &HashMap::from([
-                ("${version}", preprocess_data.version.as_str()),
-                ("${mod_id}", preprocess_data.mod_id.as_str()),
-            ]),
-        )
-        */
-
-        // HACK: temp measure because above code didn't work properly
         s.replace("${version}", preprocess_data.version.as_str())
             .replace("${mod_id}", preprocess_data.mod_id.as_str())
             .replace("${mod_name}", preprocess_data.mod_name.as_str())
@@ -183,10 +165,6 @@ impl ModJson {
         serde_json::to_writer_pretty(file, self).expect("Write failed");
     }
 
-    #[inline]
-    pub fn write_default(&self) {
-        self.write(PathBuf::from(Self::get_result_name()));
-    }
 }
 
 impl From<SharedPackageConfig> for ModJson {
