@@ -1,8 +1,8 @@
-# Runs on push to main, basically the "release" version since we don't really do releases (that's bad right)
-name: Cargo Build
+# This workflow will be used to verify a pull request, this is to make sure that on pull requests it doesn't mess with the already available binary on the main workflow
+name: Pull Request Test
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 jobs:
