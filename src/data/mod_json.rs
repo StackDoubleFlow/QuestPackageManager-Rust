@@ -168,11 +168,17 @@ impl ModJson {
 
 impl From<SharedPackageConfig> for ModJson {
     fn from(mut shared_package: SharedPackageConfig) -> Self {
+        let local_deps = &shared_package.config.dependencies;
+
         // Only bundle mods that are not specifically excluded in qpm.json or if they're not header-only
         shared_package.restored_dependencies.retain(|dep| {
-            // if force included/excluded, return early
-            if let Some(force_included) = dep.dependency.additional_data.include_qmod {
-                return force_included;
+            let local_dep_opt = local_deps.iter().find(|local_dep| local_dep.id == dep.dependency.id);
+
+            if let Some(local_dep) = local_dep_opt {
+                // if force included/excluded, return early
+                if let Some(force_included) = local_dep.additional_data.include_qmod {
+                    return force_included;
+                }
             }
 
             // or if header only is false
