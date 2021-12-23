@@ -83,13 +83,13 @@ impl Default for ModJson {
 pub struct ModDependency {
     /// the version requirement for this dependency
     #[serde(deserialize_with = "cursed_semver_parser::deserialize")]
-    #[serde(rename="version")]
+    #[serde(rename = "version")]
     pub version_range: VersionReq,
     /// the id of this dependency
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename="downloadIfMissing")]
+    #[serde(rename = "downloadIfMissing")]
     pub mod_link: Option<String>,
 }
 
@@ -164,17 +164,13 @@ impl ModJson {
         let file = std::fs::File::create(path).expect("create failed");
         serde_json::to_writer_pretty(file, self).expect("Write failed");
     }
-
 }
 
 impl From<SharedPackageConfig> for ModJson {
     fn from(mut shared_package: SharedPackageConfig) -> Self {
-        shared_package
-            .restored_dependencies
-            // keep if header only is false, or if not defined
-            .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
-
         // downloadable mods links n stuff
+        // mods that are header-only but provide qmods can be added as deps
+        // TODO: Make this configurable
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()
@@ -182,6 +178,11 @@ impl From<SharedPackageConfig> for ModJson {
             .filter(|dep| dep.dependency.additional_data.mod_link.is_some())
             .map(|dep| dep.clone().into())
             .collect();
+
+        shared_package
+            .restored_dependencies
+            // keep if header only is false, or if not defined
+            .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
 
         // actual direct lib deps
         let libs = shared_package
