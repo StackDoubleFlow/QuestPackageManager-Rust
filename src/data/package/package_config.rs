@@ -33,6 +33,12 @@ pub struct AdditionalPackageData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub local_path: Option<String>,
 
+    /// By default if empty, true
+    /// If false, this mod dependency will NOT be included in the generated mod.json
+    /// Technically just a dependency field
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_qmod: Option<bool>,
+
     /// Whether or not the package is header only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub headers_only: Option<bool>,

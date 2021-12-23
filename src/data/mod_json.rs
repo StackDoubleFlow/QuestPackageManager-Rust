@@ -83,13 +83,13 @@ impl Default for ModJson {
 pub struct ModDependency {
     /// the version requirement for this dependency
     #[serde(deserialize_with = "cursed_semver_parser::deserialize")]
-    #[serde(rename="version")]
+    #[serde(rename = "version")]
     pub version_range: VersionReq,
     /// the id of this dependency
     pub id: String,
     /// the download link for this dependency, must satisfy id and version range!
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename="downloadIfMissing")]
+    #[serde(rename = "downloadIfMissing")]
     pub mod_link: Option<String>,
 }
 
@@ -164,17 +164,23 @@ impl ModJson {
         let file = std::fs::File::create(path).expect("create failed");
         serde_json::to_writer_pretty(file, self).expect("Write failed");
     }
-
 }
 
 impl From<SharedPackageConfig> for ModJson {
     fn from(mut shared_package: SharedPackageConfig) -> Self {
-        shared_package
-            .restored_dependencies
-            // keep if header only is false, or if not defined
-            .retain(|dep| !dep.dependency.additional_data.headers_only.unwrap_or(false));
+        // Only bundle mods that are not specifically excluded in qpm.json or if they're not header-only
+        shared_package.restored_dependencies.retain(|dep| {
+            // if force included/excluded, return early
+            if let Some(force_included) = dep.dependency.additional_data.include_qmod {
+                return force_included;
+            }
+
+            // or if header only is false
+            !dep.dependency.additional_data.headers_only.unwrap_or(false)
+        });
 
         // downloadable mods links n stuff
+        // mods that are header-only but provide qmods can be added as deps
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()
@@ -183,19 +189,24 @@ impl From<SharedPackageConfig> for ModJson {
             .map(|dep| dep.clone().into())
             .collect();
 
+        // The rest of the mods to handle are not qmods, they are .so or .a mods
         // actual direct lib deps
         let libs = shared_package
             .restored_dependencies
             .iter()
-            // TODO: How to blacklist dependencies such as coremods?
             // We could just query the bmbf core mods list on GH?
             // https://github.com/BMBF/resources/blob/master/com.beatgames.beatsaber/core-mods.json
             // but really the only lib that never is copied over is the modloader, the rest is either a downloaded qmod or just a copied lib
             // even core mods should technically be added via download
             .filter(|lib|
 
+                // keep if header only is false, or if not defined
+                !lib.dependency.additional_data.headers_only.unwrap_or(false) &&
+
                 // Modloader should never be included
                 lib.dependency.id != "modloader" && 
+                
+                // don't include static deps
                 !lib.dependency.additional_data.static_linking.unwrap_or(false) &&
 
                 // Only keep libs that aren't downloadable
