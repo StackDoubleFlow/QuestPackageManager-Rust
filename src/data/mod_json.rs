@@ -168,9 +168,14 @@ impl ModJson {
 
 impl From<SharedPackageConfig> for ModJson {
     fn from(mut shared_package: SharedPackageConfig) -> Self {
+        // Only bundle mods that are not specifically excluded in qpm.json
+        shared_package
+            .restored_dependencies
+            // keep if include_qmod is not defined or true
+            .retain(|dep| dep.dependency.additional_data.include_qmod.unwrap_or(true));
+
         // downloadable mods links n stuff
         // mods that are header-only but provide qmods can be added as deps
-        // TODO: Make this configurable
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()
@@ -179,6 +184,9 @@ impl From<SharedPackageConfig> for ModJson {
             .map(|dep| dep.clone().into())
             .collect();
 
+        // The rest of the mods to handle are not qmods, they are .so or .a mods
+        // We will not include them
+        // this could be moved to filter but eh effort
         shared_package
             .restored_dependencies
             // keep if header only is false, or if not defined
@@ -188,7 +196,6 @@ impl From<SharedPackageConfig> for ModJson {
         let libs = shared_package
             .restored_dependencies
             .iter()
-            // TODO: How to blacklist dependencies such as coremods?
             // We could just query the bmbf core mods list on GH?
             // https://github.com/BMBF/resources/blob/master/com.beatgames.beatsaber/core-mods.json
             // but really the only lib that never is copied over is the modloader, the rest is either a downloaded qmod or just a copied lib
