@@ -221,7 +221,7 @@ impl From<SharedPackageConfig> for ModJson {
             .collect::<Vec<String>>();
 
         Self {
-            schema_version: Version::new(0, 1, 2),
+            schema_version: Version::new(0, 1, 1), // TODO: Move to 0.1.2 when it is *actually* usable
             name: shared_package.config.info.name.clone(),
             id: shared_package.config.info.id.clone(),
             author: Default::default(),
