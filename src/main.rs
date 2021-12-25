@@ -1,7 +1,4 @@
 #![feature(once_cell)]
-#![allow(dead_code)]
-
-use std::io::Read;
 
 use clap::{AppSettings, Clap};
 use serde::{Deserialize, Serialize};
@@ -43,8 +40,6 @@ enum MainCommand {
     Restore,
     /// Qmod control
     Qmod(commands::qmod::Qmod),
-    /// Test parsing and writing of cmake files
-    TestCMakeParse,
 }
 
 fn main() {
@@ -61,7 +56,6 @@ fn main() {
         MainCommand::Publish => commands::publish::execute_publish_operation(),
         MainCommand::Restore => commands::restore::execute_restore_operation(),
         MainCommand::Qmod(q) => commands::qmod::execute_qmod_operation(q),
-        MainCommand::TestCMakeParse => test_cmake_parse(),
     }
 }
 
@@ -69,17 +63,4 @@ fn main() {
 pub struct Config {
     pub cache_path: String,
     pub timeout: u32,
-}
-
-fn test_cmake_parse() {
-    let mut file = std::fs::File::open("CMakeLists.txt").expect("Opening qpm.json failed");
-    let mut buf = String::new();
-    file.read_to_string(&mut buf).unwrap();
-
-    // let cmake_list = crate::data::c_make::CMakeList::from_str(&buf).unwrap();
-
-    // std::fs::File::create("CMakeLists.txt")
-    //     .unwrap()
-    //     .write_all(cmake_list.to_string().as_bytes())
-    //     .expect("Failed to write out file");
 }

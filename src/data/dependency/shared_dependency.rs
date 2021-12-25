@@ -1,6 +1,4 @@
 use std::{
-    collections::hash_map::DefaultHasher,
-    hash::{Hash, Hasher},
     io::{Cursor, Read, Write},
     path::{Path, PathBuf},
 };
@@ -55,11 +53,6 @@ impl SharedDependency {
             ))
     }
 
-    pub fn get_hash(&self) -> u64 {
-        let mut s = DefaultHasher::new();
-        self.hash(&mut s);
-        s.finish()
-    }
 
     pub fn cache(&self) {
         // Check if already cached
@@ -419,14 +412,21 @@ impl SharedDependency {
 
 impl From<SharedPackageConfig> for SharedDependency {
     fn from(shared_package: SharedPackageConfig) -> Self {
+        let package_config = PackageConfig::read();
+        let version_range = if let Some(orig) = package_config
+            .dependencies
+            .iter()
+            .find(|el| el.id == shared_package.config.info.id)
+        {
+            orig.version_range.clone()
+        } else {
+            VersionReq::parse(&format!("^{}", shared_package.config.info.version)).unwrap()
+        };
+
         SharedDependency {
             dependency: Dependency {
                 id: shared_package.config.info.id.to_string(),
-                version_range: VersionReq::parse(&format!(
-                    "={}",
-                    shared_package.config.info.version
-                ))
-                .unwrap(),
+                version_range,
                 additional_data: shared_package.config.info.additional_data,
             },
             version: shared_package.config.info.version,

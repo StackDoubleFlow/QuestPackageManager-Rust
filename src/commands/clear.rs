@@ -5,6 +5,11 @@ use walkdir::WalkDir;
 use crate::data::package::PackageConfig;
 
 pub fn execute_clear_operation() {
+    remove_dependencies_dir();
+    std::fs::remove_file("qpm.shared.json").ok();
+}
+
+pub fn remove_dependencies_dir() {
     let package = PackageConfig::read();
     if std::path::Path::new(&package.dependencies_dir).exists() {
         for entry in WalkDir::new(package.dependencies_dir.canonicalize().unwrap()).min_depth(1) {
@@ -32,6 +37,4 @@ pub fn execute_clear_operation() {
 
         remove_dir_all(&package.dependencies_dir).expect("Failed to remove cached folders");
     }
-
-    std::fs::remove_file("qpm.shared.json").ok();
 }
