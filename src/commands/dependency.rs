@@ -69,7 +69,7 @@ fn add_dependency(dependency_args: DependencyOperationAddArgs) {
         Option::Some(v) => v,
         // if no version given, use ^latest instead, should've specified a version idiot
         Option::None => {
-            semver::VersionReq::parse(&format!("^{}", versions.last().unwrap().version)).unwrap()
+            semver::VersionReq::parse(&format!("^{}", versions.first().unwrap().version)).unwrap()
         }
     };
 
