@@ -5,6 +5,7 @@ use std::{
 
 use fs_extra::{dir::copy as copy_directory, file::copy as copy_file};
 use owo_colors::OwoColorize;
+use remove_dir_all::remove_dir_all;
 use semver::{Version, VersionReq};
 use serde::{Deserialize, Serialize};
 use zip::ZipArchive;
@@ -53,7 +54,6 @@ impl SharedDependency {
             ))
     }
 
-
     pub fn cache(&self) {
         // Check if already cached
         // if true, don't download repo / header files
@@ -89,6 +89,11 @@ impl SharedDependency {
 
         // Downloads the repo / zip file into src folder w/ subfolder taken into account
         if !src_path.exists() {
+            // if the tmp path exists, but src doesn't, that's a failed cache, delete it and try again!
+            if tmp_path.exists() {
+                remove_dir_all(&tmp_path).expect("Failed to remove existing tmp folder");
+            }
+
             // src did not exist, this means that we need to download the repo/zip file from packageconfig.info.url
             std::fs::create_dir_all(&src_path.parent().unwrap())
                 .expect("Failed to create lib path");
