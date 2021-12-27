@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
-use semver::{Version};
+use owo_colors::OwoColorize;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 
 use super::{CompileOptions, SharedPackageConfig};
@@ -110,7 +111,12 @@ impl PackageConfig {
     }
 
     pub fn read() -> PackageConfig {
-        let file = std::fs::File::open("qpm.json").expect("Opening qpm.json failed");
+        let file = match std::fs::File::open("qpm.json") {
+            Ok(o) => o,
+            Err(_) => {
+                panic!("Could not find qpm.json in local folder, are you in the correct directory? Maybe try {}", "qpm package create".bright_yellow());
+            }
+        };
         serde_json::from_reader(file).expect("Deserializing package failed")
     }
 
