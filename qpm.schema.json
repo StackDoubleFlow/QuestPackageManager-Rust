@@ -20,6 +20,7 @@
                     "staticLinking": false,
                     "soLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/libquestcosmetics.so",
                     "debugSoLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/debug_libquestcosmetics.so",
+                    "modLink": "https://github.com/RedBrumbler/Qosmetics/releases/v1.3.3/download/Qosmetics.qmod",
                     "extraFiles": [
                         "src/extra"
                     ],

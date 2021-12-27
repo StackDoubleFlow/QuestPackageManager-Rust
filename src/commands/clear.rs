@@ -7,6 +7,9 @@ use crate::data::package::PackageConfig;
 pub fn execute_clear_operation() {
     remove_dependencies_dir();
     std::fs::remove_file("qpm.shared.json").ok();
+    std::fs::remove_file("extern.cmake").ok();
+    std::fs::remove_file("qpm_defines.cmake").ok();
+    std::fs::remove_file("mod.json").ok();
 }
 
 pub fn remove_dependencies_dir() {
