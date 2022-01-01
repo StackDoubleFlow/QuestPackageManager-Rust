@@ -1,12 +1,12 @@
-use clap::{AppSettings, Clap};
+use clap::{Subcommand, Args};
 
 mod extra_properties;
 mod packages;
 mod versions;
 pub type Package = versions::Package;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
+
 pub enum ListOption {
     /// List the extra properties that are supported
     ExtraProperties,
@@ -16,8 +16,8 @@ pub enum ListOption {
     Versions(Package),
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct ListOperation {
     /// What you want to list
     #[clap(subcommand)]

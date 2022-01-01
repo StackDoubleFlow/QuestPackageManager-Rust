@@ -1,10 +1,9 @@
-use clap::{AppSettings, Clap};
+use clap::{Args};
 use owo_colors::OwoColorize;
 
 use crate::data::config::Config as AppConfig;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct Timeout {
     pub timeout: Option<u64>,
 }

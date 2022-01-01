@@ -1,26 +1,23 @@
 use std::path::PathBuf;
 
-use clap::{AppSettings, Clap};
+use clap::{Args, Subcommand};
 use owo_colors::OwoColorize;
 
 use crate::data::config::Config as AppConfig;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct Cache {
     #[clap(subcommand)]
     pub op: CacheOperation,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum CacheOperation {
     /// Gets or sets the path to place the QPM Cache
     Path(CacheSetPathOperation),
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct CacheSetPathOperation {
     pub path: Option<PathBuf>,
 }

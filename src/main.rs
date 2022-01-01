@@ -1,6 +1,6 @@
 #![feature(once_cell)]
 
-use clap::{AppSettings, Clap};
+use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 
 mod commands;
@@ -10,15 +10,15 @@ mod utils;
 
 /// QPM is a command line tool that allows modmakers to
 /// easily download dependencies for interacting with a game or other mods
-#[derive(Clap, Debug)]
+#[derive(Parser, Debug)]
 #[clap(version = "0.1.0", author = "RedBrumbler & Sc2ad")]
-#[clap(setting = AppSettings::ColoredHelp)]
+
 struct Opts {
     #[clap(subcommand)]
     subcmd: MainCommand,
 }
 
-#[derive(Clap, Debug, Clone)]
+#[derive(Subcommand, Debug, Clone)]
 enum MainCommand {
     /// Cache control
     Cache(commands::cache::Cache),

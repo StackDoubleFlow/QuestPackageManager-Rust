@@ -1,9 +1,9 @@
-use clap::{AppSettings, Clap};
+use clap::{Subcommand, Args};
 use owo_colors::OwoColorize;
 
 use crate::data::config::Config as AppConfig;
 
-#[derive(Clap, Debug, Clone)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum SymlinkOperation {
     /// Enable symlink usage
     Enable,
@@ -11,8 +11,8 @@ pub enum SymlinkOperation {
     Disable,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct Symlink {
     #[clap(subcommand)]
     pub op: Option<SymlinkOperation>,

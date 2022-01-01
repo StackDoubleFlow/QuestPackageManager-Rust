@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use clap::{AppSettings, Clap};
+use clap::{Args};
 use owo_colors::OwoColorize;
 use semver::Version;
 
@@ -8,8 +8,8 @@ use crate::data::{
     dependency::{AdditionalDependencyData, Dependency},
     package::{AdditionalPackageData, PackageConfig, PackageInfo},
 };
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct PackageOperationCreateArgs {
     /// The name of the package
     pub name: String,

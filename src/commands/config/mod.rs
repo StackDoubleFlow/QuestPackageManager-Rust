@@ -1,4 +1,4 @@
-use clap::{AppSettings, Clap};
+use clap::{Subcommand, Args};
 
 mod cache;
 mod ndkpath;
@@ -10,8 +10,8 @@ use owo_colors::OwoColorize;
 
 use crate::data::config::Config as AppConfig;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct Config {
     /// The operation to execute
     #[clap(subcommand)]
@@ -21,8 +21,8 @@ pub struct Config {
     pub local: bool,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
+
 pub enum ConfigOperation {
     /// Get or set the cache path
     Cache(cache::Cache),

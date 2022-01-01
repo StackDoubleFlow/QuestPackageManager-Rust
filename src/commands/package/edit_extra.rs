@@ -1,12 +1,12 @@
-use clap::{AppSettings, Clap};
+use clap::{Args, Subcommand};
 
 use crate::{
     data::package::{PackageConfig, SharedPackageConfig},
     utils::toggle::Toggle,
 };
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct EditExtraArgs {
     /// Change the branch name in additional data
     #[clap(long = "branchName")]
@@ -49,15 +49,15 @@ pub struct EditExtraArgs {
     pub compile_options: Option<EditExtraOptions>,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
+
 pub enum EditExtraOptions {
     /// Additional options for compilation and edits to compilation related files.
     CompileOptions(CompileOptionsEditArgs),
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct CompileOptionsEditArgs {
     /// Additional include paths to add, relative to the extern directory. Prefix with a '-' to remove that entry
     #[clap(long = "includePaths")]

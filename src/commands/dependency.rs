@@ -1,18 +1,16 @@
-use clap::{AppSettings, Clap};
+use clap::{Subcommand, Args};
 use owo_colors::OwoColorize;
 use semver::VersionReq;
 
 use crate::data::{dependency, package::PackageConfig};
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct Dependency {
     #[clap(subcommand)]
     pub op: DependencyOperation,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum DependencyOperation {
     /// Add a dependency
     Add(DependencyOperationAddArgs),
@@ -20,8 +18,7 @@ pub enum DependencyOperation {
     Remove(DependencyOperationRemoveArgs),
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct DependencyOperationAddArgs {
     /// Id of the dependency as listed on qpackages
     pub id: String,
@@ -35,8 +32,7 @@ pub struct DependencyOperationAddArgs {
     pub additional_data: Option<String>,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct DependencyOperationRemoveArgs {
     /// Id of the dependency as listed on qpackages
     pub id: String,
