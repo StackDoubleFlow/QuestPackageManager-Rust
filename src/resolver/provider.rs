@@ -1,12 +1,11 @@
 use std::borrow::Borrow;
 
 use pubgrub::{range::Range, solver::Dependencies};
-use pubgrub::solver::DependencyProvider as PubGrubDependencyProvider;
 
 use super::semver::{req_to_range, Version};
 use crate::data::{package::PackageConfig, qpackages};
 
-pub struct  DependencyProvider<'a> {
+pub struct DependencyProvider<'a> {
     root: &'a PackageConfig,
 }
 
@@ -31,7 +30,7 @@ impl DependencyProvider<'_> {
     }
 }
 
-impl PubGrubDependencyProvider<String, Version> for DependencyProvider<'_> {
+impl pubgrub::solver::DependencyProvider<String, Version> for DependencyProvider<'_> {
     fn choose_package_version<T: Borrow<String>, U: Borrow<Range<Version>>>(
         &self,
         potential_packages: impl Iterator<Item = (T, U)>,
@@ -78,7 +77,7 @@ impl PubGrubDependencyProvider<String, Version> for DependencyProvider<'_> {
                 .into_iter()
                 .map(|dep| {
                     let id = dep.id;
-                    let version = Range::any();
+                    let version = req_to_range(dep.version_range);
                     (id, version)
                 })
                 .collect();
