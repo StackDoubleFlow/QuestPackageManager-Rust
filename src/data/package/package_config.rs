@@ -163,7 +163,7 @@ impl PackageConfig {
 
     pub fn get_module_id(&self) -> String {
         let name = self.get_so_name();
-        if self.additional_data.static_linking.unwrap_or(false) {
+        if self.info.additional_data.static_linking.unwrap_or(false) {
             name[3..name.len() - 2].to_string()
         } else {
             name[3..name.len() - 3].to_string()
