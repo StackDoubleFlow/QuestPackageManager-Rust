@@ -1,11 +1,11 @@
-use clap::{AppSettings, Clap};
+use clap::{Args};
 use semver::Version;
 
 use crate::data::mod_json::ModJson;
 
 /// Some properties are not editable through the qmod edit command, these properties are either editable through the package, or not at all
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct EditQmodJsonOperationArgs {
     /// The schema version this mod was made for, ex. '0.1.1'
     #[clap(long = "qpversion")]

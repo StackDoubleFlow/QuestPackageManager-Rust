@@ -1,8 +1,7 @@
-use clap::{AppSettings, Clap};
+use clap::{Args};
 use owo_colors::OwoColorize;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
 pub struct Package {
     pub package: String,
     #[clap(short, long)]

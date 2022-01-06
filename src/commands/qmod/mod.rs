@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{AppSettings, Clap};
+use clap::{Subcommand, Args};
 use semver::Version;
 
 mod edit;
@@ -10,16 +10,16 @@ use crate::data::{
     package::{PackageConfig, SharedPackageConfig},
 };
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct Qmod {
     #[clap(subcommand)]
     pub op: QmodOperation,
 }
 
 /// Some properties are not editable through the qmod create command, these properties are either editable through the package, or not at all
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct CreateQmodJsonOperationArgs {
     /// The schema version this mod was made for, ex. '0.1.1'
     #[clap(long = "qpversion")]
@@ -46,8 +46,8 @@ pub struct CreateQmodJsonOperationArgs {
     pub is_library: Option<bool>,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct BuildQmodOperationArgs {
     #[clap(long = "isLibrary")]
     pub is_library: Option<bool>,
@@ -66,8 +66,7 @@ pub struct BuildQmodOperationArgs {
     pub include_libs: Option<Vec<String>>,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum QmodOperation {
     /// Create a "mod.template.json" that you can pre-fill with certain values that will be used to then generate your final mod.json when you run 'qpm qmod build'

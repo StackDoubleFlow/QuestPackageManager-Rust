@@ -1,7 +1,7 @@
-use clap::{AppSettings, Clap};
+use clap::{Subcommand};
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
+
 pub enum Toggle {
     // Enable this thing
     Enable,

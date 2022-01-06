@@ -1,18 +1,18 @@
-use clap::{AppSettings, Clap};
+use clap::{Subcommand, Args};
 
 mod create;
 mod edit;
 mod edit_extra;
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct Package {
     #[clap(subcommand)]
     pub op: PackageOperation,
 }
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Subcommand, Debug, Clone)]
+
 pub enum PackageOperation {
     /// Create a package
     Create(create::PackageOperationCreateArgs),

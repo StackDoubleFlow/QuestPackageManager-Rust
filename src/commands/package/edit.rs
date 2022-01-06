@@ -1,10 +1,10 @@
-use clap::{AppSettings, Clap};
+use clap::{Args};
 use semver::Version;
 
 use crate::data::package::{PackageConfig, SharedPackageConfig};
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(Args, Debug, Clone)]
+
 pub struct EditArgs {
     ///Edit the id property of the package
     #[clap(long)]

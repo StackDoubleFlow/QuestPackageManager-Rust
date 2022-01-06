@@ -1,21 +1,21 @@
 use std::io::{Read, Write};
 
-use clap::{AppSettings, Clap};
+use clap::{Subcommand};
 use owo_colors::OwoColorize;
 use remove_dir_all::remove_dir_contents;
 use walkdir::WalkDir;
 
 use crate::data::{config::Config, package::PackageConfig};
 
-#[derive(Clap, Debug, Clone)]
-#[clap(setting = AppSettings::ColoredHelp)]
+#[derive(clap::Args, Debug, Clone)]
+
 pub struct Cache {
     /// Clear the cache
     #[clap(subcommand)]
     pub op: CacheOperation,
 }
 
-#[derive(Clap, Debug, Clone)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum CacheOperation {
     /// Clear the cache
     Clear,
