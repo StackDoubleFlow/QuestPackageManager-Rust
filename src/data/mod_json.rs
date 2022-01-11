@@ -1,6 +1,6 @@
 use std::{
     io::{BufReader, Read},
-    path::PathBuf,
+    path::PathBuf, collections::HashSet,
 };
 
 use semver::{Version, VersionReq};
@@ -185,15 +185,24 @@ impl From<SharedPackageConfig> for ModJson {
             !dep.dependency.additional_data.headers_only.unwrap_or(false)
         });
 
+        // List of dependencies we are directly referencing in qpm.json
+        let direct_dependencies: HashSet<String> = shared_package.config.dependencies.iter().map(|f| f.id.clone()).collect();
+
+
         // downloadable mods links n stuff
         // mods that are header-only but provide qmods can be added as deps
         let mods: Vec<ModDependency> = shared_package
             .restored_dependencies
             .iter()
             // Removes any dependency without a qmod link
-            .filter(|dep| dep.dependency.additional_data.mod_link.is_some())
+            .filter(|dep| 
+                // Must be directly referenced in qpm.json
+                direct_dependencies.contains(&dep.dependency.id) &&
+
+                dep.dependency.additional_data.mod_link.is_some())
             .map(|dep| dep.clone().into())
             .collect();
+
 
         // The rest of the mods to handle are not qmods, they are .so or .a mods
         // actual direct lib deps
@@ -205,6 +214,8 @@ impl From<SharedPackageConfig> for ModJson {
             // but really the only lib that never is copied over is the modloader, the rest is either a downloaded qmod or just a copied lib
             // even core mods should technically be added via download
             .filter(|lib|
+                // Must be directly referenced in qpm.json
+                direct_dependencies.contains(&lib.dependency.id) &&
 
                 // keep if header only is false, or if not defined
                 !lib.dependency.additional_data.headers_only.unwrap_or(false) &&
