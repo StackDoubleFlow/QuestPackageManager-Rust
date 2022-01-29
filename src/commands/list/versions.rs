@@ -1,4 +1,4 @@
-use clap::{Args};
+use clap::Args;
 use owo_colors::OwoColorize;
 
 #[derive(Args, Debug, Clone)]
@@ -27,7 +27,7 @@ pub fn execute_versions_list(package: Package) {
             package.package.bright_red(),
             versions.len().bright_yellow()
         );
-        for package_version in versions.iter() {
+        for package_version in versions.iter().rev() {
             println!(" - {}", package_version.version.to_string().bright_green());
         }
     } else {
