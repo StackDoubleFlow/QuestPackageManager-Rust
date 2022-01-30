@@ -134,11 +134,11 @@ impl SharedPackageConfig {
                 let mut flags: Vec<String> = vec![];
 
                 if let Some(cpp_flags) = compile_options.cpp_flags {
-                    features.append(&mut cpp_flags.clone());
+                    flags.append(&mut cpp_flags.clone());
                 }
 
                 if let Some(c_flags) = compile_options.c_flags {
-                    features.append(&mut c_flags.clone());
+                    flags.append(&mut c_flags.clone());
                 }
 
                 for flag in flags.iter() {
