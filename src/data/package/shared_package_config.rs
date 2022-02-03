@@ -124,18 +124,27 @@ impl SharedPackageConfig {
                     features.append(&mut cpp_features.clone());
                 }
 
-                if let Some(c_features) = compile_options.c_flags {
-                    features.append(&mut c_features.clone());
-                }
-
-                if let Some(cpp_flags) = compile_options.cpp_flags {
-                    features.append(&mut cpp_flags.clone());
-                }
-
                 for feature in features.iter() {
                     result.push_str(&format!(
                         "target_compile_features(${{COMPILE_ID}} PRIVATE {})\n",
                         feature
+                    ));
+                }
+
+                let mut flags: Vec<String> = vec![];
+
+                if let Some(cpp_flags) = compile_options.cpp_flags {
+                    flags.append(&mut cpp_flags.clone());
+                }
+
+                if let Some(c_flags) = compile_options.c_flags {
+                    flags.append(&mut c_flags.clone());
+                }
+
+                for flag in flags.iter() {
+                    result.push_str(&format!(
+                        "target_compile_options(${{COMPILE_ID}} PRIVATE {})\n",
+                        flag
                     ));
                 }
             }
