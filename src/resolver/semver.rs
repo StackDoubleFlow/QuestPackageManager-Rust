@@ -285,7 +285,7 @@ fn caret_0yz(minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
 fn caret_xyz(major: u64, minor: u64, patch: u64, pre: Prerelease) -> Range<Version> {
     greater_eq_xyz(major, minor, patch, pre).intersection(&less_xyz(
         major + 1,
-        minor,
+        0,
         0,
         Prerelease::EMPTY,
     ))
