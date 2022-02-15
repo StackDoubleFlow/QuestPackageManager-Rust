@@ -99,10 +99,11 @@ pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> 
         .arg("1")
         .arg("--recurse-submodules")
         .arg("--shallow-submodules")
-        .arg("--quiet");
+        .arg("--quiet")
+        .arg("--single-branch");
 
     if let Some(branch_unwrapped) = branch {
-        git.arg("--branch").arg(branch_unwrapped);
+        git.arg("-b").arg(branch_unwrapped);
     } else {
         println!("No branch name found, cloning default branch");
     }
