@@ -4,7 +4,12 @@ name: Pull Request Test
 on:
   pull_request:
     branches: [main]
-
+    paths-ignore:
+      - 'README.md'
+      - '**.json'
+      - '**.yml'
+      - 'LICENSE'
+      - '!.github/workflows/pull-request.yml'
 jobs:
   build:
     runs-on: ${{ matrix.os }}

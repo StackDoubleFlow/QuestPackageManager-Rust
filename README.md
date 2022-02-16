@@ -1,6 +1,6 @@
 # QuestPackageManager-Rust
 
-QPM but rusty
+QPM but rusty, this is a program that handles package downloading for quest modding, allowing modders to create packages to provide functionalities for mods.
 
 # Building the program
 
@@ -26,9 +26,9 @@ run the build command
 cargo build --release
 ```
 
-the executable should now be found in ./target/release/qpm-rust
+the executable should now be found in `./target/release/qpm-rust`
 
-if you want to use it like this, add it to path
+if you want to use it like this, add it to path or move it to a place of your choosing that's already added to path.
 
 # Downloading the program
 
@@ -38,4 +38,12 @@ Make sure you select the appropriate platform for your OS!
 
 Now that you have this downloaded, you can unzip it and store it where you want it. I keep my qpm-rust executable in `S:/QPM-RUST` (irrelevant but just an example)
 
-now you want to add the program to path so that you can run it from anywhere, 
+Now you want to add the program to path so that you can run it from anywhere, your best bet is to just google how to do this for your platform. just make sure that after you add it to path you restart any terminals you had left open.
+
+Now to check if you installed it right you can run
+
+```
+qpm-rust --help
+```
+
+and you'll get a handy help message to get you on your way to using this program

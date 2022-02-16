@@ -4,6 +4,12 @@ name: Cargo Build
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - '**.json'
+      - '**.yml'
+      - 'LICENSE'
+      - '!.github/workflows/cargo-build.yml'
 
 jobs:
   build:
