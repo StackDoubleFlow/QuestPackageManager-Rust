@@ -37,7 +37,7 @@ jobs:
         target: ../
     
     - name: Install Inno Setup
-      run: '../is.exe /VERYSILENT /NORESTART /ALLUSERS'
+        run: '../is.exe /VERYSILENT /NORESTART /ALLUSERS'
     
       - name: Cargo build
         uses: actions-rs/cargo@v1
