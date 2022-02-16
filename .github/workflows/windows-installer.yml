@@ -1,6 +1,14 @@
 name: Windows Installer
 
-on: [push]
+on: 
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - '**.json'
+      - '**.yml'
+      - 'LICENSE'
+      - '!.github/workflows/cargo-build.yml'
 
 jobs:
   build:
@@ -8,7 +16,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       - uses: actions-rs/toolchain@v1
         with:
