@@ -87,7 +87,7 @@ end;
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
     if CurStep = ssPostInstall
-     then EnvAddPath(ExpandConstant('{app}'));
+    then EnvAddPath(ExpandConstant('{app}'));
 end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
@@ -105,3 +105,7 @@ Source: "..\target\release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignorevers
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 
+[UninstallRun]
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}"
