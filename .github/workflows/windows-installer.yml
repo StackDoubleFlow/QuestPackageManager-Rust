@@ -8,7 +8,7 @@ on:
       - '**.json'
       - '**.yml'
       - 'LICENSE'
-      - '!.github/workflows/cargo-build.yml'
+      - '!.github/workflows/windows-installer.yml'
 
 jobs:
   build:
