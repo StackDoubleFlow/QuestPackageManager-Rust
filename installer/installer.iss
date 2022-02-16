@@ -33,6 +33,68 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
 
+; Taken from https://stackoverflow.com/a/46609047/11395424. Credit to author Wojciech Mleczek
+; Adds qpm-rust to PATH on installation and remove on uninstallation
+[Code]
+const SystemEnvironmentKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+const UserEnvironmentKey = 'Environment';
+function GetPathValue(var ResultStr: String): Boolean;
+begin
+    if IsAdmin()
+    then Result := RegQueryStringValue(HKEY_LOCAL_MACHINE, SystemEnvironmentKey, 'Path', ResultStr)
+    else Result := RegQueryStringValue(HKEY_CURRENT_USER, UserEnvironmentKey, 'Path', ResultStr);
+end;
+function SetPathValue(Paths: string): Boolean;
+begin
+    if IsAdmin()
+    then Result := RegWriteStringValue(HKEY_LOCAL_MACHINE, SystemEnvironmentKey, 'Path', Paths)
+    else Result := RegWriteStringValue(HKEY_CURRENT_USER, UserEnvironmentKey, 'Path', Paths)
+end;
+procedure EnvAddPath(Path: string);
+var
+    Paths: string;
+begin
+    { Retrieve current path (use empty string if entry not exists) }
+    if not GetPathValue(Paths)
+    then Paths := '';
+    { Skip if string already found in path }
+    if Pos(';' + Uppercase(Path) + ';', ';' + Uppercase(Paths) + ';') > 0 then exit;
+    { App string to the end of the path variable }
+    Paths := Paths + ';'+ Path +';'
+    { Overwrite (or create if missing) path environment variable }
+    if SetPathValue(Paths)
+    then Log(Format('The [%s] added to PATH: [%s]', [Path, Paths]))
+    else Log(Format('Error while adding the [%s] to PATH: [%s]', [Path, Paths]));
+end;
+procedure EnvRemovePath(Path: string);
+var
+    Paths: string;
+    P: Integer;
+begin
+    { Skip if registry entry not exists }
+    if not GetPathValue(Paths) then
+        exit;
+    { Skip if string not found in path }
+    P := Pos(';' + Uppercase(Path) + ';', ';' + Uppercase(Paths) + ';');
+    if P = 0 then exit;
+    { Update path variable }
+    Delete(Paths, P - 1, Length(Path) + 1);
+    { Overwrite path environment variable }
+    if SetPathValue(Paths)
+    then Log(Format('The [%s] removed from PATH: [%s]', [Path, Paths]))
+    else Log(Format('Error while removing the [%s] from PATH: [%s]', [Path, Paths]));
+end;
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+    if CurStep = ssPostInstall
+     then EnvAddPath(ExpandConstant('{app}'));
+end;
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+    if CurUninstallStep = usPostUninstall
+    then EnvRemovePath(ExpandConstant('{app}'));
+end;
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
