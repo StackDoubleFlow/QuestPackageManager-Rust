@@ -32,7 +32,8 @@ if you want to use it like this, add it to path or move it to a place of your ch
 
 # Downloading the program
 
-Download qpm-rust from the [latest github actions build](https://github.com/RedBrumbler/QuestPackageManager-Rust/actions/workflows/cargo-build.yml).
+Download qpm-rust from the [latest github actions build](https://github.com/RedBrumbler/QuestPackageManager-Rust/actions/workflows/cargo-build.yml), or if you're on windows [Download the installer](https://github.com/RedBrumbler/QuestPackageManager-Rust/actions/workflows/windows-installer.yml) from the latest action since that's easier. then you can also disregard the next instructions unless you absolutely want to get the executable yourself.
+
 if nothing shows up, make sure you're logged in, if nothing still shows up we might have to manually make it generate a new version
 Make sure you select the appropriate platform for your OS!
 
