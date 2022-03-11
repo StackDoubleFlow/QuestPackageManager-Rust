@@ -82,7 +82,7 @@ impl SharedDependency {
         let lib_path = base_path.join("lib");
         let tmp_path = base_path.join("tmp");
 
-        let shared_package = self.dependency.get_shared_package().unwrap();
+        let shared_package = self.get_shared_package();
 
         let so_path = lib_path.join(shared_package.config.get_so_name());
         let debug_so_path = lib_path.join(format!("debug_{}", shared_package.config.get_so_name()));
