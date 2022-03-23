@@ -1,5 +1,6 @@
 use std::io::{Cursor, Read, Write};
 
+use owo_colors::OwoColorize;
 //use duct::cmd;
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +16,10 @@ pub fn check_git() {
             println!("git detected on command line!");
         }
         Err(_e) => {
-            panic!("Please make sure git is installed an on path, then try again!");
+            panic!(
+                "Please make sure git ({}) is installed an on path, then try again!",
+                "https://git-scm.com/downloads".bright_yellow()
+            );
         }
     }
 }
