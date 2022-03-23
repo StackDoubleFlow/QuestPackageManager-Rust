@@ -16,9 +16,20 @@ pub fn check_git() {
             println!("git detected on command line!");
         }
         Err(_e) => {
+            #[cfg(windows)]
             panic!(
                 "Please make sure git ({}) is installed an on path, then try again!",
-                "https://git-scm.com/downloads".bright_yellow()
+                "https://git-scm.com/download/windows".bright_yellow()
+            );
+            #[cfg(target_os = "linux")]
+            panic!(
+                "Please make sure git ({}) is installed an on path, then try again!",
+                "https://git-scm.com/download/linux".bright_yellow()
+            );
+            #[cfg(target_os = "macos")]
+            panic!(
+                "Please make sure git ({}) is installed an on path, then try again!",
+                "https://git-scm.com/download/mac".bright_yellow()
             );
         }
     }
