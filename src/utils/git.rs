@@ -5,7 +5,23 @@ use serde::{Deserialize, Serialize};
 
 use crate::data::config::get_keyring;
 
+pub fn check_git() {
+    let mut git = std::process::Command::new("git");
+    git.arg("--version");
+
+    match git.output() {
+        Ok(_) => {
+            #[cfg(debug_assertions)]
+            println!("git detected on command line!");
+        }
+        Err(_e) => {
+            panic!("Please make sure git is installed an on path, then try again!");
+        }
+    }
+}
+
 pub fn get_release(url: String, out: &std::path::Path) -> bool {
+    check_git();
     if let Ok(token_unwrapped) = get_keyring().get_password() {
         get_release_with_token(url, out, &token_unwrapped)
     } else {
@@ -81,6 +97,7 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
 }
 
 pub fn clone(mut url: String, branch: Option<String>, out: &std::path::Path) -> bool {
+    check_git();
     if let Ok(token_unwrapped) = get_keyring().get_password() {
         if let Some(gitidx) = url.find("github.com") {
             url.insert_str(gitidx, &format!("{}@", token_unwrapped));

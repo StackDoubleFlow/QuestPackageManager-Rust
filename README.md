@@ -48,3 +48,10 @@ qpm-rust --help
 ```
 
 and you'll get a handy help message to get you on your way to using this program
+
+# Requirements for using the program properly
+
+To use the program properly with quest modding, you might also want to install the following programs, and make sure they are on path:
+ - [Git](https://git-scm.com/downloads), used for downloading the repos that packages are stored on
+ - [CMake](https://cmake.org/install/), generally used for compiling mods that use qpm-rust
+ - [Ninja](https://ninja-build.org/), Used for building mods with cmake
