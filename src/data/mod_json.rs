@@ -58,7 +58,7 @@ pub struct ModJson {
 impl Default for ModJson {
     fn default() -> Self {
         Self {
-            schema_version: Version::new(0, 1, 2),
+            schema_version: Version::new(0, 1, 1),
             name: Default::default(),
             id: Default::default(),
             author: Default::default(),
