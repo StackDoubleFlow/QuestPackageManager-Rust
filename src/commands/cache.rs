@@ -76,13 +76,12 @@ fn legacy_fix() {
         .max_depth(2)
     {
         let path = entry.unwrap().into_path().join("src");
+        println!("{}", path.display());
         let qpm_path = path.join("qpm.json");
-
-        let shared_path = if qpm_path.exists() {
-            path.join(PackageConfig::read_path(qpm_path).shared_dir)
-        } else {
-            path.join("shared")
-        };
+        if !qpm_path.exists() {
+            continue;
+        }
+        let shared_path = path.join(PackageConfig::read_path(qpm_path).shared_dir);
 
         for entry in WalkDir::new(shared_path) {
             let entry_path = entry.unwrap().into_path();
