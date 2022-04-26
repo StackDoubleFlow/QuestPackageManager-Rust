@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-use clap::{Subcommand};
+use clap::Subcommand;
 use owo_colors::OwoColorize;
 use remove_dir_all::remove_dir_contents;
 use walkdir::WalkDir;
@@ -76,9 +76,13 @@ fn legacy_fix() {
         .max_depth(2)
     {
         let path = entry.unwrap().into_path().join("src");
-        let package = PackageConfig::read_path(path.join("qpm.json"));
+        let qpm_path = path.join("qpm.json");
 
-        let shared_path = path.join(package.shared_dir);
+        let shared_path = if qpm_path.exists() {
+            path.join(PackageConfig::read_path(qpm_path).shared_dir)
+        } else {
+            path.join("shared")
+        };
 
         for entry in WalkDir::new(shared_path) {
             let entry_path = entry.unwrap().into_path();
