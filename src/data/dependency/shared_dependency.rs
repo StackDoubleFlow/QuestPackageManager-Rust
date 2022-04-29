@@ -108,10 +108,8 @@ impl SharedDependency {
             } else {
                 // not a github url, assume it's a zip
                 let mut buffer = Cursor::new(Vec::new());
-                ureq::get(&url)
-                    .call()
+                reqwest::blocking::get(&url)
                     .unwrap()
-                    .into_reader()
                     .read_to_end(buffer.get_mut())
                     .unwrap();
                 // Extract to tmp folder
@@ -174,10 +172,8 @@ impl SharedDependency {
                     } else {
                         // other dl link, assume it's a raw lib file download
                         let mut buffer = Cursor::new(Vec::new());
-                        ureq::get(&so_link)
-                            .call()
+                        reqwest::blocking::get(&so_link)
                             .unwrap()
-                            .into_reader()
                             .read_to_end(buffer.get_mut())
                             .unwrap();
                         let mut file =
@@ -199,10 +195,8 @@ impl SharedDependency {
                     } else {
                         // other dl link, assume it's a raw lib file download
                         let mut buffer = Cursor::new(Vec::new());
-                        ureq::get(&debug_so_link)
-                            .call()
+                        reqwest::blocking::get(&debug_so_link)
                             .unwrap()
-                            .into_reader()
                             .read_to_end(buffer.get_mut())
                             .unwrap();
                         let mut file =

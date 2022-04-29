@@ -46,10 +46,8 @@ pub fn get_release(url: String, out: &std::path::Path) -> bool {
 
 pub fn get_release_without_token(url: String, out: &std::path::Path) -> bool {
     let mut buffer = Cursor::new(Vec::new());
-    ureq::get(&url)
-        .call()
+    reqwest::blocking::get(&url)
         .unwrap()
-        .into_reader()
         .read_to_end(buffer.get_mut())
         .unwrap();
     let mut file = std::fs::File::create(out).expect("create so file failed");
@@ -79,8 +77,8 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
         &token, &user, &repo, &tag
     );
 
-    let data = match ureq::get(&asset_data_link).call() {
-        Ok(o) => o.into_json::<GithubReleaseData>().unwrap(),
+    let data = match reqwest::blocking::get(&asset_data_link) {
+        Ok(o) => o.json::<GithubReleaseData>().unwrap(),
         Err(e) => {
             let error_string = e.to_string().replace(&token, "***");
             panic!("{}", error_string);
@@ -95,10 +93,8 @@ pub fn get_release_with_token(url: String, out: &std::path::Path, token: &str) -
                 .url
                 .replace("api.github.com", &format!("{}@api.github.com", token));
 
-            ureq::get(&download)
-                .call()
+            reqwest::blocking::get(&download)
                 .unwrap()
-                .into_reader()
                 .read_to_end(buffer.get_mut())
                 .unwrap();
             let mut file = std::fs::File::create(out).expect("create so file failed");
